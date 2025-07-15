@@ -19,14 +19,26 @@ images = {}
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH_TAB1 = OUTPUT_PATH / Path(r"Elements\Page_1(Welcome_page)\assets\frame0")
 ASSETS_PATH_TAB2 = OUTPUT_PATH / Path(r"Elements\Page_2(Capa)\assets\frame0")
-
-
+ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"Elements\Page_3(SG)\assets\frame0")
+ASSETS_PATH_TAB4 = OUTPUT_PATH / Path(r"Elements\Page_4(EMV)\assets\frame0")
+ASSETS_PATH_TAB5 = OUTPUT_PATH / Path(r"Elements\Page_5(NFC)\assets\frame0")
+ASSETS_PATH_TAB6 = OUTPUT_PATH / Path(r"Elements\Page_6(CAN-LIN)\assets\frame0")
 
 def relative_to_assets(path: str, tab: str) -> Path:
     if tab == "tab1":
         return ASSETS_PATH_TAB1 / Path(path)
-    elif tab == "tab2" or "tab3":
+    elif tab == "tab2":
         return ASSETS_PATH_TAB2 / Path(path)
+    elif tab == "tab3":
+        return ASSETS_PATH_TAB3 / Path(path)
+    elif tab == "tab4":
+        return ASSETS_PATH_TAB4 / Path(path)
+    elif tab == "tab5":
+        return ASSETS_PATH_TAB5 / Path(path)
+    elif tab == "tab6":
+        return ASSETS_PATH_TAB6 / Path(path)
+    else:
+        raise Exception
 
 # Create the main window
 window = tk.Tk()
@@ -654,6 +666,324 @@ canvas4.create_text(
     fill="#FF0202",
     font=("Inter SemiBold", 11 * -1)
 )
+
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 5 (NFC Test) =======================================================================================
+
+
+tab5 = ttk.Frame(notebook)
+notebook.add(tab5, text="NFC")
+
+tab5_frame = tk.Frame(tab5, bg="#DFDFDF")
+tab5_frame.pack(fill="both", expand=True)
+
+canvas5 = tk.Canvas(
+    tab5_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas5.place(x=0, y=0)
+
+# ===================================================================================================================
+# ========== Tile-1 =================================================================================================
+
+images["tile_tab5"] = PhotoImage(file=relative_to_assets("Tile_NFC.png", "tab5")) 
+canvas5.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab5"])
+
+canvas5.create_text(73.0, 113.0, anchor="nw", text="Configure NFC Antenna", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas5.create_text(73.0, 168.0, anchor="nw", text="Set VDDPA", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(73.0, 214.0, anchor="nw", text="Set RSSI", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(73.0, 260.0, anchor="nw", text="Set RSSI HYST", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+tab5_entry_1 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
+tab5_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+
+tab5_entry_2 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
+tab5_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
+
+tab5_entry_3 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
+tab5_entry_3.place(x=306.0, y=260.0, width=95.0, height=20.0)
+
+images["tab5_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
+tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
+tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
+
+# ===================================================================================================================
+# ========== Tile-2 =================================================================================================
+
+images["tile2_tab5"] = PhotoImage(file=relative_to_assets("Tile_NFC.png", "tab5")) 
+canvas5.create_image((tablet1_X + 475), (tablet1_Y + 10), image=images["tile2_tab5"])
+
+canvas5.create_text(560.0, 113.0, anchor="nw", text="NFC Antenna Data Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas5.create_text(560.0, 168.0, anchor="nw", text="Impedence (Ohm)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(560.0, 214.0, anchor="nw", text="SPI Data", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(560.0, 260.0, anchor="nw", text="Data", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+
+tab5_entry4 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
+tab5_entry4.place(x=780.0, y=168.0, width=95.0, height=20.0)
+
+tab5_entry5 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
+tab5_entry5.place(x=780.0, y=214.0, width=95.0, height=20.0)
+
+tab6_entry5 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
+tab6_entry5.place(x=780.0, y=260.0, width=95.0, height=20.0)
+
+
+
+images["tab5_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
+tab5_run_test_tile2 = Button(tab5, image=images["tab5_tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
+tab5_run_test_tile2.place(x=840 , y=106, width=34, height=34)
+
+
+# ===================================================================================================================
+# ========== Footerbar ==============================================================================================
+
+images["tab5_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab5")) #Footer bar
+canvas5.create_image(500, 606, image=images["tab5_footerbar"])
+
+canvas5.create_text(
+    22.0,
+    580.0,
+    anchor="nw",
+    text="Set power supply voltage",
+    fill="#282828",
+    font=("Inter Bold", 16 * -1)
+)
+
+tab5_entry7 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
+tab5_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
+
+images["tab5_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
+tab5_setvoltage = Button(tab5, image=images["tab5_set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab5_setvoltage.place(x=413, y=576, width=25, height=26)
+
+canvas5.create_text(
+    22.0,
+    613.0,
+    anchor="nw",
+    text="Get power supply voltage",
+    fill="#282828",
+    font=("Inter SemiBold", 16 * -1)
+)
+
+tab5_entry8 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
+tab5_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
+
+images["tab5_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
+tab5_getvoltage = Button(tab5, image=images["tab5_get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab5_getvoltage.place(x=413, y=610, width=25, height=26)
+
+# ===================================================================================================================
+# ========== Toolbar ================================================================================================
+
+images["tab5_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab5")) #tool bar
+canvas5.create_image(179, 19, image=images["tab5_toptoolbar"])
+
+images["tab5_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
+tab5_toolbar_playbutton1 = Button(tab5, image=images["tab5_toolbar_playbutton1"], command=lambda: print("Run code ..."), bd = 0)
+tab5_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
+
+canvas5.create_text(
+    168.0,
+    28.0,
+    anchor="nw",
+    text=" Run code",
+    fill="#6E6E6E",
+    font=("Inter SemiBold", 11 * -1)
+)
+
+
+
+images["tab5_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab5"))
+tab5_toolbar_pausebutton1 = Button(tab5, image=images["tab5_toolbar_pausebutton1"], command=lambda: print("pause code ... "), bd = 0)
+tab5_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
+
+canvas5.create_text(
+    80.0,
+    28.0,
+    anchor="nw",
+    text="Pause code",
+    fill="#6E6E6E",
+    font=("Inter SemiBold", 11 * -1)
+)
+
+
+images["tab5_toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab5"))
+tab5_toolbar_exitbutton1 = Button(tab5, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
+tab5_toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
+
+canvas5.create_text(
+    260.0,
+    28.0,
+    anchor="nw",
+    text="Exit",
+    fill="#FF0202",
+    font=("Inter SemiBold", 11 * -1)
+)
+
+
+
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 6 (CAN LIN) =======================================================================================
+
+
+tab6 = ttk.Frame(notebook)
+notebook.add(tab6, text="CAN/LIN")
+
+tab6_frame = tk.Frame(tab6, bg="#DFDFDF")
+tab6_frame.pack(fill="both", expand=True)
+
+canvas6 = tk.Canvas(
+    tab6_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas6.place(x=0, y=0)
+
+# ===================================================================================================================
+# ========== Tile-1 =================================================================================================
+
+images["tile_tab6"] = PhotoImage(file=relative_to_assets("Tile.png", "tab6")) 
+canvas6.create_image(364, 190, image=images["tile_tab6"])
+
+canvas6.create_text(61.0, 110.0, anchor="nw", text="CAN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas6.create_text(61.0, 144.0, anchor="nw", text="Transmit CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+
+tab6_entry_1 = ttk.Entry(tab6_frame, style ='Background_grey.TEntry')
+tab6_entry_1.place(x=61.0, y=168.0, width=250.0, height=20.0)
+
+tab6_entry_2 = ttk.Entry(tab6_frame, style ='Background_grey.TEntry')
+tab6_entry_2.place(x=61.0, y=230.0, width=250.0, height=20.0)
+
+
+
+images["tab6_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
+tab6_run_test_tile1 = Button(tab6, image=images["tab6_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
+tab6_run_test_tile1.place(x=630, y=105, width=33, height=33)
+
+# ===================================================================================================================
+# ========== Tile-2 =================================================================================================
+
+images["tile2_tab6"] = PhotoImage(file=relative_to_assets("Tile.png", "tab6")) 
+canvas6.create_image(612, 412, image=images["tile2_tab6"])
+
+canvas6.create_text(309.0, 328.0, anchor="nw", text="LIN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas6.create_text(309.0, 364.0, anchor="nw", text="Transmit LIN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(309.0, 427.0, anchor="nw", text="Receive LIN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+tab6_entry4 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
+tab6_entry4.place(x=309.0, y=389.0, width=250.0, height=20.0)
+
+tab6_entry5 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
+tab6_entry5.place(x=309.0, y=449.0, width=250.0, height=20.0)
+
+
+
+
+images["tab6_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
+tab6_run_test_tile2 = Button(tab6, image=images["tab6_tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
+tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
+
+
+# ===================================================================================================================
+# ========== Footerbar ==============================================================================================
+
+images["tab6_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab6")) #Footer bar
+canvas6.create_image(500, 606, image=images["tab6_footerbar"])
+
+canvas6.create_text(
+    22.0,
+    580.0,
+    anchor="nw",
+    text="Set power supply voltage",
+    fill="#282828",
+    font=("Inter Bold", 16 * -1)
+)
+
+tab6_entry7 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
+tab6_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
+
+images["tab6_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
+tab6_setvoltage = Button(tab6, image=images["tab6_set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab6_setvoltage.place(x=413, y=576, width=25, height=26)
+
+canvas6.create_text(
+    22.0,
+    613.0,
+    anchor="nw",
+    text="Get power supply voltage",
+    fill="#282828",
+    font=("Inter SemiBold", 16 * -1)
+)
+
+tab6_entry8 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
+tab6_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
+
+images["tab6_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
+tab6_getvoltage = Button(tab6, image=images["tab6_get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab6_getvoltage.place(x=413, y=610, width=26, height=26)
+
+# ===================================================================================================================
+# ========== Toolbar ================================================================================================
+
+images["tab6_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab6")) #tool bar
+canvas6.create_image(179, 19, image=images["tab6_toptoolbar"])
+
+images["tab6_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
+tab6_toolbar_playbutton1 = Button(tab6, image=images["tab6_toolbar_playbutton1"], command=lambda: print("Run code ..."), bd = 0)
+tab6_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
+
+canvas6.create_text(
+    168.0,
+    28.0,
+    anchor="nw",
+    text=" Run code",
+    fill="#6E6E6E",
+    font=("Inter SemiBold", 11 * -1)
+)
+
+
+
+images["tab6_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab6"))
+tab6_toolbar_pausebutton1 = Button(tab6, image=images["tab6_toolbar_pausebutton1"], command=lambda: print("pause code ... "), bd = 0)
+tab6_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
+
+canvas6.create_text(
+    80.0,
+    28.0,
+    anchor="nw",
+    text="Pause code",
+    fill="#6E6E6E",
+    font=("Inter SemiBold", 11 * -1)
+)
+
+
+images["tab6_toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab6"))
+tab6_toolbar_exitbutton1 = Button(tab6, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
+tab6_toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
+
+canvas6.create_text(
+    260.0,
+    28.0,
+    anchor="nw",
+    text="Exit",
+    fill="#FF0202",
+    font=("Inter SemiBold", 11 * -1)
+)
+
 
 
 
