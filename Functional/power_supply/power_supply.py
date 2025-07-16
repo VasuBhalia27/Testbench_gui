@@ -1,9 +1,11 @@
 import pyvisa
 import re
+import tkinter as tk
 
 # on connecting two supplies -- Found resources: ('USB0::0x5345::0x1235::23320657::INSTR', 'USB0::0x5345::0x1235::24150828::INSTR', 'ASRL4::INSTR', 'ASRL6::INSTR', 'ASRL7::INSTR', 'ASRL8::INSTR', 'ASRL10::INSTR', 'ASRL11::INSTR', 'ASRL13::INSTR', 'ASRL14::INSTR')
-
+power_sup_inst1 = ''
 rm = pyvisa.ResourceManager()
+
 
 def ConnectToPwrSup(usb_address):
     global power_sup_inst1
@@ -14,17 +16,24 @@ def ConnectToPwrSup(usb_address):
 
 
 
-def SetVoltage(requested_volt):
+def SetVoltage(entry_widget):
+    requested_volt = entry_widget.get()
     power_sup_inst1.write(f"VOLT {requested_volt}")
+
+def GetVoltage(entry_widget):
+    fetched_val = 0
+    fetched_val = power_sup_inst1.query("MEAS:VOLT?")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0,f"{fetched_val}")
 
 def SetCurrent(requested_volt):
        power_sup_inst1.write(f"CURR {requested_volt}")
 
-def PowerSupState(state):
-    if(state == "on"):
-        power_sup_inst1.write("OUTP ON")
-    if (state == "off"):
-        power_sup_inst1.write("OUTP OFF")
+def PowerSupOn():
+    power_sup_inst1.write("OUTP ON")
+
+def PowerSupOff():
+    power_sup_inst1.write("OUTP OFF")
 
 
 def MultiPowerSupHandler(resource_list_raw: str):
@@ -61,18 +70,11 @@ def Pwrcontrol_init():
 
     return usb_addr
 
-# if __name__ == "__main__":
 
-
-
-
-
-
-
-#     print("IDN = ", power_sup_inst1.query("*IDN?"))
-#     print("Voltage = ", power_sup_inst1.query("MEAS:VOLT?"))
-#     print("Current = ", power_sup_inst1.query("MEAS:CURR?"))
-
-#     SetVoltage(14)
-#     SetCurrent(3)
-#     PowerSupState("on")
+# def PowerSupState():
+#     global state
+#     if((state%2 == 0 ) or (state == 0)):
+#         power_sup_inst1.write("OUTP ON")
+#     if(state%2 != 0 ):
+#         power_sup_inst1.write("OUTP OFF")
+#     state += 1

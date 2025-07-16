@@ -2,8 +2,6 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
-import pyvisa
-import re
 from Functional.power_supply.power_supply import *
 
 
@@ -13,13 +11,14 @@ except Exception:
     ctypes.windll.user32.SetProcessDPIAware()
 
 
+# ===================================================================================================================
+# ========== fucntion definations ===================================================================================
+
 
 
 # ===================================================================================================================
 # ========== Initializations ========================================================================================
 
-
-power_sup_inst1 = ''
 usb_addr = Pwrcontrol_init() # power app initialization
 
 
@@ -68,7 +67,7 @@ entrybox_style = ttk.Style()
 entrybox_style.theme_use('clam')
 entrybox_style.configure('Background_grey.TEntry',
     fieldbackground='#DFDFDF',
-    foreground='#FFFFFF',
+    foreground="#2C2C2C",
     insertcolor='#FFFFFF'
 )
 
@@ -227,7 +226,7 @@ tab2_entry7 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
 
 images["set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab2"))
-tab2_setvoltage = Button(tab2, image=images["set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab2_setvoltage = Button(tab2, image=images["set_voltage_button"], command=lambda: SetVoltage(tab2_entry7), bd = 0)
 tab2_setvoltage.place(x=413, y=576, width=25, height=26)
 
 canvas2.create_text(
@@ -243,7 +242,7 @@ tab2_entry8 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
 
 images["get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab2"))
-tab2_getvoltage = Button(tab2, image=images["get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab2_getvoltage = Button(tab2, image=images["get_voltage_button"], command=lambda: GetVoltage(tab2_entry8), bd = 0)
 tab2_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
@@ -411,7 +410,7 @@ tab3_entry7 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
 tab3_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
 
 images["tab3_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab3"))
-tab3_setvoltage = Button(tab3, image=images["tab3_set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab3_setvoltage = Button(tab3, image=images["tab3_set_voltage_button"], command=lambda: SetVoltage(tab3_entry7), bd = 0)
 tab3_setvoltage.place(x=413, y=576, width=25, height=26)
 
 canvas3.create_text(
@@ -427,7 +426,7 @@ tab3_entry8 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
 tab3_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
 
 images["tab3_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab3"))
-tab3_getvoltage = Button(tab3, image=images["tab3_get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab3_getvoltage = Button(tab3, image=images["tab3_get_voltage_button"], command=lambda: GetVoltage(tab3_entry8), bd = 0)
 tab3_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
@@ -612,7 +611,7 @@ tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
 
 images["tab4_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab4"))
-tab4_setvoltage = Button(tab4, image=images["tab4_set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab4_setvoltage = Button(tab4, image=images["tab4_set_voltage_button"], command=lambda: SetVoltage(tab4_entry7), bd = 0)
 tab4_setvoltage.place(x=413, y=576, width=25, height=26)
 
 canvas4.create_text(
@@ -628,7 +627,7 @@ tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
 
 images["tab4_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab4"))
-tab4_getvoltage = Button(tab4, image=images["tab4_get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab4_getvoltage = Button(tab4, image=images["tab4_get_voltage_button"], command=lambda: GetVoltage(tab4_entry8), bd = 0)
 tab4_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
@@ -772,7 +771,7 @@ tab5_entry7 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
 tab5_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
 
 images["tab5_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
-tab5_setvoltage = Button(tab5, image=images["tab5_set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab5_setvoltage = Button(tab5, image=images["tab5_set_voltage_button"], command=lambda: SetVoltage(tab5_entry7), bd = 0)
 tab5_setvoltage.place(x=413, y=576, width=25, height=26)
 
 canvas5.create_text(
@@ -788,7 +787,7 @@ tab5_entry8 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
 tab5_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
 
 images["tab5_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
-tab5_getvoltage = Button(tab5, image=images["tab5_get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab5_getvoltage = Button(tab5, image=images["tab5_get_voltage_button"], command=lambda: GetVoltage(tab5_entry8), bd = 0)
 tab5_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
@@ -929,7 +928,7 @@ tab6_entry7 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
 
 images["tab6_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_setvoltage = Button(tab6, image=images["tab6_set_voltage_button"], command=lambda: SetVoltage(16), bd = 0)
+tab6_setvoltage = Button(tab6, image=images["tab6_set_voltage_button"], command=lambda: SetVoltage(tab6_entry7), bd = 0)
 tab6_setvoltage.place(x=413, y=576, width=25, height=26)
 
 canvas6.create_text(
@@ -945,7 +944,7 @@ tab6_entry8 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
 
 images["tab6_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_getvoltage = Button(tab6, image=images["tab6_get_voltage_button"], command=lambda: print("getvoltage..."), bd = 0)
+tab6_getvoltage = Button(tab6, image=images["tab6_get_voltage_button"], command=lambda: GetVoltage(tab6_entry8), bd = 0)
 tab6_getvoltage.place(x=413, y=610, width=26, height=26)
 
 # ===================================================================================================================
@@ -1024,14 +1023,23 @@ canvas6.place(x=0, y=0)
 
 
 
-canvas6.create_text(61.0, 144.0, anchor="nw", text="connect to power supply", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas6.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 144.0, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 
 
 
 images["tab7_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
 connect_to_Psupply = Button(tab7, image=images["tab7_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
 connect_to_Psupply.place(x=261, y=144, width=33, height=33)
+
+images["tab7_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
+pwr_sup_onoff = Button(tab7, image=images["tab7_tile1_run_test"], command=PowerSupOn, bd = 0)
+pwr_sup_onoff.place(x=261, y=207, width=33, height=33)
+
+images["tab7_tile1_run_test2"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
+pwr_sup_onoff = Button(tab7, image=images["tab7_tile1_run_test"], command=PowerSupOff, bd = 0)
+pwr_sup_onoff.place(x=261, y=263, width=33, height=33)
 
 
 # ===================================================================================================================
