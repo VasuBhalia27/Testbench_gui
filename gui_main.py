@@ -2,14 +2,25 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
+import pyvisa
+import re
+from Functional.power_supply.power_supply import *
 
-# ===================================================================================================================
-# ========== Initializations ========================================================================================
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
     ctypes.windll.user32.SetProcessDPIAware()
+
+
+
+
+# ===================================================================================================================
+# ========== Initializations ========================================================================================
+
+
+power_sup_inst1 = ''
+usb_addr = Pwrcontrol_init() # power app initialization
 
 
 # Define global image reference dictionary to prevent garbage collection
@@ -36,6 +47,8 @@ def relative_to_assets(path: str, tab: str) -> Path:
     elif tab == "tab5":
         return ASSETS_PATH_TAB5 / Path(path)
     elif tab == "tab6":
+        return ASSETS_PATH_TAB6 / Path(path)
+    elif tab == "tab7":
         return ASSETS_PATH_TAB6 / Path(path)
     else:
         raise Exception
@@ -68,7 +81,6 @@ tablet1_Y = 192
 
 # ===================================================================================================================
 # ========== TAB 1 ==================================================================================================
-
 
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text="Versions")
@@ -917,7 +929,7 @@ tab6_entry7 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
 
 images["tab6_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_setvoltage = Button(tab6, image=images["tab6_set_voltage_button"], command=lambda: print("setvoltage..."), bd = 0)
+tab6_setvoltage = Button(tab6, image=images["tab6_set_voltage_button"], command=lambda: SetVoltage(16), bd = 0)
 tab6_setvoltage.place(x=413, y=576, width=25, height=26)
 
 canvas6.create_text(
@@ -984,9 +996,42 @@ canvas6.create_text(
     font=("Inter SemiBold", 11 * -1)
 )
 
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 7 (Settings) =======================================================================================
+
+
+tab7 = ttk.Frame(notebook)
+notebook.add(tab7, text="Settings")
+
+tab7_frame = tk.Frame(tab7, bg="#DFDFDF")
+tab7_frame.pack(fill="both", expand=True)
+
+canvas6 = tk.Canvas(
+    tab7_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas6.place(x=0, y=0)
+
+# ===================================================================================================================
+# ========== Tile-1 =================================================================================================
 
 
 
+
+canvas6.create_text(61.0, 144.0, anchor="nw", text="connect to power supply", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#000000", font=("Inter SemiBold", 15 * -1))
+
+
+
+images["tab7_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
+connect_to_Psupply = Button(tab7, image=images["tab7_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
+connect_to_Psupply.place(x=261, y=144, width=33, height=33)
 
 
 # ===================================================================================================================
