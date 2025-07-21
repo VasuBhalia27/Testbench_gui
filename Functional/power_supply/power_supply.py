@@ -6,6 +6,10 @@ import tkinter as tk
 power_sup_inst1 = ''
 rm = pyvisa.ResourceManager()
 
+def DoNothing():
+    """do nothing function"""
+    return
+
 
 def ConnectToPwrSup(usb_address):
     global power_sup_inst1
@@ -65,10 +69,13 @@ def Pwrcontrol_init():
     avalible_devices = rm.list_resources()
 
     usb_addrs = MultiPowerSupHandler(avalible_devices)
-
-    usb_addr = usb_addrs[0]
-
-    return usb_addr
+    
+    if usb_addrs is not None:
+        usb_addr = usb_addrs[0]
+        return usb_addr
+    
+    else:
+        return usb_addr
 
 
 # def PowerSupState():

@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
 from Functional.power_supply.power_supply import *
-
+from Functional.trace32.trace32 import *
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -12,8 +12,7 @@ except Exception:
 
 
 # ===================================================================================================================
-# ========== fucntion definations ===================================================================================
-
+# ========== function definations ===================================================================================
 
 
 # ===================================================================================================================
@@ -528,7 +527,7 @@ canvas4.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab
 
 canvas4.create_text(560.0, 113.0, anchor="nw", text="BATT Monitor (DID 102)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas4.create_text(560.0, 168.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(560.0, 214.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(560.0, 214.0, anchor="nw", text="Get Vbatt value", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
@@ -539,7 +538,7 @@ tab4_entry4.place(x=780.0, y=214.0, width=95.0, height=20.0)
 
 
 images["tab4_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile2 = Button(tab4, image=images["tab4_tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
+tab4_run_test_tile2 = Button(tab4, image=images["tab4_tile2_run_test"], command= DoNothing, bd = 0)
 tab4_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 
 # ===================================================================================================================
@@ -561,7 +560,7 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
 
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: print("tile three capa run test ..."), bd = 0)
+tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal_EOS(tab4_entry6), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 # ===================================================================================================================
@@ -1026,21 +1025,34 @@ canvas6.place(x=0, y=0)
 canvas6.create_text(61.0, 144.0, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas6.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas6.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+
 
 
 
 images["tab7_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-connect_to_Psupply = Button(tab7, image=images["tab7_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
+if (usb_addr == None):
+    connect_to_Psupply = Button(tab7, image=images["tab7_tile1_run_test"], command=DoNothing, bd = 0)
+else:
+    connect_to_Psupply = Button(tab7, image=images["tab7_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
 connect_to_Psupply.place(x=261, y=144, width=33, height=33)
 
 images["tab7_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-pwr_sup_onoff = Button(tab7, image=images["tab7_tile1_run_test"], command=PowerSupOn, bd = 0)
-pwr_sup_onoff.place(x=261, y=207, width=33, height=33)
+pwr_sup_on = Button(tab7, image=images["tab7_tile1_run_test"], command=PowerSupOn, bd = 0)
+pwr_sup_on.place(x=261, y=207, width=33, height=33)
 
 images["tab7_tile1_run_test2"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-pwr_sup_onoff = Button(tab7, image=images["tab7_tile1_run_test"], command=PowerSupOff, bd = 0)
-pwr_sup_onoff.place(x=261, y=263, width=33, height=33)
+pwr_sup_off = Button(tab7, image=images["tab7_tile1_run_test"], command=PowerSupOff, bd = 0)
+pwr_sup_off.place(x=261, y=263, width=33, height=33)
 
+images["tab7_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
+connect_trace32 = Button(tab7, image=images["tab7_tile1_run_test"], command=Trace32ConnectApp, bd = 0)
+connect_trace32.place(x=261, y=319, width=33, height=33)
+
+images["tab7_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
+disconnect_trace32 = Button(tab7, image=images["tab7_tile1_run_test"], command=QuitTrace32, bd = 0)
+disconnect_trace32.place(x=261, y=375, width=33, height=33)
 
 # ===================================================================================================================
 # ========== EXIT ==================================================================================================
