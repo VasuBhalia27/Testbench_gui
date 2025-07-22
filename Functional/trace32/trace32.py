@@ -48,6 +48,9 @@ def SendCmdToDbg(command):
 def RunCode():
     dbg.cmd("Go")
 
+def PauseCode():
+    dbg.cmd("Break")
+
 def QuitTrace32():
     dbg.exit()
 

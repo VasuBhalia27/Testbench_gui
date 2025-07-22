@@ -70,12 +70,12 @@ def Pwrcontrol_init():
 
     usb_addrs = MultiPowerSupHandler(avalible_devices)
     
-    if usb_addrs is not None:
+    if (usb_addrs is not None) and (len(usb_addrs)>0):
         usb_addr = usb_addrs[0]
         return usb_addr
     
     else:
-        return usb_addr
+        return None
 
 
 # def PowerSupState():
