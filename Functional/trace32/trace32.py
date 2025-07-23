@@ -4,6 +4,7 @@ import time
 import tkinter as tk
 
 dbg = ''
+execution_status =''
 
 def LaunchTrace32():
     t32_exe = r"C:\Users\genericece\.conan2\p\tracee4f08930e322b\p\bin\windows64\t32marm.exe"
@@ -39,17 +40,46 @@ def SendDIDGetVal_EOS(entry_widget):
     val_master = dbg.fnc("Var.VALUE(TF_AiEosDiag)")
     entry_widget.delete(0, tk.END)
     entry_widget.insert(0, str(val_master))
+    
+def SendDIDGetVal_Motor(entry_widget):
+    dbg.cmd('Var.set TF_Command = 103')
+    time.sleep(0.5)
+    val_master = dbg.fnc("Var.VALUE(TF_AiMotorDiag)")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, str(val_master))
 
 
 
 def SendCmdToDbg(command):
     dbg.cmd(command)
+    
+def UpdateCodeExecLabel_running(exec_label):
+    exec_label.config(text = "Code Execution status: Running")
 
-def RunCode():
-    dbg.cmd("Go")
+def UpdateCodeExecLabel_notrunning(exec_label):
+    exec_label.config(text = "Code Execution status: Not Running")
+    
 
-def PauseCode():
+def RunCode(exec_label):
+    try:
+        dbg.cmd("Go")
+        UpdateCodeExecLabel_running(exec_label)
+        
+    except Exception as err:
+        msg, _, cmd_bytes = err.args
+        if msg == "target running":
+            UpdateCodeExecLabel_running(exec_label)
+            
+        else:
+            UpdateCodeExecLabel_notrunning(exec_label)
+        
+
+def PauseCode(exec_label):
+
     dbg.cmd("Break")
+    UpdateCodeExecLabel_notrunning(exec_label)
+
+
 
 def QuitTrace32():
     dbg.exit()

@@ -244,14 +244,22 @@ images["get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_vo
 tab2_getvoltage = Button(tab2, image=images["get_voltage_button"], command=lambda: GetVoltage(tab2_entry8), bd = 0)
 tab2_getvoltage.place(x=413, y=610, width=25, height=26)
 
+tab2_entry9 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
+tab2_entry9.place(x=800.0, y=575.0, width=150.0, height=60.0)
+
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
+code_exec_stat_lab = tk.Label(tab2, text="Code Execution status: Not running")
+code_exec_stat_lab.config(bg = "#DFDFDF")
+code_exec_stat_lab.place(x=750, y=10)
+# code_exec_stat_lab.pack()
+
 
 images["tab2_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab2")) #tool bar
 canvas2.create_image(179, 19, image=images["tab2_toptoolbar"])
 
 images["toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab2"))
-toolbar_playbutton = Button(tab2, image=images["toolbar_playbutton1"], command=RunCode, bd = 0)
+toolbar_playbutton = Button(tab2, image=images["toolbar_playbutton1"], command=lambda: RunCode(code_exec_stat_lab), bd = 0)
 toolbar_playbutton.place(x=182, y=5, width=26, height=26)
 
 canvas2.create_text(
@@ -266,7 +274,7 @@ canvas2.create_text(
 
 
 images["toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab2"))
-toolbar_pausebutton1 = Button(tab2, image=images["toolbar_pausebutton1"], command=PauseCode, bd = 0)
+toolbar_pausebutton1 = Button(tab2, image=images["toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
 toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
 
 canvas2.create_text(
@@ -291,6 +299,9 @@ canvas2.create_text(
     fill="#FF0202",
     font=("Inter SemiBold", 11 * -1)
 )
+
+
+
 
 
 
@@ -435,7 +446,7 @@ images["tab3_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png"
 canvas3.create_image(179, 19, image=images["tab3_toptoolbar"])
 
 images["tab3_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab3"))
-tab3_toolbar_playbutton1 = Button(tab3, image=images["tab3_toolbar_playbutton1"], command= RunCode, bd = 0)
+tab3_toolbar_playbutton1 = Button(tab3, image=images["tab3_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
 tab3_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
 
 canvas3.create_text(
@@ -450,7 +461,7 @@ canvas3.create_text(
 
 
 images["tab3_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab3"))
-tab3_toolbar_pausebutton1 = Button(tab3, image=images["tab3_toolbar_pausebutton1"], command=PauseCode, bd = 0)
+tab3_toolbar_pausebutton1 = Button(tab3, image=images["tab3_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
 tab3_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
 
 canvas3.create_text(
@@ -587,7 +598,7 @@ tab4_entry9.place(x=306+475, y=473.0, width=95.0, height=20.0)
 
 
 images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: print("tile four capa run test ..."), bd = 0)
+tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_Motor(tab4_entry9), bd = 0)
 tab4_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 
 
@@ -636,7 +647,7 @@ images["tab4_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png"
 canvas4.create_image(179, 19, image=images["tab4_toptoolbar"])
 
 images["tab4_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab4"))
-tab4_toolbar_playbutton1 = Button(tab4, image=images["tab4_toolbar_playbutton1"], command= RunCode, bd = 0)
+tab4_toolbar_playbutton1 = Button(tab4, image=images["tab4_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
 tab4_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
 
 canvas4.create_text(
@@ -651,7 +662,7 @@ canvas4.create_text(
 
 
 images["tab4_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab4"))
-tab4_toolbar_pausebutton1 = Button(tab4, image=images["tab4_toolbar_pausebutton1"], command=PauseCode, bd = 0)
+tab4_toolbar_pausebutton1 = Button(tab4, image=images["tab4_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
 tab4_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
 
 canvas4.create_text(
@@ -796,7 +807,7 @@ images["tab5_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png"
 canvas5.create_image(179, 19, image=images["tab5_toptoolbar"])
 
 images["tab5_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
-tab5_toolbar_playbutton1 = Button(tab5, image=images["tab5_toolbar_playbutton1"], command= RunCode, bd = 0)
+tab5_toolbar_playbutton1 = Button(tab5, image=images["tab5_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
 tab5_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
 
 canvas5.create_text(
@@ -811,7 +822,7 @@ canvas5.create_text(
 
 
 images["tab5_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab5"))
-tab5_toolbar_pausebutton1 = Button(tab5, image=images["tab5_toolbar_pausebutton1"], command=PauseCode, bd = 0)
+tab5_toolbar_pausebutton1 = Button(tab5, image=images["tab5_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
 tab5_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
 
 canvas5.create_text(
@@ -953,7 +964,7 @@ images["tab6_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png"
 canvas6.create_image(179, 19, image=images["tab6_toptoolbar"])
 
 images["tab6_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_toolbar_playbutton1 = Button(tab6, image=images["tab6_toolbar_playbutton1"], command= RunCode, bd = 0)
+tab6_toolbar_playbutton1 = Button(tab6, image=images["tab6_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
 tab6_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
 
 canvas6.create_text(
@@ -968,7 +979,7 @@ canvas6.create_text(
 
 
 images["tab6_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab6"))
-tab6_toolbar_pausebutton1 = Button(tab6, image=images["tab6_toolbar_pausebutton1"], command=PauseCode,  bd = 0)
+tab6_toolbar_pausebutton1 = Button(tab6, image=images["tab6_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab),  bd = 0)
 tab6_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
 
 canvas6.create_text(
