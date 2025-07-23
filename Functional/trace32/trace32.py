@@ -44,7 +44,14 @@ def SendDIDGetVal_EOS(entry_widget):
 def SendDIDGetVal_Motor(entry_widget):
     dbg.cmd('Var.set TF_Command = 103')
     time.sleep(0.5)
-    val_master = dbg.fnc("Var.VALUE(TF_AiMotorDiag)")
+    val_master = dbg.fnc("Var.VALUE(TF_MotorDiag)")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, str(val_master))
+    
+def SendDIDGetVal_LED(entry_widget):
+    dbg.cmd('Var.set TF_Command = 101')
+    time.sleep(0.5)
+    val_master = dbg.fnc("Var.VALUE(TF_AiLedDiag)")
     entry_widget.delete(0, tk.END)
     entry_widget.insert(0, str(val_master))
 
