@@ -12,7 +12,74 @@ except Exception:
 
 
 # ===================================================================================================================
-# ========== function definations ===================================================================================
+# ========== function/classes definations ===========================================================================
+
+class FooterBar:
+    def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, set_voltage_callback, get_voltage_callback):
+        self.parent = parent
+        self.tab = tab
+        self.tab_frame = tab_frame
+        self.canvas = canvas
+        self.images = images
+        self.relative_to_assets = relative_to_assets
+        self.set_voltage_callback = set_voltage_callback
+        self.get_voltage_callback = get_voltage_callback
+        
+        self.setup_ui()
+    
+    def setup_ui(self):
+        # Footer bar image
+        self.images[f"{self.tab}_footerbar"] = PhotoImage(file=self.relative_to_assets("footer_bar.png", "tab2"))
+        self.canvas.create_image(500, 606, image=self.images[f"{self.tab}_footerbar"])
+
+        # Set voltage controls
+        self.canvas.create_text(
+            22.0,
+            580.0,
+            anchor="nw",
+            text="Set power supply voltage",
+            fill="#282828",
+            font=("Inter Bold", 16 * -1)
+        )
+
+        self.voltage_set_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
+        self.voltage_set_entry.place(x=306.0, y=580.0, width=95.0, height=20.0)
+
+        self.images[f"{self.tab}set_voltage_button"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
+        self.set_voltage_btn = Button(
+            self.tab,
+            image=self.images[f"{self.tab}set_voltage_button"],
+            command=lambda: self.set_voltage_callback(self.voltage_set_entry),
+            bd=0
+        )
+        self.set_voltage_btn.place(x=413, y=576, width=25, height=26)
+
+        # Get voltage controls
+        self.canvas.create_text(
+            22.0,
+            613.0,
+            anchor="nw",
+            text="Get power supply voltage",
+            fill="#282828",
+            font=("Inter SemiBold", 16 * -1)
+        )
+
+        self.voltage_get_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
+        self.voltage_get_entry.place(x=306.0, y=613.0, width=95.0, height=20.0)
+
+        self.images[f"{self.tab}get_voltage_button"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
+        self.get_voltage_btn = Button(
+            self.tab,
+            image=self.images[f"{self.tab}get_voltage_button"],
+            command=lambda: self.get_voltage_callback(self.voltage_get_entry),
+            bd=0
+        )
+        self.get_voltage_btn.place(x=413, y=610, width=25, height=26)
+
+        # Additional entry (tab2_entry9 from original code)
+        self.additional_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
+        self.additional_entry.place(x=800.0, y=575.0, width=150.0, height=60.0)
+    
 
 
 # ===================================================================================================================
@@ -211,43 +278,16 @@ run_test_tile3.place(x=368, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-images["tab2_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab2")) #Footer bar
-canvas2.create_image(500, 606, image=images["tab2_footerbar"])
-
-canvas2.create_text(
-    22.0,
-    580.0,
-    anchor="nw",
-    text="Set power supply voltage",
-    fill="#282828",
-    font=("Inter Bold", 16 * -1)
+footer = FooterBar(
+    parent=window,  # or whatever your root window is
+    tab=tab2,
+    tab_frame=tab2_frame,
+    canvas=canvas2,
+    images=images,
+    relative_to_assets=relative_to_assets,
+    set_voltage_callback=SetVoltage,
+    get_voltage_callback=GetVoltage
 )
-
-tab2_entry7 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-images["set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab2"))
-tab2_setvoltage = Button(tab2, image=images["set_voltage_button"], command=lambda: SetVoltage(tab2_entry7), bd = 0)
-tab2_setvoltage.place(x=413, y=576, width=25, height=26)
-
-canvas2.create_text(
-    22.0,
-    613.0,
-    anchor="nw",
-    text="Get power supply voltage",
-    fill="#282828",
-    font=("Inter SemiBold", 16 * -1)
-)
-
-tab2_entry8 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-images["get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab2"))
-tab2_getvoltage = Button(tab2, image=images["get_voltage_button"], command=lambda: GetVoltage(tab2_entry8), bd = 0)
-tab2_getvoltage.place(x=413, y=610, width=25, height=26)
-
-tab2_entry9 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry9.place(x=800.0, y=575.0, width=150.0, height=60.0)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -406,40 +446,16 @@ tab3_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-images["tab3_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab3")) #Footer bar
-canvas3.create_image(500, 606, image=images["tab3_footerbar"])
-
-canvas3.create_text(
-    22.0,
-    580.0,
-    anchor="nw",
-    text="Set power supply voltage",
-    fill="#282828",
-    font=("Inter Bold", 16 * -1)
+footer = FooterBar(
+    parent=window,  # or whatever your root window is
+    tab=tab3,
+    tab_frame=tab3_frame,
+    canvas=canvas3,
+    images=images,
+    relative_to_assets=relative_to_assets,
+    set_voltage_callback=SetVoltage,
+    get_voltage_callback=GetVoltage
 )
-
-tab3_entry7 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-images["tab3_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab3"))
-tab3_setvoltage = Button(tab3, image=images["tab3_set_voltage_button"], command=lambda: SetVoltage(tab3_entry7), bd = 0)
-tab3_setvoltage.place(x=413, y=576, width=25, height=26)
-
-canvas3.create_text(
-    22.0,
-    613.0,
-    anchor="nw",
-    text="Get power supply voltage",
-    fill="#282828",
-    font=("Inter SemiBold", 16 * -1)
-)
-
-tab3_entry8 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-images["tab3_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab3"))
-tab3_getvoltage = Button(tab3, image=images["tab3_get_voltage_button"], command=lambda: GetVoltage(tab3_entry8), bd = 0)
-tab3_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -607,40 +623,16 @@ tab4_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-images["tab4_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab4")) #Footer bar
-canvas4.create_image(500, 606, image=images["tab4_footerbar"])
-
-canvas4.create_text(
-    22.0,
-    580.0,
-    anchor="nw",
-    text="Set power supply voltage",
-    fill="#282828",
-    font=("Inter Bold", 16 * -1)
+footer = FooterBar(
+    parent=window,  # or whatever your root window is
+    tab=tab4,
+    tab_frame=tab4_frame,
+    canvas=canvas4,
+    images=images,
+    relative_to_assets=relative_to_assets,
+    set_voltage_callback=SetVoltage,
+    get_voltage_callback=GetVoltage
 )
-
-tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-images["tab4_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab4"))
-tab4_setvoltage = Button(tab4, image=images["tab4_set_voltage_button"], command=lambda: SetVoltage(tab4_entry7), bd = 0)
-tab4_setvoltage.place(x=413, y=576, width=25, height=26)
-
-canvas4.create_text(
-    22.0,
-    613.0,
-    anchor="nw",
-    text="Get power supply voltage",
-    fill="#282828",
-    font=("Inter SemiBold", 16 * -1)
-)
-
-tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-images["tab4_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab4"))
-tab4_getvoltage = Button(tab4, image=images["tab4_get_voltage_button"], command=lambda: GetVoltage(tab4_entry8), bd = 0)
-tab4_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -767,40 +759,17 @@ tab5_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-images["tab5_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab5")) #Footer bar
-canvas5.create_image(500, 606, image=images["tab5_footerbar"])
-
-canvas5.create_text(
-    22.0,
-    580.0,
-    anchor="nw",
-    text="Set power supply voltage",
-    fill="#282828",
-    font=("Inter Bold", 16 * -1)
+footer = FooterBar(
+    parent=window,  # or whatever your root window is
+    tab=tab5,
+    tab_frame=tab5_frame,
+    canvas=canvas5,
+    images=images,
+    relative_to_assets=relative_to_assets,
+    set_voltage_callback=SetVoltage,
+    get_voltage_callback=GetVoltage
 )
 
-tab5_entry7 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
-tab5_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-images["tab5_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
-tab5_setvoltage = Button(tab5, image=images["tab5_set_voltage_button"], command=lambda: SetVoltage(tab5_entry7), bd = 0)
-tab5_setvoltage.place(x=413, y=576, width=25, height=26)
-
-canvas5.create_text(
-    22.0,
-    613.0,
-    anchor="nw",
-    text="Get power supply voltage",
-    fill="#282828",
-    font=("Inter SemiBold", 16 * -1)
-)
-
-tab5_entry8 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
-tab5_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-images["tab5_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
-tab5_getvoltage = Button(tab5, image=images["tab5_get_voltage_button"], command=lambda: GetVoltage(tab5_entry8), bd = 0)
-tab5_getvoltage.place(x=413, y=610, width=25, height=26)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -924,40 +893,17 @@ tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-images["tab6_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab6")) #Footer bar
-canvas6.create_image(500, 606, image=images["tab6_footerbar"])
-
-canvas6.create_text(
-    22.0,
-    580.0,
-    anchor="nw",
-    text="Set power supply voltage",
-    fill="#282828",
-    font=("Inter Bold", 16 * -1)
+footer = FooterBar(
+    parent=window,  # or whatever your root window is
+    tab=tab6,
+    tab_frame=tab6_frame,
+    canvas=canvas6,
+    images=images,
+    relative_to_assets=relative_to_assets,
+    set_voltage_callback=SetVoltage,
+    get_voltage_callback=GetVoltage
 )
 
-tab6_entry7 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-images["tab6_set_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_setvoltage = Button(tab6, image=images["tab6_set_voltage_button"], command=lambda: SetVoltage(tab6_entry7), bd = 0)
-tab6_setvoltage.place(x=413, y=576, width=25, height=26)
-
-canvas6.create_text(
-    22.0,
-    613.0,
-    anchor="nw",
-    text="Get power supply voltage",
-    fill="#282828",
-    font=("Inter SemiBold", 16 * -1)
-)
-
-tab6_entry8 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-images["tab6_get_voltage_button"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_getvoltage = Button(tab6, image=images["tab6_get_voltage_button"], command=lambda: GetVoltage(tab6_entry8), bd = 0)
-tab6_getvoltage.place(x=413, y=610, width=26, height=26)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -1018,7 +964,7 @@ notebook.add(tab7, text="LED Test")
 tab7_frame = tk.Frame(tab7, bg="#DFDFDF")
 tab7_frame.pack(fill="both", expand=True)
 
-canvas2 = tk.Canvas(
+canvas7 = tk.Canvas(
     tab7_frame,
     bg="#DFDFDF",
     height=651,
@@ -1027,17 +973,17 @@ canvas2 = tk.Canvas(
     highlightthickness=0,
     relief="ridge"
 )
-canvas2.place(x=0, y=0)
+canvas7.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
 
 images["tile_tab7"] = PhotoImage(file=relative_to_assets("Tile.png", "tab7")) 
-canvas2.create_image(tablet1_X, tablet1_Y, image=images["tile_tab7"])
+canvas7.create_image(tablet1_X, tablet1_Y, image=images["tile_tab7"])
 
-canvas2.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 168.0, anchor="nw", text="Get Led Test Value", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(73.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas7.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas7.create_text(73.0, 168.0, anchor="nw", text="Get Led Test Value", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas7.create_text(73.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 tab7_entry_1 = ttk.Entry(tab7_frame, style ='Background_grey.TEntry')
 tab7_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
@@ -1055,43 +1001,16 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-images["tab7_footerbar"] = PhotoImage(file=relative_to_assets("footer_bar.png", "tab7")) #Footer bar
-canvas2.create_image(500, 606, image=images["tab7_footerbar"])
-
-canvas2.create_text(
-    22.0,
-    580.0,
-    anchor="nw",
-    text="Set power supply voltage",
-    fill="#282828",
-    font=("Inter Bold", 16 * -1)
+footer = FooterBar(
+    parent=window,  # or whatever your root window is
+    tab=tab7,
+    tab_frame=tab7_frame,
+    canvas=canvas7,
+    images=images,
+    relative_to_assets=relative_to_assets,
+    set_voltage_callback=SetVoltage,
+    get_voltage_callback=GetVoltage
 )
-
-tab7_entry7 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
-tab7_entry7.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-images["set_voltage_button_tab7"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab7"))
-tab7_setvoltage = Button(tab7, image=images["set_voltage_button_tab7"], command=lambda: SetVoltage(tab7_entry7), bd = 0)
-tab7_setvoltage.place(x=413, y=576, width=25, height=26)
-
-canvas2.create_text(
-    22.0,
-    613.0,
-    anchor="nw",
-    text="Get power supply voltage",
-    fill="#282828",
-    font=("Inter SemiBold", 16 * -1)
-)
-
-tab7_entry8 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
-tab7_entry8.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-images["get_voltage_button_tab7"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab7"))
-tab7_getvoltage = Button(tab7, image=images["get_voltage_button_tab7"], command=lambda: GetVoltage(tab7_entry8), bd = 0)
-tab7_getvoltage.place(x=413, y=610, width=25, height=26)
-
-tab7_entry9 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
-tab7_entry9.place(x=800.0, y=575.0, width=150.0, height=60.0)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -1102,13 +1021,13 @@ code_exec_stat_lab.place(x=750, y=10)
 
 
 images["tab7_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab7")) #tool bar
-canvas2.create_image(179, 19, image=images["tab7_toptoolbar"])
+canvas7.create_image(179, 19, image=images["tab7_toptoolbar"])
 
 images["toolbar_playbutton1_tab7"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab7"))
 toolbar_playbutton = Button(tab7, image=images["toolbar_playbutton1_tab7"], command=lambda: RunCode(code_exec_stat_lab), bd = 0)
 toolbar_playbutton.place(x=182, y=5, width=26, height=26)
 
-canvas2.create_text(
+canvas7.create_text(
     168.0,
     28.0,
     anchor="nw",
@@ -1123,7 +1042,7 @@ images["toolbar_pausebutton1_tab7"] = PhotoImage(file=relative_to_assets("toolba
 toolbar_pausebutton1 = Button(tab7, image=images["toolbar_pausebutton1_tab7"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
 toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
 
-canvas2.create_text(
+canvas7.create_text(
     80.0,
     28.0,
     anchor="nw",
@@ -1137,7 +1056,7 @@ images["toolbar_exitbutton1_tab7"] = PhotoImage(file=relative_to_assets("toolbar
 toolbar_exitbutton1 = Button(tab7, image=images["toolbar_exitbutton1_tab7"], command=lambda: print("Exit ... "), bd = 0)
 toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
 
-canvas2.create_text(
+canvas7.create_text(
     260.0,
     28.0,
     anchor="nw",
