@@ -2,6 +2,26 @@ import lauterbach.trace32.rcl as t32
 import subprocess # module to create an additional process
 import time
 import tkinter as tk
+from enum import IntEnum, unique
+
+class TestFunctionCmd(IntEnum):
+    TF_VOLTAGE_CHECK_CMD       = 100
+    TF_LED_TEST_CMD            = 101
+    TF_BAT_MONT_CMD            = 102
+    TF_MOTOR_VOLTAGE_TEST_CMD  = 103
+    TF_MOTOR_CURRENTTEST_CMD   = 104
+    TF_EOS_TEST_CMD            = 105
+    TF_SG1PLUS_TEST_CMD        = 106
+    TF_SG1MINUS_TEST_CMD       = 107
+    TF_SG2PLUS_TEST_CMD        = 108
+    TF_SG2MINUS_TEST_CMD       = 109
+    TF_SG1_TEST_CMD            = 110
+    TF_SG2_TEST_CMD            = 111
+    TF_CAPA_TEST_CMD           = 112
+    TF_NFC_TEST_CMD            = 113
+    TF_CAN_TEST_CMD            = 114
+    TF_LIN_TEST_CMD            = 115
+    TF_INVALID_CMD             = 255
 
 dbg = ''
 execution_status =''
@@ -44,7 +64,7 @@ def SendDIDGetVal_EOS(entry_widget):
 def SendDIDGetVal_Motor(entry_widget):
     dbg.cmd('Var.set TF_Command = 103')
     time.sleep(0.5)
-    val_master = dbg.fnc("Var.VALUE(TF_MotorDiag)")
+    val_master = dbg.fnc("Var.VALUE(TF_AiMotorDiag)")
     entry_widget.delete(0, tk.END)
     entry_widget.insert(0, str(val_master))
     
@@ -54,8 +74,34 @@ def SendDIDGetVal_LED(entry_widget):
     val_master = dbg.fnc("Var.VALUE(TF_AiLedDiag)")
     entry_widget.delete(0, tk.END)
     entry_widget.insert(0, str(val_master))
+    
+def SendDIDGetVal_SG1Plus(entry_widget):
+    dbg.cmd('Var.set TF_Command = 106')
+    time.sleep(0.5)
+    val_master = dbg.fnc("Var.VALUE(TF_Sg1PlusOpamp)")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, str(val_master))
 
+def SendDIDGetVal_SG1Minus(entry_widget):
+    dbg.cmd('Var.set TF_Command = 107')
+    time.sleep(0.5)
+    val_master = dbg.fnc("Var.VALUE(TF_Sg1MinusOpamp)")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, str(val_master))
+    
+def SendDIDGetVal_SG2Plus(entry_widget):
+    dbg.cmd('Var.set TF_Command = 108')
+    time.sleep(0.5)
+    val_master = dbg.fnc("Var.VALUE(TF_Sg2PlusOpamp)")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, str(val_master))
 
+def SendDIDGetVal_SG2Minus(entry_widget):
+    dbg.cmd('Var.set TF_Command = 109')
+    time.sleep(0.5)
+    val_master = dbg.fnc("Var.VALUE(TF_Sg2MinusOpamp)")
+    entry_widget.delete(0, tk.END)
+    entry_widget.insert(0, str(val_master))
 
 def SendCmdToDbg(command):
     dbg.cmd(command)

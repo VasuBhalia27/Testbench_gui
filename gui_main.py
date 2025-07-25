@@ -79,6 +79,70 @@ class FooterBar:
         # Additional entry (tab2_entry9 from original code)
         self.additional_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
         self.additional_entry.place(x=800.0, y=575.0, width=150.0, height=60.0)
+        
+class  ToolBar:
+    def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
+        
+        self.parent = parent
+        self.tab = tab
+        self.tab_frame = tab_frame
+        self.canvas = canvas
+        self.images = images
+        self.relative_to_assets = relative_to_assets
+        self.run_code_callback = run_code_callback
+        self.pause_code_callback = pause_code_callback
+        
+        self.gui_for_toolbar()
+        
+    def gui_for_toolbar(self):
+        
+        self.code_exec_stat_lab = tk.Label(tab2, text="Code Execution status: Not running")
+        self.code_exec_stat_lab.config(bg = "#DFDFDF")
+        self.code_exec_stat_lab.place(x=750, y=10)
+        
+        self.images[f"{self.tab}tab6_toptoolbar"] = PhotoImage(file=self.relative_to_assets("top_toolbar.png", "tab6")) #tool bar
+        self.canvas.create_image(179, 19, image=self.images[f"{self.tab}tab6_toptoolbar"]) 
+        
+        self.canvas.create_text(
+        168.0,
+        28.0,
+        anchor="nw",
+        text=" Run code",
+        fill="#6E6E6E",
+        font=("Inter SemiBold", 11 * -1)
+        )
+        
+        self.canvas.create_text(
+            80.0,
+            28.0,
+            anchor="nw",
+            text="Pause code",
+            fill="#6E6E6E",
+            font=("Inter SemiBold", 11 * -1)
+        )
+        self.images[f"{self.tab}tab6_toolbar_pausebutton1"] = PhotoImage(file=self.relative_to_assets("toolbar_pausebutton.png", "tab6"))
+        self.toolbar_pausebutton = Button(self.tab, image=self.images[f"{self.tab}tab6_toolbar_pausebutton1"], command=lambda: self.pause_code_callback(self.code_exec_stat_lab),  bd = 0)
+        self.toolbar_pausebutton.place(x=100, y=5, width=22.99, height=22.99)
+        
+                
+        self.images[f"{self.tab}toolbar_playbutton1"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
+        self.toolbar_playbutton = Button(self.tab, image=images[f"{self.tab}toolbar_playbutton1"], command=lambda: self.run_code_callback(self.code_exec_stat_lab), bd = 0)
+        self.toolbar_playbutton.place(x=182, y=5, width=26, height=26)
+        
+        self.images[f"{self.tab}toolbar_exitbutton1"] = PhotoImage(file=self.relative_to_assets("toolbar_exitbutton.png", "tab2"))
+        self.toolbar_exitbutton = Button(self.tab, image=self.images[f"{self.tab}toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
+        self.toolbar_exitbutton.place(x=261, y=8, width=15, height=15)
+
+        self.canvas.create_text(
+            260.0,
+            28.0,
+            anchor="nw",
+            text="Exit",
+            fill="#FF0202",
+            font=("Inter SemiBold", 11 * -1)
+        )
+        
+        
     
 
 
@@ -291,57 +355,17 @@ footer = FooterBar(
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-code_exec_stat_lab = tk.Label(tab2, text="Code Execution status: Not running")
-code_exec_stat_lab.config(bg = "#DFDFDF")
-code_exec_stat_lab.place(x=750, y=10)
-# code_exec_stat_lab.pack()
 
-
-images["tab2_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab2")) #tool bar
-canvas2.create_image(179, 19, image=images["tab2_toptoolbar"])
-
-images["toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab2"))
-toolbar_playbutton = Button(tab2, image=images["toolbar_playbutton1"], command=lambda: RunCode(code_exec_stat_lab), bd = 0)
-toolbar_playbutton.place(x=182, y=5, width=26, height=26)
-
-canvas2.create_text(
-    168.0,
-    28.0,
-    anchor="nw",
-    text=" Run code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
+toolbar = ToolBar(
+    parent = window,
+    tab = tab2,
+    tab_frame = tab2_frame,
+    canvas = canvas2,
+    images = images,
+    relative_to_assets=relative_to_assets,
+    run_code_callback = RunCode,
+    pause_code_callback=PauseCode
 )
-
-
-
-images["toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab2"))
-toolbar_pausebutton1 = Button(tab2, image=images["toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
-toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
-
-canvas2.create_text(
-    80.0,
-    28.0,
-    anchor="nw",
-    text="Pause code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-images["toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab2"))
-toolbar_exitbutton1 = Button(tab2, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
-toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
-
-canvas2.create_text(
-    260.0,
-    28.0,
-    anchor="nw",
-    text="Exit",
-    fill="#FF0202",
-    font=("Inter SemiBold", 11 * -1)
-)
-
 
 
 
@@ -376,15 +400,15 @@ canvas3.place(x=0, y=0)
 images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(tablet1_X, tablet1_Y, image=images["tile_tab3"])
 
-canvas3.create_text(73.0, 113.0, anchor="nw", text="DO_DAC_SG0 Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(73.0, 168.0, anchor="nw", text="Set Op Amp (1200ohm)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(73.0, 113.0, anchor="nw", text="SG1_Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas3.create_text(73.0, 168.0, anchor="nw", text="SG1 Plus Test result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
 tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
 tab3_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
 images["tab3_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile1 = Button(tab3, image=images["tab3_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
+tab3_run_test_tile1 = Button(tab3, image=images["tab3_tile1_run_test"], command=lambda: SendDIDGetVal_SG1Plus(tab3_entry_1), bd = 0)
 tab3_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 # ===================================================================================================================
@@ -393,17 +417,17 @@ tab3_run_test_tile1.place(x=368, y=106, width=34, height=34)
 images["tile2_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab3"])
 
-canvas3.create_text(560.0, 113.0, anchor="nw", text="DO_DAC1_SG1 Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(560.0, 168.0, anchor="nw", text="Set Op Amp (1200ohm)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(560.0, 113.0, anchor="nw", text="SG1 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas3.create_text(560.0, 168.0, anchor="nw", text="SG1 Minus Test result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
 
-tab3_entry3 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry3.place(x=780.0, y=168.0, width=95.0, height=20.0)
+tab3_entry2 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry2.place(x=780.0, y=168.0, width=95.0, height=20.0)
 
 
 images["tab3_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile2 = Button(tab3, image=images["tab3_tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
+tab3_run_test_tile2 = Button(tab3, image=images["tab3_tile2_run_test"], command=lambda: SendDIDGetVal_SG1Minus(tab3_entry2), bd = 0)
 tab3_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 
 # ===================================================================================================================
@@ -412,16 +436,16 @@ tab3_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 images["tile3_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab3"])
 
-canvas3.create_text(73.0, 348.0, anchor="nw", text="DO_DAC2_SG2 Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(73.0, 403.0, anchor="nw", text="Set Op Amp (1200ohm)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(73.0, 348.0, anchor="nw", text="SG2 Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas3.create_text(73.0, 403.0, anchor="nw", text="SG2 Plus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
-tab3_entry5 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
+tab3_entry3 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry3.place(x=306.0, y=403.0, width=95.0, height=20.0)
 
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: print("tile three capa run test ..."), bd = 0)
+tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_SG2Plus(tab3_entry3), bd = 0)
 tab3_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 # ===================================================================================================================
@@ -430,16 +454,16 @@ tab3_run_test_tile3.place(x=368, y=341, width=34, height=34)
 images["tile4_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image((tablet1_X + 475), (tablet1_Y + 235), image=images["tile4_tab3"])
 
-canvas3.create_text(73.0 + 475, 348.0, anchor="nw", text="DO_DAC3_SG3 Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(73.0 + 475, 403.0, anchor="nw", text="Set Op Amp (1200ohm)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(73.0 + 475, 348.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas3.create_text(73.0 + 475, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
-tab3_entry5 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry5.place(x=306+475, y=403.0, width=95.0, height=20.0)
+tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry4.place(x=306+475, y=403.0, width=95.0, height=20.0)
 
 
 images["tab3_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile4_run_test"], command=lambda: print("tile four capa run test ..."), bd = 0)
+tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile4_run_test"], command=lambda: SendDIDGetVal_SG2Minus(tab3_entry4), bd = 0)
 tab3_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 
 
@@ -460,49 +484,15 @@ footer = FooterBar(
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-images["tab3_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab3")) #tool bar
-canvas3.create_image(179, 19, image=images["tab3_toptoolbar"])
-
-images["tab3_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab3"))
-tab3_toolbar_playbutton1 = Button(tab3, image=images["tab3_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
-tab3_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
-
-canvas3.create_text(
-    168.0,
-    28.0,
-    anchor="nw",
-    text=" Run code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-
-images["tab3_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab3"))
-tab3_toolbar_pausebutton1 = Button(tab3, image=images["tab3_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
-tab3_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
-
-canvas3.create_text(
-    80.0,
-    28.0,
-    anchor="nw",
-    text="Pause code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-images["tab3_toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab3"))
-tab3_toolbar_exitbutton1 = Button(tab3, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
-tab3_toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
-
-canvas3.create_text(
-    260.0,
-    28.0,
-    anchor="nw",
-    text="Exit",
-    fill="#FF0202",
-    font=("Inter SemiBold", 11 * -1)
+toolbar = ToolBar(
+    parent = window,
+    tab = tab3,
+    tab_frame = tab3_frame,
+    canvas = canvas3,
+    images = images,
+    relative_to_assets=relative_to_assets,
+    run_code_callback = RunCode,
+    pause_code_callback=PauseCode
 )
 
 # ===================================================================================================================
@@ -636,50 +626,15 @@ footer = FooterBar(
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-
-images["tab4_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab4")) #tool bar
-canvas4.create_image(179, 19, image=images["tab4_toptoolbar"])
-
-images["tab4_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab4"))
-tab4_toolbar_playbutton1 = Button(tab4, image=images["tab4_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
-tab4_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
-
-canvas4.create_text(
-    168.0,
-    28.0,
-    anchor="nw",
-    text=" Run code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-
-images["tab4_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab4"))
-tab4_toolbar_pausebutton1 = Button(tab4, image=images["tab4_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
-tab4_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
-
-canvas4.create_text(
-    80.0,
-    28.0,
-    anchor="nw",
-    text="Pause code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-images["tab4_toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab4"))
-tab4_toolbar_exitbutton1 = Button(tab4, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
-tab4_toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
-
-canvas4.create_text(
-    260.0,
-    28.0,
-    anchor="nw",
-    text="Exit",
-    fill="#FF0202",
-    font=("Inter SemiBold", 11 * -1)
+toolbar = ToolBar(
+    parent = window,
+    tab = tab4,
+    tab_frame = tab4_frame,
+    canvas = canvas4,
+    images = images,
+    relative_to_assets=relative_to_assets,
+    run_code_callback = RunCode,
+    pause_code_callback=PauseCode
 )
 
 # ===================================================================================================================
@@ -774,51 +729,16 @@ footer = FooterBar(
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-images["tab5_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab5")) #tool bar
-canvas5.create_image(179, 19, image=images["tab5_toptoolbar"])
-
-images["tab5_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab5"))
-tab5_toolbar_playbutton1 = Button(tab5, image=images["tab5_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
-tab5_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
-
-canvas5.create_text(
-    168.0,
-    28.0,
-    anchor="nw",
-    text=" Run code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
+toolbar = ToolBar(
+    parent = window,
+    tab = tab5,
+    tab_frame = tab5_frame,
+    canvas = canvas5,
+    images = images,
+    relative_to_assets=relative_to_assets,
+    run_code_callback = RunCode,
+    pause_code_callback=PauseCode
 )
-
-
-
-images["tab5_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab5"))
-tab5_toolbar_pausebutton1 = Button(tab5, image=images["tab5_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
-tab5_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
-
-canvas5.create_text(
-    80.0,
-    28.0,
-    anchor="nw",
-    text="Pause code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-images["tab5_toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab5"))
-tab5_toolbar_exitbutton1 = Button(tab5, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
-tab5_toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
-
-canvas5.create_text(
-    260.0,
-    28.0,
-    anchor="nw",
-    text="Exit",
-    fill="#FF0202",
-    font=("Inter SemiBold", 11 * -1)
-)
-
 
 
 # ===================================================================================================================
@@ -908,49 +828,15 @@ footer = FooterBar(
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-images["tab6_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab6")) #tool bar
-canvas6.create_image(179, 19, image=images["tab6_toptoolbar"])
-
-images["tab6_toolbar_playbutton1"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab6"))
-tab6_toolbar_playbutton1 = Button(tab6, image=images["tab6_toolbar_playbutton1"], command= lambda: RunCode(code_exec_stat_lab), bd = 0)
-tab6_toolbar_playbutton1.place(x=182, y=5, width=26, height=26)
-
-canvas6.create_text(
-    168.0,
-    28.0,
-    anchor="nw",
-    text=" Run code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-
-images["tab6_toolbar_pausebutton1"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab6"))
-tab6_toolbar_pausebutton1 = Button(tab6, image=images["tab6_toolbar_pausebutton1"], command=lambda: PauseCode(code_exec_stat_lab),  bd = 0)
-tab6_toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
-
-canvas6.create_text(
-    80.0,
-    28.0,
-    anchor="nw",
-    text="Pause code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-images["tab6_toolbar_exitbutton1"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab6"))
-tab6_toolbar_exitbutton1 = Button(tab6, image=images["toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
-tab6_toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
-
-canvas6.create_text(
-    260.0,
-    28.0,
-    anchor="nw",
-    text="Exit",
-    fill="#FF0202",
-    font=("Inter SemiBold", 11 * -1)
+toolbar = ToolBar(
+    parent = window,
+    tab = tab6,
+    tab_frame = tab6_frame,
+    canvas = canvas6,
+    images = images,
+    relative_to_assets=relative_to_assets,
+    run_code_callback = RunCode,
+    pause_code_callback=PauseCode
 )
 
 # ===================================================================================================================
@@ -1014,60 +900,17 @@ footer = FooterBar(
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-code_exec_stat_lab = tk.Label(tab7, text="Code Execution status: Not running")
-code_exec_stat_lab.config(bg = "#DFDFDF")
-code_exec_stat_lab.place(x=750, y=10)
-# code_exec_stat_lab.pack()
 
-
-images["tab7_toptoolbar"] = PhotoImage(file=relative_to_assets("top_toolbar.png", "tab7")) #tool bar
-canvas7.create_image(179, 19, image=images["tab7_toptoolbar"])
-
-images["toolbar_playbutton1_tab7"] = PhotoImage(file=relative_to_assets("set_or_get_voltage.png", "tab7"))
-toolbar_playbutton = Button(tab7, image=images["toolbar_playbutton1_tab7"], command=lambda: RunCode(code_exec_stat_lab), bd = 0)
-toolbar_playbutton.place(x=182, y=5, width=26, height=26)
-
-canvas7.create_text(
-    168.0,
-    28.0,
-    anchor="nw",
-    text=" Run code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
+toolbar = ToolBar(
+    parent = window,
+    tab = tab7,
+    tab_frame = tab7_frame,
+    canvas = canvas7,
+    images = images,
+    relative_to_assets=relative_to_assets,
+    run_code_callback = RunCode,
+    pause_code_callback=PauseCode
 )
-
-
-
-images["toolbar_pausebutton1_tab7"] = PhotoImage(file=relative_to_assets("toolbar_pausebutton.png", "tab7"))
-toolbar_pausebutton1 = Button(tab7, image=images["toolbar_pausebutton1_tab7"], command=lambda: PauseCode(code_exec_stat_lab), bd = 0)
-toolbar_pausebutton1.place(x=100, y=5, width=22.99, height=22.99)
-
-canvas7.create_text(
-    80.0,
-    28.0,
-    anchor="nw",
-    text="Pause code",
-    fill="#6E6E6E",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-images["toolbar_exitbutton1_tab7"] = PhotoImage(file=relative_to_assets("toolbar_exitbutton.png", "tab7"))
-toolbar_exitbutton1 = Button(tab7, image=images["toolbar_exitbutton1_tab7"], command=lambda: print("Exit ... "), bd = 0)
-toolbar_exitbutton1.place(x=261, y=8, width=15, height=15)
-
-canvas7.create_text(
-    260.0,
-    28.0,
-    anchor="nw",
-    text="Exit",
-    fill="#FF0202",
-    font=("Inter SemiBold", 11 * -1)
-)
-
-
-
-
 
 # ===================================================================================================================
 # ===================================================================================================================
