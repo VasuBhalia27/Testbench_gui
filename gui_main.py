@@ -219,37 +219,57 @@ notebook.add(tab1, text="Versions")
 canvas1 = tk.Canvas(tab1, bg="#DFDFDF", height=651, width=973, bd=0, highlightthickness=0, relief="ridge")
 canvas1.place(x=0, y=0)
 
-canvas1.create_text(78.0, 168.0, anchor="nw", text="Welcome to the Test Bench",
-                   fill="#0066B3", font=("Inter", -32))
 
-images["minibea_logo"] = PhotoImage(file=relative_to_assets("image_3.png", "tab1"))
-canvas1.create_image(281.0, 77.0, image=images["minibea_logo"])
+canvas1.create_rectangle(
+    0.0,
+    0.0,
+    528.0,
+    75.0,
+    fill="#E8E8E8",
+    outline="")
 
-images["version_tile"] = PhotoImage(file=relative_to_assets("image_1.png", "tab1"))
-canvas1.create_image(283.0, 417.0, image=images["version_tile"])
 
-canvas1.create_text(199.0, 271.0, anchor="nw", text="Select Version",
+images["Welcome_text"] = PhotoImage(file=relative_to_assets("welcome_text.png","tab1"))
+image_1 = canvas1.create_image(155.0,165.0,image=images["Welcome_text"])
+
+
+images["minibea_logo"] = PhotoImage(file=relative_to_assets("minebea_logo.png", "tab1"))
+canvas1.create_image(145.0, 37.0, image=images["minibea_logo"])
+
+images["version_tile"] = PhotoImage(file=relative_to_assets("tile.png", "tab1"))
+canvas1.create_image(196.0, 427.0, image=images["version_tile"])
+
+canvas1.create_text(112.0, 280.0, anchor="nw", text="Select Version",
                    fill="#FFFFFF", font=("Inter", -24))
 
-images["photo_with_hand"] = PhotoImage(file=relative_to_assets("image_2.png", "tab1"))
-canvas1.create_image(797.0, 325.0, image=images["photo_with_hand"])
+images["photo_with_hand"] = PhotoImage(file=relative_to_assets("image.png", "tab1"))
+canvas1.create_image(746.0, 349.0, image=images["photo_with_hand"])
 
 # Buttons in Tab 1
-images["version1"] = PhotoImage(file=relative_to_assets("button_1.png", "tab1"))
+images["version1"] = PhotoImage(file=relative_to_assets("version1.png", "tab1"))
 btn1_tab1 = Button(tab1, image=images["version1"], command=lambda: print("version1"), bd=0)
-btn1_tab1.place(x=176, y=320, width=213, height=37)
+btn1_tab1.place(x=89, y=329, width=218, height=44)
 
-images["version2"] = PhotoImage(file=relative_to_assets("button_2.png", "tab1"))
+images["version2"] = PhotoImage(file=relative_to_assets("version2.png", "tab1"))
 btn2_tab2 = Button(tab1, image=images["version2"], command=lambda: print("version2"), bd=0)
-btn2_tab2.place(x=176, y=380, width=213, height=37)
+btn2_tab2.place(x=89, y=390, width=219, height=45)
 
-images["version3"] = PhotoImage(file=relative_to_assets("button_3.png", "tab1"))
+images["version3"] = PhotoImage(file=relative_to_assets("version3.png", "tab1"))
 btn3_tab3 = Button(tab1, image=images["version3"], command=lambda: print("version3"), bd=0)
-btn3_tab3.place(x=176, y=440, width=213, height=37)
+btn3_tab3.place(x=89, y=451, width=220, height=45)
 
-images["version4"] = PhotoImage(file=relative_to_assets("button_4.png", "tab1"))
+images["version4"] = PhotoImage(file=relative_to_assets("version4.png", "tab1"))
 btn4_tab4 = Button(tab1, image=images["version4"], command=lambda: print("version4"), bd=0)
-btn4_tab4.place(x=176, y=500, width=213, height=37)
+btn4_tab4.place(x=89, y=512, width=220, height=45)
+
+canvas1.create_text(
+    334.0,
+    23.0,
+    anchor="nw",
+    text="U-shin India",
+    fill="#0066B3",
+    font=("Inter BoldItalic", 24 * -1)
+)
 
 
 # ===================================================================================================================
@@ -362,7 +382,7 @@ toolbar = ToolBar(
     tab_frame = tab2_frame,
     canvas = canvas2,
     images = images,
-    relative_to_assets=relative_to_assets,
+    relative_to_assets= relative_to_assets,
     run_code_callback = RunCode,
     pause_code_callback=PauseCode
 )
