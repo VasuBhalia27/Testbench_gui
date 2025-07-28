@@ -80,6 +80,10 @@ class FooterBar:
         self.additional_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
         self.additional_entry.place(x=800.0, y=575.0, width=150.0, height=60.0)
         
+    def update_additional_entry(footer_instance, new_value):
+        footer_instance.additional_entry.delete(0, tk.END)
+        footer_instance.additional_entry.insert(0, new_value)
+        
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
         
@@ -96,7 +100,7 @@ class  ToolBar:
         
     def gui_for_toolbar(self):
         
-        self.code_exec_stat_lab = tk.Label(tab2, text="Code Execution status: Not running")
+        self.code_exec_stat_lab = tk.Label(self.tab, text="Code Execution status: Not running")
         self.code_exec_stat_lab.config(bg = "#DFDFDF")
         self.code_exec_stat_lab.place(x=750, y=10)
         
@@ -362,7 +366,7 @@ run_test_tile3.place(x=368, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer = FooterBar(
+footer2 = FooterBar(
     parent=window,  # or whatever your root window is
     tab=tab2,
     tab_frame=tab2_frame,
@@ -428,7 +432,7 @@ tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
 tab3_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
 images["tab3_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile1 = Button(tab3, image=images["tab3_tile1_run_test"], command=lambda: SendDIDGetVal_SG1Plus(tab3_entry_1), bd = 0)
+tab3_run_test_tile1 = Button(tab3, image=images["tab3_tile1_run_test"], command=lambda: SendDIDGetVal(tab3_entry_1,TestFunctionCmd.TF_SG1PLUS_TEST_CMD, "TF_Sg1PlusOpamp", footer3 ), bd = 0)
 tab3_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 # ===================================================================================================================
@@ -447,7 +451,7 @@ tab3_entry2.place(x=780.0, y=168.0, width=95.0, height=20.0)
 
 
 images["tab3_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile2 = Button(tab3, image=images["tab3_tile2_run_test"], command=lambda: SendDIDGetVal_SG1Minus(tab3_entry2), bd = 0)
+tab3_run_test_tile2 = Button(tab3, image=images["tab3_tile2_run_test"], command=lambda: SendDIDGetVal(tab3_entry2, TestFunctionCmd.TF_SG1MINUS_TEST_CMD, "TF_Sg1MinusOpamp",footer3), bd = 0)
 tab3_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 
 # ===================================================================================================================
@@ -465,7 +469,7 @@ tab3_entry3.place(x=306.0, y=403.0, width=95.0, height=20.0)
 
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_SG2Plus(tab3_entry3), bd = 0)
+tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal(tab3_entry3, TestFunctionCmd.TF_SG2PLUS_TEST_CMD, "TF_Sg2PlusOpamp", footer3 ), bd = 0)
 tab3_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 # ===================================================================================================================
@@ -483,14 +487,14 @@ tab3_entry4.place(x=306+475, y=403.0, width=95.0, height=20.0)
 
 
 images["tab3_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile4_run_test"], command=lambda: SendDIDGetVal_SG2Minus(tab3_entry4), bd = 0)
+tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile4_run_test"], command=lambda: SendDIDGetVal(tab3_entry4, TestFunctionCmd.TF_SG2MINUS_TEST_CMD, "TF_Sg2MinusOpamp", footer3), bd = 0)
 tab3_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer = FooterBar(
+footer3 = FooterBar(
     parent=window,  # or whatever your root window is
     tab=tab3,
     tab_frame=tab3_frame,
@@ -599,7 +603,7 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
 
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal_EOS(tab4_entry6), bd = 0)
+tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TF_EOS_TEST_CMD,"TF_AiEosDiag", footer4 ), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 # ===================================================================================================================
@@ -626,14 +630,14 @@ tab4_entry9.place(x=306+475, y=473.0, width=95.0, height=20.0)
 
 
 images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_Motor(tab4_entry9), bd = 0)
+tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal(tab4_entry9,TestFunctionCmd.TF_MOTOR_VOLTAGE_TEST_CMD, "TF_AiMotorDiag", footer4), bd = 0)
 tab4_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer = FooterBar(
+footer4 = FooterBar(
     parent=window,  # or whatever your root window is
     tab=tab4,
     tab_frame=tab4_frame,
@@ -734,7 +738,7 @@ tab5_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer = FooterBar(
+footer5 = FooterBar(
     parent=window,  # or whatever your root window is
     tab=tab5,
     tab_frame=tab5_frame,
@@ -833,7 +837,7 @@ tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer = FooterBar(
+footer6 = FooterBar(
     parent=window,  # or whatever your root window is
     tab=tab6,
     tab_frame=tab6_frame,
@@ -899,7 +903,7 @@ tab7_entry_2 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
 tab7_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
 
 images["tile1_run_test_tab7"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal_LED(tab7_entry_1), bd = 0)
+run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TF_LED_TEST_CMD, "TF_AiLedDiag", footer7), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -907,7 +911,7 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer = FooterBar(
+footer7 = FooterBar(
     parent=window,  # or whatever your root window is
     tab=tab7,
     tab_frame=tab7_frame,
@@ -965,6 +969,7 @@ canvas8.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000
 canvas8.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(61.0, 431.0, anchor="nw", text="enter repository path:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 
 
 
@@ -991,6 +996,9 @@ connect_trace32.place(x=261, y=319, width=33, height=33)
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=QuitTrace32, bd = 0)
 disconnect_trace32.place(x=261, y=375, width=33, height=33)
+
+repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
+repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
 
 # ===================================================================================================================
 # ========== EXIT ==================================================================================================

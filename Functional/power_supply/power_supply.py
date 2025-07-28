@@ -24,11 +24,18 @@ def SetVoltage(entry_widget):
     requested_volt = entry_widget.get()
     power_sup_inst1.write(f"VOLT {requested_volt}")
 
-def GetVoltage(entry_widget):
-    fetched_val = 0
-    fetched_val = power_sup_inst1.query("MEAS:VOLT?")
-    entry_widget.delete(0, tk.END)
-    entry_widget.insert(0,f"{fetched_val}")
+def GetVoltage(entry_widget, footer_instance):
+    try:    
+        fetched_val = 0
+        fetched_val = power_sup_inst1.query("MEAS:VOLT?")
+        entry_widget.delete(0, tk.END)
+        entry_widget.insert(0,f"{fetched_val}")
+        
+    except Exception as Error:
+        error_msg = str(Error)
+        if "'str' object has no attribute 'query'" in error_msg:
+            footer_instance.update_additional_entry("Not connected to Power Supply")
+
 
 def SetCurrent(requested_volt):
        power_sup_inst1.write(f"CURR {requested_volt}")
