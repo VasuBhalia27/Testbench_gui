@@ -3,6 +3,9 @@ import subprocess # module to create an additional process
 import time
 import tkinter as tk
 from enum import IntEnum
+from Functional.logging import *
+
+logs = LogApp()
 
 class TestFunctionCmd(IntEnum):
     TF_VOLTAGE_CHECK_CMD       = 100
@@ -25,6 +28,7 @@ class TestFunctionCmd(IntEnum):
 
 dbg = ''
 execution_status =''
+
 
 def LaunchTrace32():
     t32_exe = r"C:\Users\genericece\.conan2\p\tracee4f08930e322b\p\bin\windows64\t32marm.exe"
@@ -61,6 +65,9 @@ def SendDIDGetVal(entry_widget, DID, get_val_var, footer_instance):
         val_master = dbg.fnc(f"Var.VALUE({get_val_var})")
         entry_widget.delete(0, tk.END)
         entry_widget.insert(0, str(val_master))
+        
+        logs.add_log(DID, val_master)
+        
         
     except Exception as e:
         print(e)

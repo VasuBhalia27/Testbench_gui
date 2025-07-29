@@ -5,6 +5,7 @@ import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
 
+
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
@@ -154,7 +155,6 @@ class  ToolBar:
 # ========== Initializations ========================================================================================
 
 usb_addr = Pwrcontrol_init() # power app initialization
-
 
 # Define global image reference dictionary to prevent garbage collection
 images = {}
@@ -605,6 +605,8 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
 tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TF_EOS_TEST_CMD,"TF_AiEosDiag", footer4 ), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
+
+
 
 # ===================================================================================================================
 # ========== Tile-4 =================================================================================================
