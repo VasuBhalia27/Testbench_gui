@@ -2,8 +2,8 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
-from Functional.power_supply.power_supply import *
-from Functional.trace32.trace32 import *
+from Functional.power_supply import *
+from Functional.trace32 import *
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -161,12 +161,12 @@ images = {}
 
 # Base Paths
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH_TAB1 = OUTPUT_PATH / Path(r"Elements\Page_1(Welcome_page)\assets\frame0")
-ASSETS_PATH_TAB2 = OUTPUT_PATH / Path(r"Elements\Page_2(Capa)\assets\frame0")
-ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"Elements\Page_3(SG)\assets\frame0")
-ASSETS_PATH_TAB4 = OUTPUT_PATH / Path(r"Elements\Page_4(EMV)\assets\frame0")
-ASSETS_PATH_TAB5 = OUTPUT_PATH / Path(r"Elements\Page_5(NFC)\assets\frame0")
-ASSETS_PATH_TAB6 = OUTPUT_PATH / Path(r"Elements\Page_6(CAN-LIN)\assets\frame0")
+ASSETS_PATH_TAB1 = OUTPUT_PATH / Path(r"assets_GC\Page_1(Welcome_page)\assets\frame0")
+ASSETS_PATH_TAB2 = OUTPUT_PATH / Path(r"assets_GC\Page_2(Capa)\assets\frame0")
+ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"assets_GC\Page_3(SG)\assets\frame0")
+ASSETS_PATH_TAB4 = OUTPUT_PATH / Path(r"assets_GC\Page_4(EMV)\assets\frame0")
+ASSETS_PATH_TAB5 = OUTPUT_PATH / Path(r"assets_GC\Page_5(NFC)\assets\frame0")
+ASSETS_PATH_TAB6 = OUTPUT_PATH / Path(r"assets_GC\Page_6(CAN-LIN)\assets\frame0")
 
 def relative_to_assets(path: str, tab: str) -> Path:
     if tab == "tab1":
@@ -686,7 +686,7 @@ canvas5.place(x=0, y=0)
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
 
-images["tile_tab5"] = PhotoImage(file=relative_to_assets("Tile_NFC.png", "tab5")) 
+images["tile_tab5"] = PhotoImage(file=relative_to_assets("Tile.png", "tab5")) 
 canvas5.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab5"])
 
 canvas5.create_text(73.0, 113.0, anchor="nw", text="Configure NFC Antenna", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
@@ -710,7 +710,7 @@ tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
 
-images["tile2_tab5"] = PhotoImage(file=relative_to_assets("Tile_NFC.png", "tab5")) 
+images["tile2_tab5"] = PhotoImage(file=relative_to_assets("Tile.png", "tab5")) 
 canvas5.create_image((tablet1_X + 475), (tablet1_Y + 10), image=images["tile2_tab5"])
 
 canvas5.create_text(560.0, 113.0, anchor="nw", text="NFC Antenna Data Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
