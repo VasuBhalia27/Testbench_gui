@@ -1,11 +1,14 @@
 from pathlib import Path
 from openpyxl import Workbook, load_workbook
+from datetime import datetime
 
 
 
 class LogApp:
     def __init__(self):
-        self.filename = "logs.xlsx"
+        now = datetime.now()
+        timestamp = now.strftime("%d-%m-%Y--%H-%M")  # e.g. "20250729-142530"
+        self.filename = f"logs_{timestamp}.xlsx"
         self.OUTPUT0_PATH = Path(__file__).parent
         self.OUTPUT1_PATH = self.OUTPUT0_PATH.parent
         self.LOG_FILE_PATH = self.OUTPUT1_PATH / "Logs" / self.filename
@@ -17,7 +20,7 @@ class LogApp:
             ws = wb.active
             ws.title = "Sheet1"
             # Write header row
-            ws.append(["DID", "Result"])
+            ws.append(["Sr No","DID", "Result"])
             wb.save(self.LOG_FILE_PATH)
             print(f"Created new Excel file with header at: {self.LOG_FILE_PATH}")
         else:
@@ -26,8 +29,9 @@ class LogApp:
         # Store workbook and worksheet as instance attributes
         self.wb = load_workbook(self.LOG_FILE_PATH)
         self.ws = self.wb.active
+        self.sr_no = 1
         
     def add_log(self, did: str, result: str):
-        self.ws.append([did, result])
+        self.ws.append([self.sr_no, did, result])
         self.wb.save(self.LOG_FILE_PATH)
-        print(f"Appended log: {did}, {result}")
+        self.sr_no += 1
