@@ -498,12 +498,12 @@ canvas3.create_text(357.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile 5)", f
 canvas3.create_text(357, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
-tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry4.place(x=517, y=402.0, width=95.0, height=20.0)
+tab3_entry5 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry5.place(x=517, y=402.0, width=95.0, height=20.0)
 
 
 images["tab3_tile5_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile5_run_test"], command=lambda:DoNothing, bd = 0)
+tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile5_run_test"], command=lambda:SendDIDGetVal(tab3_entry5, TestFunctionCmd.TF_SG1_TEST_CMD, "TF_Sg1Opamp", footer3), bd = 0)
 tab3_run_test_tile4.place(x=570, y=327, width=31, height=31)
 
 # ===================================================================================================================
@@ -516,12 +516,12 @@ canvas3.create_text(680.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile 6)", f
 canvas3.create_text(680, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
-tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry4.place(x=840, y=402.0, width=95.0, height=20.0)
+tab3_entry6 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry6.place(x=840, y=402.0, width=95.0, height=20.0)
 
 
 images["tab3_tile6_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile6_run_test"], command=lambda: DoNothing, bd = 0)
+tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile6_run_test"], command=lambda: SendDIDGetVal(tab3_entry6, TestFunctionCmd.TF_SG2_TEST_CMD, "TF_Sg2Opamp", footer3), bd = 0)
 tab3_run_test_tile4.place(x=895, y=327, width=31, height=31)
 
 
