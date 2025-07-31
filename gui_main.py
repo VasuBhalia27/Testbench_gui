@@ -163,6 +163,7 @@ ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"assets_GC\Page_3(SG)\assets\frame0")
 ASSETS_PATH_TAB4 = OUTPUT_PATH / Path(r"assets_GC\Page_4(EMV)\assets\frame0")
 ASSETS_PATH_TAB5 = OUTPUT_PATH / Path(r"assets_GC\Page_5(NFC)\assets\frame0")
 ASSETS_PATH_TAB6 = OUTPUT_PATH / Path(r"assets_GC\Page_6(CAN-LIN)\assets\frame0")
+ASSETS_PATH_TAB8 = OUTPUT_PATH / Path(r"assets_GC\Page_8(settings)\assets\frame0")
 
 def relative_to_assets(path: str, tab: str) -> Path:
     if tab == "tab1":
@@ -180,7 +181,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
     elif tab == "tab7":
         return ASSETS_PATH_TAB2 / Path(path)
     elif tab == "tab8":
-        return ASSETS_PATH_TAB6 / Path(path)
+        return ASSETS_PATH_TAB8 / Path(path)
     else:
         raise Exception
 
@@ -422,7 +423,7 @@ canvas3.place(x=0, y=0)
 images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(164, 178, image=images["tile_tab3"])
 
-canvas3.create_text(34.0, 102.0, anchor="nw", text="SG1_Plus Test(Tile1)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(34.0, 102.0, anchor="nw", text="SG1_Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
 canvas3.create_text(34.0, 164.0, anchor="nw", text="SG1 Plus Test result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
@@ -439,7 +440,7 @@ tab3_run_test_tile1.place(x=250, y=94, width=31, height=31)
 images["tile2_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(487, 178, image=images["tile2_tab3"])
 
-canvas3.create_text(357.0, 102.0, anchor="nw", text="SG1 Minus Test(Tile2)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(357.0, 102.0, anchor="nw", text="SG1 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
 canvas3.create_text(357.0, 164.0, anchor="nw", text="SG1 Minus Test result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
@@ -458,7 +459,7 @@ tab3_run_test_tile2.place(x=570 , y=94, width=31, height=31)
 images["tile3_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(810.0, 178, image=images["tile3_tab3"])
 
-canvas3.create_text(680.0, 102.0, anchor="nw", text="SG2 Plus Test(Tile3)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(680.0, 102.0, anchor="nw", text="SG2 Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
 canvas3.create_text(680.0, 164.0, anchor="nw", text="SG2 Plus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
@@ -476,7 +477,7 @@ tab3_run_test_tile3.place(x=895, y=94., width=31.073986053466797, height=31.8457
 images["tile4_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(164, 411, image=images["tile4_tab3"])
 
-canvas3.create_text(34.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile4)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(34.0, 335.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
 canvas3.create_text(34, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
@@ -494,7 +495,7 @@ tab3_run_test_tile4.place(x=245, y=327, width=31, height=31)
 images["tile5_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(487, 411, image=images["tile5_tab3"])
 
-canvas3.create_text(357.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile 5)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(357.0, 335.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
 canvas3.create_text(357, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
@@ -512,7 +513,7 @@ tab3_run_test_tile4.place(x=570, y=327, width=31, height=31)
 images["tile6_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(810, 411, image=images["tile6_tab3"])
 
-canvas3.create_text(680.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile 6)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(680.0, 335.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
 canvas3.create_text(680, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
@@ -1037,7 +1038,7 @@ disconnect_trace32.place(x=261, y=375, width=33, height=33)
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
 repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
 
-# ===================================================================================================================
+# ==================================================================================================================
 # ========== EXIT ==================================================================================================
 
 
