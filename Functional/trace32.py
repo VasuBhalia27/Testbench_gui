@@ -75,12 +75,6 @@ def SendDIDGetVal(entry_widget, DID, get_val_var, footer_instance):
         if "'str' object has no attribute 'cmd'" in error_msg:
             footer_instance.update_additional_entry("Not connected to Trace32")
 
-            
-
-        
-        
-        
-        
 
 
 def SendCmdToDbg(command):

@@ -146,10 +146,6 @@ class  ToolBar:
             fill="#FF0202",
             font=("Inter SemiBold", 11 * -1)
         )
-        
-        
-    
-
 
 # ===================================================================================================================
 # ========== Initializations ========================================================================================
@@ -363,6 +359,8 @@ images["tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_butto
 run_test_tile3 = Button(tab2, image=images["tile3_run_test"], command=lambda: print("tile three capa run test ..."), bd = 0)
 run_test_tile3.place(x=368, y=341, width=34, height=34)
 
+
+
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
@@ -422,73 +420,110 @@ canvas3.place(x=0, y=0)
 # ========== Tile-1 =================================================================================================
 
 images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(tablet1_X, tablet1_Y, image=images["tile_tab3"])
+canvas3.create_image(164, 178, image=images["tile_tab3"])
 
-canvas3.create_text(73.0, 113.0, anchor="nw", text="SG1_Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(73.0, 168.0, anchor="nw", text="SG1 Plus Test result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(34.0, 102.0, anchor="nw", text="SG1_Plus Test(Tile1)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(34.0, 164.0, anchor="nw", text="SG1 Plus Test result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
 tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
-tab3_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+tab3_entry_1.place(x=180.0, y=165.0, width=95.0, height=20.0)
 
 images["tab3_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_test_tile1 = Button(tab3, image=images["tab3_tile1_run_test"], command=lambda: SendDIDGetVal(tab3_entry_1,TestFunctionCmd.TF_SG1PLUS_TEST_CMD, "TF_Sg1PlusOpamp", footer3 ), bd = 0)
-tab3_run_test_tile1.place(x=368, y=106, width=34, height=34)
+tab3_run_test_tile1.place(x=250, y=94, width=31, height=31)
 
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
 
 images["tile2_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab3"])
+canvas3.create_image(487, 178, image=images["tile2_tab3"])
 
-canvas3.create_text(560.0, 113.0, anchor="nw", text="SG1 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(560.0, 168.0, anchor="nw", text="SG1 Minus Test result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(357.0, 102.0, anchor="nw", text="SG1 Minus Test(Tile2)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(357.0, 164.0, anchor="nw", text="SG1 Minus Test result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
 
 tab3_entry2 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry2.place(x=780.0, y=168.0, width=95.0, height=20.0)
+tab3_entry2.place(x=517.0, y=163.0, width=95.0, height=20.0)
 
 
 images["tab3_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_test_tile2 = Button(tab3, image=images["tab3_tile2_run_test"], command=lambda: SendDIDGetVal(tab3_entry2, TestFunctionCmd.TF_SG1MINUS_TEST_CMD, "TF_Sg1MinusOpamp",footer3), bd = 0)
-tab3_run_test_tile2.place(x=840 , y=106, width=34, height=34)
+tab3_run_test_tile2.place(x=570 , y=94, width=31, height=31)
 
 # ===================================================================================================================
 # ========== Tile-3 =================================================================================================
 
 images["tile3_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab3"])
+canvas3.create_image(810.0, 178, image=images["tile3_tab3"])
 
-canvas3.create_text(73.0, 348.0, anchor="nw", text="SG2 Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(73.0, 403.0, anchor="nw", text="SG2 Plus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(680.0, 102.0, anchor="nw", text="SG2 Plus Test(Tile3)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(680.0, 164.0, anchor="nw", text="SG2 Plus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
 tab3_entry3 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry3.place(x=306.0, y=403.0, width=95.0, height=20.0)
+tab3_entry3.place(x=840, y=164.0, width=95.0, height=20.0)
 
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal(tab3_entry3, TestFunctionCmd.TF_SG2PLUS_TEST_CMD, "TF_Sg2PlusOpamp", footer3 ), bd = 0)
-tab3_run_test_tile3.place(x=368, y=341, width=34, height=34)
+tab3_run_test_tile3.place(x=895, y=94., width=31.073986053466797, height=31.845783233642578)
 
 # ===================================================================================================================
 # ========== Tile-4 =================================================================================================
 
 images["tile4_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image((tablet1_X + 475), (tablet1_Y + 235), image=images["tile4_tab3"])
+canvas3.create_image(164, 411, image=images["tile4_tab3"])
 
-canvas3.create_text(73.0 + 475, 348.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas3.create_text(73.0 + 475, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(34.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile4)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(34, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 
 
 tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry4.place(x=306+475, y=403.0, width=95.0, height=20.0)
+tab3_entry4.place(x=190, y=402.0, width=95.0, height=20.0)
 
 
 images["tab3_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile4_run_test"], command=lambda: SendDIDGetVal(tab3_entry4, TestFunctionCmd.TF_SG2MINUS_TEST_CMD, "TF_Sg2MinusOpamp", footer3), bd = 0)
-tab3_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
+tab3_run_test_tile4.place(x=245, y=327, width=31, height=31)
+
+# ===================================================================================================================
+# ========== Tile-5 =================================================================================================
+
+images["tile5_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
+canvas3.create_image(487, 411, image=images["tile5_tab3"])
+
+canvas3.create_text(357.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile 5)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(357, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+
+
+tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry4.place(x=517, y=402.0, width=95.0, height=20.0)
+
+
+images["tab3_tile5_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
+tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile5_run_test"], command=lambda:DoNothing, bd = 0)
+tab3_run_test_tile4.place(x=570, y=327, width=31, height=31)
+
+# ===================================================================================================================
+# ========== Tile-6 =================================================================================================
+
+images["tile6_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
+canvas3.create_image(810, 411, image=images["tile6_tab3"])
+
+canvas3.create_text(680.0, 335.0, anchor="nw", text="SG2 Minus Test (Tile 6)", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
+canvas3.create_text(680, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+
+
+tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
+tab3_entry4.place(x=840, y=402.0, width=95.0, height=20.0)
+
+
+images["tab3_tile6_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
+tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile6_run_test"], command=lambda: DoNothing, bd = 0)
+tab3_run_test_tile4.place(x=895, y=327, width=31, height=31)
+
 
 
 # ===================================================================================================================
