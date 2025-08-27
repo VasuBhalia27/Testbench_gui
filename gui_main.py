@@ -4,6 +4,7 @@ from tkinter import ttk, Button, PhotoImage
 import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
+from Functional.canoe import *
 
 
 try:
@@ -165,6 +166,8 @@ ASSETS_PATH_TAB5 = OUTPUT_PATH / Path(r"assets_GC\Page_5(NFC)\assets\frame0")
 ASSETS_PATH_TAB6 = OUTPUT_PATH / Path(r"assets_GC\Page_6(CAN-LIN)\assets\frame0")
 ASSETS_PATH_TAB8 = OUTPUT_PATH / Path(r"assets_GC\Page_8(settings)\assets\frame0")
 
+path_to_cfg = r"D:\RestBusSimulationMunich\Handle\Configurations\Handle.cfg"
+
 def relative_to_assets(path: str, tab: str) -> Path:
     if tab == "tab1":
         return ASSETS_PATH_TAB1 / Path(path)
@@ -204,6 +207,34 @@ entrybox_style.configure('Background_grey.TEntry',
     insertcolor='#FFFFFF'
 )
 
+Caf_data = """03 01 00 00 00 00 DC 05 3C A0 0F 50 58 1B 64 00 00 00 DC 05 3C A0 0F 50 58 1B 64 00 00 00 DC 05
+3C A0 0F 50 58 1B 64 00 00 00 DC 05 3C A0 0F 50 58 1B 64 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00
+00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 B0 04 00 00 64
+00 C8 00 F8 07 B8 0B 88 13 A4 06 00 00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60
+EA 00 1E 3C 3C 1E 00 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00 00 96 00 79 01 4E 07 A0 0F 58 1B 30
+75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00
+00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 00 21 24 1D 49
+18 6D 15 92 13 B6 10 DB 0E FF 0C 00 2D 24 24 49 1C 6D 16 92 13 B6 10 DB 0B FF 08 00 17 24 15 49 15 6D 15 92 
+14 B6 12 DB 0F FF 0D 00 16 24 15 49 15 6D 15 92 14 B6 12 DB 0F FF 0D 20 03 E8 03 3C 3C FF FF FF FF FF FF FF
+FF 32 00 28 00 98 3A 06 F4 01 F4 01 19 01 00 1E 01 00 32 01 00 5A 01 00 6E 01 00 9B 01 00 BE 01 00 19 01 00
+1E 01 00 32 01 00 5A 01 00 6E 01 00 9B 01 00 BE 01 00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF 10 27 1E CA 08 DC 05 64 88 13 10 27 32 CA 08 DC 05 8C 70 17 10 27 32 CA 08 DC 05 8C 58 1B 10 27 28 70
+17 08 07 78 88 13 10 27 32 38 18 DC 05 78 88 13 10 27 32 00 19 AC 0D 78 40 1F 19 19 7D 3C 32 0A 19 32 14 1D
+1E 23 04 5A 32 FF FF FF FF FF 78 50 50 04 64 28 18 0A FF FF FF FF FF FF FF FF FF 06 05 02 02 19 04 FF FF FF
+FF FF FF FF FF 41 2C 01 37 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF FF FF FF FF C8 00 64 00 03 01 01 FF FF FF FF FF FF FF FF 90 01 C8 00 01 03 01 FF FF
+FF FF FF FF FF FF 0E 01 87 00 01 01 03 FF FF FF FF FF FF FF FF 3C 00 1E 00 03 01 01 FF FF FF FF FF FF FF FF
+C8 00 64 00 01 03 01 FF FF FF FF FF FF FF FF 50 00 28 00 01 01 03 FF FF FF FF FF FF FF FF 4C 30"""
 
 # ===================================================================================================================
 # ========== Dimensionsing ==========================================================================================
@@ -1008,7 +1039,7 @@ canvas8.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#00000
 canvas8.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 431.0, anchor="nw", text="enter repository path:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-
+canvas8.create_text(61.0, 487.0, anchor="nw", text="connect to Canoe -->  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 
 
 
@@ -1038,6 +1069,13 @@ disconnect_trace32.place(x=261, y=375, width=33, height=33)
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
 repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
 
+images["tab8_tile1_run_test5"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
+disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: load_and_start_canoe_config(path_to_cfg), bd = 0)
+disconnect_trace32.place(x=261, y=487, width=33, height=33)
+
+images["tab8_tile1_run_test6"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
+disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: send_uds_msg(Caf_data), bd = 0)
+disconnect_trace32.place(x=261, y=520, width=33, height=33)
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 
