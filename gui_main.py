@@ -245,19 +245,19 @@ canvas2.place(x=0, y=0)
 images["tile_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 canvas2.create_image(tablet1_X, tablet1_Y, image=images["tile_tab2"])
 
-canvas2.create_text(73.0, 113.0, anchor="nw", text="Unlock Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 168.0, anchor="nw", text="Unlock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(73.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 113.0, anchor="nw", text="TP Coding Version Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas2.create_text(73.0, 168.0, anchor="nw", text="Running Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 214.0, anchor="nw", text="Test Result", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
-tab2_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+tab2_entry_1.place(x=196.0, y=168.0, width=200.0, height=20.0)
 
 
 tab2_entry_2 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
+tab2_entry_2.place(x=246.0, y=214.0, width=150.0, height=20.0)
 
 images["tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
+run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: TP_coding_process_test(tab2_entry_1, tab2_entry_2), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 # ===================================================================================================================
@@ -266,9 +266,9 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 images["tile2_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 canvas2.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab2"])
 
-canvas2.create_text(560.0, 113.0, anchor="nw", text="Proximity Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(560.0, 168.0, anchor="nw", text="Unlock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(560.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(560.0, 113.0, anchor="nw", text="CRC-16 check", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas2.create_text(560.0, 168.0, anchor="nw", text="Running Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(560.0, 214.0, anchor="nw", text="Test Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
 tab2_entry3 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
@@ -279,30 +279,9 @@ tab2_entry4 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry4.place(x=780.0, y=214.0, width=95.0, height=20.0)
 
 images["tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile2 = Button(tab2, image=images["tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
+run_test_tile2 = Button(tab2, image=images["tile2_run_test"], command=TP_coding_changeableparameter_test, bd = 0)
 run_test_tile2.place(x=840 , y=106, width=34, height=34)
 
-# ===================================================================================================================
-# ========== Tile-3 =================================================================================================
-
-images["tile3_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-canvas2.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab2"])
-
-canvas2.create_text(73.0, 348.0, anchor="nw", text="Lock Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 403.0, anchor="nw", text="Unlock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(73.0, 449.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-
-tab2_entry5 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
-
-
-tab2_entry6 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
-
-images["tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile3 = Button(tab2, image=images["tile3_run_test"], command=lambda: print("tile three capa run test ..."), bd = 0)
-run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
 
@@ -398,9 +377,6 @@ images["tab8_tile1_run_test5"] = PhotoImage(file=relative_to_assets("tab_testrun
 disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: load_and_start_canoe_config(path_to_cfg), bd = 0)
 disconnect_trace32.place(x=261, y=487, width=33, height=33)
 
-images["tab8_tile1_run_test6"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=TP_coding_process_test, bd = 0)
-disconnect_trace32.place(x=261, y=520, width=33, height=33)
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 

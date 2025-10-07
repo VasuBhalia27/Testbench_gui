@@ -34,9 +34,9 @@ def ConnectToTraceUDP():
 def QuitTrace32():
     dbg.exit()
 
-def Trace32ConnectApp():
+# def Trace32ConnectApp():
 
-    LaunchTrace32()
-    ConnectToTraceUDP()
-    time.sleep(2)
+#     LaunchTrace32()
+#     ConnectToTraceUDP()
+#     time.sleep(2)
 
