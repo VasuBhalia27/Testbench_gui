@@ -32,7 +32,9 @@ def ConnectToTraceUDP():
 
 
 def QuitTrace32():
-    dbg.exit()
+    dbg.cmm("QUIT")
+
+
 
 # def Trace32ConnectApp():
 

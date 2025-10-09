@@ -11,7 +11,7 @@ excel_file = r"D:\CAF Datas\XNF\XNF_TP_coding_file_v2.3_P3.2.0.xlsx"
 
 modifications = {
     "PAR_LOCK_SENSOR_DEBOUNCE_TIME": "5B",
-    "PAR_UNLOCK_SENSOR_DEBOUNCE_TIME": "04",
+    "PAR_UNLOCK_SENSOR_DEBOUNCE_TIME": "05",
     "PAR_ADS_DOOR_CLOSED_DEBOUNCE_TIME_XNF": "19",
     "PAR_ADS_DOOR_OPEN_DEBOUNCE_TIME_XNF": "0B",
 }
@@ -30,12 +30,14 @@ FAIL = 0
 
 # ===================================================================================================================
 # ========== UDS messages for TP coding =============================================================================
+trial_caf_data = "2E 30 93 03 02 01 00 00 00 E8 03 3C DC 05 50 58 1B 64 00 00 00 DC 05 3C A0 0F 50 58 1B 64 00 00 00 E8 03 3C DC 05 50 58 1B 64 00 00 00 DC 05 3C A0 0F 50 58 1B 64 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00 00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00 00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00 00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 B0 04 00 00 64 00 C8 00 F8 07 B8 0B 88 13 A4 06 00 00 96 00 79 01 4E 07 A0 0F 58 1B 30 75 00 00 A0 0F 10 27 30 75 50 C3 60 EA 00 1E 3C 3C 1E 00 00 14 24 14 49 14 6D 14 92 14 B6 14 DB 14 FF 14 00 14 24 14 49 14 6D 14 92 14 B6 14 DB 14 FF 14 00 14 24 14 49 14 6D 14 92 14 B6 14 DB 14 FF 14 00 14 24 14 49 14 6D 14 92 14 B6 14 DB 14 FF 14 64 00 E8 03 3C 3C FF FF FF FF FF FF FF FF 32 00 28 00 D4 30 C8 F4 01 F4 01 19 01 00 1E 01 00 32 01 00 5A 01 00 6E 01 00 9B 01 00 BE 01 00 19 01 00 1E 01 00 32 01 00 5A 01 00 6E 01 00 9B 01 00 BE 01 00 5C 44 14 98 3A 3C FF FF FF FF FF FF FF FF FF FF FF FF FF FF 10 27 1E CA 08 DC 05 64 88 13 10 27 32 CA 08 DC 05 8C 70 17 10 27 32 CA 08 DC 05 8C 58 1B 10 27 28 70 17 08 07 78 88 13 10 27 32 38 18 DC 05 78 88 13 10 27 32 00 19 AC 0D 78 40 1F 19 19 7D 3C 32 0A 19 32 14 1D 1E 23 04 5A 32 FF FF FF FF FF 5A 50 50 04 64 28 18 0A FF FF FF FF FF FF FF FF FF 0A 05 02 02 4B 04 FF FF FF FF FF FF FF FF 41 2C 01 37 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF C8 00 9C FF 03 01 01 FF FF FF FF FF FF FF FF 90 01 38 FF 01 03 01 FF FF FF FF FF FF FF FF 0E 01 79 FF 01 01 03 FF FF FF FF FF FF FF FF 3C 00 E2 FF 03 01 01 FF FF FF FF FF FF FF FF C8 00 9C FF 01 03 01 FF FF FF FF FF FF FF FF 50 00 D8 FF 01 01 03 FF FF FF FF FF FF FF FF 12 41"
+
 
 class UdsCommands(Enum):
     CODING_SESSION = "10 41"
     CAF_ID_READ = "22 37 FC"
-    CAF_ID_WRITE = "2E 37 FC "
-    WRITE_TPCODING_DATA = "2E 30 93 "
+    CAF_ID_WRITE = "2E 37 FC"
+    WRITE_TPCODING_DATA = "2E 30 93"
     READ_TPCODING_DATA = "22 30 93"
 
 class TpCodingDataStreams(Enum):
@@ -77,7 +79,7 @@ def ConnectToTraceUDP():
 
 
 def QuitTrace32():
-    dbg.exit()
+    dbg.cmm("QUIT")
 
 def Trace32ConnectApp():
 
@@ -298,43 +300,49 @@ def TP_coding_CRC16Check_test(running_status_widget, result_widget):
     
 def TP_coding_changeableparameter_test():
     
-    # dbg.cmd("&PAR_LOCK_SENSOR_DEBOUNCE_TIME = data.byte(ESD:0x1B00)")#TODO add correct command to get value of the variable in the code
-    # dbg.cmd("&PAR_UNLOCK_SENSOR_DEBOUNCE_TIME = data.byte(ESD:0x1B01)")
-    # dbg.cmd("&PAR_ADS_DOOR_CLOSED_DEBOUNCE_TIME_XNF = data.byte(ESD:0x1B02)")
-    # dbg.cmd("&PAR_ADS_DOOR_OPEN_DEBOUNCE_TIME_XNF = data.byte(ESD:0x1B02)")
+    print("test running!!!")
     
-    # time.sleep(1)
+    dbg.cmd("&PAR_LOCK_SENSOR_DEBOUNCE_TIME = VAR.Value(SF_NonVolatileData_s.lock_input_debounce_time__ms__dU16)") #TODO add correct command to get value of the variable in the code
+    dbg.cmd("&PAR_UNLOCK_SENSOR_DEBOUNCE_TIME = VAR.Value(SF_NonVolatileData_s.unlock_debouncing__ms__U16)")
+    dbg.cmd("&PAR_ADS_DOOR_CLOSED_DEBOUNCE_TIME_XNF = VAR.Value(SF_NonVolatileData_s.ads_door_closed_debounce_time__ms__U16)")
+    dbg.cmd("&PAR_ADS_DOOR_OPEN_DEBOUNCE_TIME_XNF = VAR.Value(SF_NonVolatileData_s.ads_door_open_debounce_time__ms__U16)")
     
-    # par_lock_sensor_debounce_time_pscript = dbg.practice.get_macro("&PAR_LOCK_SENSOR_DEBOUNCE_TIME")
-    # par_lock_sensor_debounce_time_pscript = par_lock_sensor_debounce_time_pscript.value
+    time.sleep(1)
     
-    # par_unlock_sensor_debounce_time_pscript = dbg.practice.get_macro("&PAR_UNLOCK_SENSOR_DEBOUNCE_TIME")
-    # par_unlock_sensor_debounce_time_pscript = par_unlock_sensor_debounce_time_pscript.value
+    par_lock_sensor_debounce_time_pscript = dbg.practice.get_macro("&PAR_LOCK_SENSOR_DEBOUNCE_TIME")
+    par_lock_sensor_debounce_time_pscript = par_lock_sensor_debounce_time_pscript.value
     
-    # par_adsclosed_debounce_time_pscript = dbg.practice.get_macro("&PAR_ADS_DOOR_CLOSED_DEBOUNCE_TIME_XNF")
-    # par_adsclosed_debounce_time_pscript = par_adsclosed_debounce_time_pscript.value
+    par_unlock_sensor_debounce_time_pscript = dbg.practice.get_macro("&PAR_UNLOCK_SENSOR_DEBOUNCE_TIME")
+    par_unlock_sensor_debounce_time_pscript = par_unlock_sensor_debounce_time_pscript.value
     
-    # par_adsopen_debounce_time_pscript = dbg.practice.get_macro("&PAR_ADS_DOOR_OPEN_DEBOUNCE_TIME_XNF")
-    # par_adsopen_debounce_time_pscript = par_adsopen_debounce_time_pscript.value
+    par_adsclosed_debounce_time_pscript = dbg.practice.get_macro("&PAR_ADS_DOOR_CLOSED_DEBOUNCE_TIME_XNF")
+    par_adsclosed_debounce_time_pscript = par_adsclosed_debounce_time_pscript.value
     
-    Modified_CAF = apply_modifications(CAF_DATA_UNCHANGED_PAYLOAD, excel_file, modifications)
+    par_adsopen_debounce_time_pscript = dbg.practice.get_macro("&PAR_ADS_DOOR_OPEN_DEBOUNCE_TIME_XNF")
+    par_adsopen_debounce_time_pscript = par_adsopen_debounce_time_pscript.value
     
-    print( Modified_CAF)
+    Modified_CAF = apply_modifications(TpCodingDataStreams.CAF_data_unchanged.value, excel_file, modifications)
     
-    CAF_CODING_FINAL_PAYLOAD = UdsCommands.WRITE_TPCODING_DATA.value + Modified_CAF
     
-    print(CAF_CODING_FINAL_PAYLOAD)
+    CAF_coding_final_payload = UdsCommands.WRITE_TPCODING_DATA.value + " " + Modified_CAF
+    
+    CAF_ID_INVALID_FINAL_PAYLOAD = UdsCommands.CAF_ID_WRITE.value + " " + TpCodingDataStreams.CAF_ID_invalid.value
+    
+    CAF_ID_VALID_FINAL_PAYLOAD = UdsCommands.CAF_ID_WRITE.value + " " + TpCodingDataStreams.CAF_ID_valid.value
     
     #SENDING CAF DATA PROCESS STARTS
     
-    # coding_session_response = canoe.send_diag_request(diag_ecu_qualifier_name="BMW_XNF_Door_Handle_LIN",request=coding_session, request_in_bytes= True)
+    coding_session_response = canoe.send_diag_request(diag_ecu_qualifier_name="Door_Handle_LIN",request=UdsCommands.CODING_SESSION.value, request_in_bytes= True)
     
-    # CAF_data_write_response = canoe.send_diag_request(diag_ecu_qualifier_name="BMW_XNF_Door_Handle_LIN",request=CAF_CODING_FINAL_PAYLOAD, request_in_bytes= True)
+    time.sleep(1)
     
-    # CAF_data_write_response = canoe.send_diag_request(diag_ecu_qualifier_name="BMW_XNF_Door_Handle_LIN",request=Caf_id_write_valid, request_in_bytes= True)
+    CAF_data_write_response = canoe.send_diag_request(diag_ecu_qualifier_name="Door_Handle_LIN",request=CAF_coding_final_payload, request_in_bytes= True)
     
-    # target_soft_reset() 
+    time.sleep(1)
     
+    CAF_data_write_response = canoe.send_diag_request(diag_ecu_qualifier_name="Door_Handle_LIN",request=CAF_ID_VALID_FINAL_PAYLOAD, request_in_bytes= True)
+    
+
     
 
     
