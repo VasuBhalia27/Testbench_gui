@@ -1,11 +1,21 @@
+#TODO edit_autoexec_cmm() not working properly
+
+
+
+
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
-from Functional.canoe import *
+from Functional.TPC_Tests import *
+import shutil
+import tempfile
+import re
 
+
+repo_path_entry = None
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -15,6 +25,146 @@ except Exception:
 
 # ===================================================================================================================
 # ========== function/classes definations ===========================================================================
+
+def get_repo_path():
+    repo_path = None
+    repo_path = repo_path_entry.get()
+    
+    if repo_path:
+        if os.path.exists(repo_path):
+            #TODO MOVE connect_trace32.config(state="normal)" to make button availiable to another function where every check is completed
+            connect_trace32.config(state="normal")
+            find_cmms_for_startup(repo_path)
+            
+        else:
+            #TODO add a label to GUI instead of a print statement
+            print("repo not found!!!")
+            
+def find_cmms_for_startup(repo_path):
+    autoexec_cmm = "autoexec.cmm"
+    flash_cmm = "flash.cmm"
+    autoexec_changed_cmm = "autoexec_automation.cmm"
+    flash_changed_cmm = "flash_automation.cmm"
+
+    cmms_path = os.path.join(repo_path, "Tests", "DebuggerScripts")
+    if not os.path.isdir(cmms_path):
+        raise KeyError("Repo not found for debugger scripts!!!")
+
+    autoexec_cmm_path = None
+    flash_cmm_path = None
+    autoexec_changed_cmm_path = None
+    flash_changed_cmm_path = None
+
+    # Walk and collect paths
+    for root, dirs, files in os.walk(cmms_path):
+        if autoexec_cmm in files:
+            autoexec_cmm_path = os.path.join(root, autoexec_cmm)
+        if flash_cmm in files:
+            flash_cmm_path = os.path.join(root, flash_cmm)
+        if autoexec_changed_cmm in files:
+            autoexec_changed_cmm_path = os.path.join(root, autoexec_changed_cmm)
+        if flash_changed_cmm in files:
+            flash_changed_cmm_path = os.path.join(root, flash_changed_cmm)
+
+        # You can break early if you found originals and changed ones, if that meets your logic
+        # but careful: you may want to find all
+
+    # After walking, check what you found
+    if not autoexec_cmm_path:
+        raise KeyError("CMM for autoexec not found")
+    if not flash_cmm_path:
+        raise KeyError("CMM for flash not found")
+
+    # If changed ones are present already
+    if autoexec_changed_cmm_path and flash_changed_cmm_path:
+        print("Changed cmms already present; no action needed")
+        return
+
+    # Otherwise create & edit copies
+    new_flash_path = create_flash_cmm_copy(flash_cmm_path)
+    edit_flash_cmm(new_flash_path)
+
+    new_autoexec_path = create_autoexec_cmm_copy(autoexec_cmm_path)
+    edit_autoexec_cmm(new_autoexec_path)
+    # You would similarly have an edit_autoexec_cmm(new_auto) if needed            
+
+def create_flash_cmm_copy(flash_cmm_path):
+    flash_changed_cmm_automation = edit_cmm_path_name(flash_cmm_path)
+    
+    shutil.copy(flash_cmm_path, flash_changed_cmm_automation)
+    return flash_changed_cmm_automation
+    
+def create_autoexec_cmm_copy(autoexec_changed_cmm):
+    autoexec_changed_cmm_automation = edit_cmm_path_name(autoexec_changed_cmm)
+    
+    shutil.copy(autoexec_changed_cmm, autoexec_changed_cmm_automation)
+    return autoexec_changed_cmm_automation
+
+def edit_cmm_path_name(changed_cmm):
+    dir_name, base_name = os.path.split(changed_cmm)
+    name, ext = os.path.splitext(base_name)
+    
+    # Create the new file name with '_copied' suffix
+    new_name = f"{name}_automation{ext}"
+    changed_cmm_automation = os.path.join(dir_name, new_name)
+    return changed_cmm_automation
+
+def edit_flash_cmm(filepath: str) -> None:
+    """
+    Replace the line starting with Data.LOAD.Elf in the file at filepath
+    with `new_line` (exactly). Other lines stay the _same.
+    """
+    new_line = r"Data.LOAD.Elf D:\BMW_Repos\S05HBM690_Munich_7.1.6\build\xnf‑handle‑nondriver‑c2‑gcc‑arm‑relwithdebinfo\XNF‑Handle_NonDriver_C2_App.elf"
+    dirn = os.path.dirname(filepath) or "."
+    fd, tmpname = tempfile.mkstemp(dir=dirn)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as fout, open(filepath, 'r', encoding='utf-8', errors='ignore') as fin:
+            for line in fin:
+                if re.match(r'^\s*Data\.LOAD\.Elf\b', line):
+                    fout.write(new_line.rstrip('\r\n') + "\n")
+                else:
+                    fout.write(line)
+        os.replace(tmpname, filepath)
+    except Exception:
+        os.remove(tmpname)
+        raise
+
+
+def edit_autoexec_cmm(filepath: str) -> None:
+    """
+    In the given file (e.g. some .txt or .cmm), look for a line
+    starting (optionally with whitespace) with `DO~~~\\flash.cmm`
+    and replace it with a new fixed line (hardcoded here).
+    Other lines remain unchanged.
+    """
+    # The new content you want instead of the old DO~~~\flash.cmm line
+    new_line = r"DO~~~\flash_automation.cmm"
+
+    # Regex-ish match: line that (after optional whitespace) starts with DO~~~\flash.cmm
+    # We’ll match the literal backslash as \\ in Python string, but the regexp sees \.
+    match_prefix = "DO ~~~\\flash.cmm\n"
+
+    # Prepare temp file
+    dirn = os.path.dirname(filepath) or "."
+    fd, tmpname = tempfile.mkstemp(dir=dirn)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as fout, \
+             open(filepath, 'r', encoding='utf-8', errors='ignore') as fin:
+            for line in fin:
+                # Strip leading whitespace, then check if startswith match_prefix
+                stripped = line.lstrip()
+                if stripped.startswith(match_prefix):
+                    # Replace the entire line
+                    fout.write(new_line + "\n")
+                else:
+                    fout.write(line)
+        # Move temp to original
+        os.replace(tmpname, filepath)
+    except Exception:
+        # Clean up on error
+        os.remove(tmpname)
+        raise
+
 
 class FooterBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, set_voltage_callback, get_voltage_callback):
@@ -362,9 +512,11 @@ images["tab8_tile1_run_test2"] = PhotoImage(file=relative_to_assets("tab_testrun
 pwr_sup_off = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOff, bd = 0)
 pwr_sup_off.place(x=261, y=263, width=33, height=33)
 
+
 images["tab8_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=Trace32ConnectApp, bd = 0)
 connect_trace32.place(x=261, y=319, width=33, height=33)
+connect_trace32.config(state="disabled")
 
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=QuitTrace32, bd = 0)
@@ -372,6 +524,10 @@ disconnect_trace32.place(x=261, y=375, width=33, height=33)
 
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
 repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
+images["tab8_tile1_run_test6"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
+disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=get_repo_path, bd = 0)
+disconnect_trace32.place(x=680, y=420, width=33, height=33)
+
 
 images["tab8_tile1_run_test5"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: load_and_start_canoe_config(path_to_cfg), bd = 0)
