@@ -8,23 +8,18 @@ from Functional.logging import *
 logs = LogApp()
 
 class TestFunctionCmd(IntEnum):
-    TF_VOLTAGE_CHECK_CMD       = 100
-    TF_LED_TEST_CMD            = 101
-    TF_BAT_MONT_CMD            = 102
-    TF_MOTOR_VOLTAGE_TEST_CMD  = 103
-    TF_MOTOR_CURRENTTEST_CMD   = 104
-    TF_EOS_TEST_CMD            = 105
-    TF_SG1PLUS_TEST_CMD        = 106
-    TF_SG1MINUS_TEST_CMD       = 107
-    TF_SG2PLUS_TEST_CMD        = 108
-    TF_SG2MINUS_TEST_CMD       = 109
-    TF_SG1_TEST_CMD            = 110
-    TF_SG2_TEST_CMD            = 111
-    TF_CAPA_TEST_CMD           = 112
-    TF_NFC_TEST_CMD            = 113
-    TF_CAN_TEST_CMD            = 114
-    TF_LIN_TEST_CMD            = 115
-    TF_INVALID_CMD             = 255
+    TESTFW_GUI_CMD_VOLTAGE_CHECK_e       = 100  
+    TESTFW_GUI_CMD_LED_TEST_e            = 101  
+    TESTFW_GUI_CMD_BATT_MONITOR_e        = 102  
+    TESTFW_GUI_CMD_MOTOR_TEST_e          = 103 
+    TESTFW_GUI_CMD_EOS_TEST_e            = 104  
+    TEST_GUI_CMD_SG_TEST_e               = 105  
+    TEST_GUI_CMD_CAPA_TEST_e             = 106  
+    TEST_GUI_CMD_NFC_TEST_e              = 107  
+    TEST_GUI_CMD_CAN_TEST_e              = 108  
+    TEST_GUI_CMD_LIN_e                   = 109  
+    TESTFW_GUI_CMD_INVALID_e             = 110  
+
 
 dbg = ''
 execution_status =''
@@ -32,8 +27,8 @@ execution_status =''
 
 def LaunchTrace32():
     t32_exe = r"C:\Users\genericece\.conan2\p\tracee4f08930e322b\p\bin\windows64\t32marm.exe"
-    config_file = r"D:\GITHUB\S05HBM690_Munich_develop\build\xnf-handle-driver-c1-gcc-arm-relwithdebinfo-productive\trace32\config.t32"
-    start_up = r"D:\GITHUB\S05HBM690_Munich_develop\Tests\DebuggerScripts\autoexec.cmm"
+    config_file = r"D:\BMW_Repos\S05HBM690_Munich_testfirmware\build\xnf-handle-driver-c2-gcc-arm-relwithdebinfo\trace32\config.t32"
+    start_up = r"D:\BMW_Repos\S05HBM690_Munich_testfirmware\Tests\DebuggerScripts\autoexec_automation.cmm"
     command = [t32_exe, '-c', config_file, '-s', start_up]
     subprocess.Popen(command)
     # Wait until the TRACE32 instance is started
@@ -60,15 +55,41 @@ def GetValueVbatt(entry_widget):
 
 def SendDIDGetVal(entry_widget, DID, get_val_var, footer_instance):
     try:
-        dbg.cmd(f'Var.set TF_Command = {DID}')
+        dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
         time.sleep(0.5)
         val_master = dbg.fnc(f"Var.VALUE({get_val_var})")
         entry_widget.delete(0, tk.END)
         entry_widget.insert(0, str(val_master))
         
         logs.add_log(DID, val_master)
+
+    except Exception as e:
+        print(e)
+        error_msg = str(e)
+        if "'str' object has no attribute 'cmd'" in error_msg:
+            footer_instance.update_additional_entry("Not connected to Trace32")
+
+
+def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, footer_instance):
+    
+    try:
+        dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
+        time.sleep(0.5)
+
+        for i in range(len(capa_output_variables)):
+            fetched_var_value = dbg.fnc(f"Var.VALUE({capa_output_variables[i]})")
+            entry_list[i].delete(0, tk.END)
+            entry_list[i].insert(0, str(fetched_var_value))
         
-        
+        logs.add_log(DID, fetched_var_value)
+
+    except Exception as e:
+        print(e)
+        error_msg = str(e)
+        if "'str' object has no attribute 'cmd'" in error_msg:
+            footer_instance.update_additional_entry("Not connected to Trace32")
+
+
     except Exception as e:
         print(e)
         error_msg = str(e)

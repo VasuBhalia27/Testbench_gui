@@ -276,8 +276,6 @@ canvas1.create_text(
 # ===================================================================================================================
 # ========== TAB 2 ==================================================================================================
 
-
-
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Capa Sensor Tests")
 
@@ -298,67 +296,59 @@ canvas2.place(x=0, y=0)
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
 
-images["tile_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-canvas2.create_image(tablet1_X, tablet1_Y, image=images["tile_tab2"])
+# images["tile_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
+# canvas2.create_image(tablet1_X, tablet1_Y, image=images["tile_tab2"])
 
-canvas2.create_text(73.0, 113.0, anchor="nw", text="Unlock Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 168.0, anchor="nw", text="Unlock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(73.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
+
+canvas2.create_text(73.0, 113.0, anchor="nw", text="Capa Test Outputs", fill="#000000", font=("Inter SemiBold", 20 * -1))
+canvas2.create_text(73.0, 168.0, anchor="nw", text="TestFw_CapaApproach", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
-tab2_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+tab2_entry_1.place(x=350.0, y=168.0, width=95.0, height=20.0)
 
 
+canvas2.create_text(73.0, 214.0, anchor="nw", text="TestFw_CapaLock", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry_2 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
+tab2_entry_2.place(x=350.0, y=214.0, width=95.0, height=20.0)
 
-images["tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
-run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
 
-images["tile2_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-canvas2.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab2"])
+# images["tile2_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
+# canvas2.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab2"])
 
-canvas2.create_text(560.0, 113.0, anchor="nw", text="Proximity Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(560.0, 168.0, anchor="nw", text="Unlock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(560.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-
+canvas2.create_text(73.0, 260.0, anchor="nw", text="TestFw_CapaUnlock", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry3 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry3.place(x=780.0, y=168.0, width=95.0, height=20.0)
+tab2_entry3.place(x=350.0, y=260.0, width=95.0, height=20.0)
 
 
+canvas2.create_text(73.0, 306.0, anchor="nw", text="TestFw_CapaApproachSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry4 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry4.place(x=780.0, y=214.0, width=95.0, height=20.0)
+tab2_entry4.place(x=350.0, y=306.0, width=95.0, height=20.0)
 
-images["tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile2 = Button(tab2, image=images["tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
-run_test_tile2.place(x=840 , y=106, width=34, height=34)
 
 # ===================================================================================================================
 # ========== Tile-3 =================================================================================================
 
-images["tile3_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-canvas2.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab2"])
+# images["tile3_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
+# canvas2.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab2"])
 
-canvas2.create_text(73.0, 348.0, anchor="nw", text="Lock Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 403.0, anchor="nw", text="Unlock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas2.create_text(73.0, 449.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-
+canvas2.create_text(73.0, 352.0, anchor="nw", text="TestFw_CapaLockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry5 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
+tab2_entry5.place(x=350.0, y=352.0, width=95.0, height=20.0)
 
 
+canvas2.create_text(73.0, 398.0, anchor="nw", text="TestFw_CapaUnlockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry6 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
+tab2_entry6.place(x=350.0, y=398.0, width=95.0, height=20.0)
 
-images["tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile3 = Button(tab2, image=images["tile3_run_test"], command=lambda: print("tile three capa run test ..."), bd = 0)
-run_test_tile3.place(x=368, y=341, width=34, height=34)
+entry_list = [tab2_entry_1,tab2_entry_2, tab2_entry3, tab2_entry4, tab2_entry5, tab2_entry6]
+capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
+
+images["tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
+run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e, footer2), bd = 0)
+run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
 
@@ -417,115 +407,61 @@ canvas3 = tk.Canvas(
 )
 canvas3.place(x=0, y=0)
 
-# ===================================================================================================================
-# ========== Tile-1 =================================================================================================
 
-images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(164, 178, image=images["tile_tab3"])
+offset_top = 80  # offset from top of the frame/window
 
-canvas3.create_text(34.0, 102.0, anchor="nw", text="SG1_Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
-canvas3.create_text(34.0, 164.0, anchor="nw", text="SG1 Plus Test result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas3.create_text(34.0, offset_top + 0*40, anchor="nw",
+    text="TestFw_DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry_1 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry_1.place(x=180.0, y=offset_top + 0*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 1*40, anchor="nw",
+    text="TestFw_Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry2 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry2.place(x=180.0, y=offset_top + 1*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 2*40, anchor="nw",
+    text="TestFw_Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry3 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry3.place(x=180.0, y=offset_top + 2*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 3*40, anchor="nw",
+    text="TestFw_Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry4 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry4.place(x=180.0, y=offset_top + 3*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 4*40, anchor="nw",
+    text="TestFw_Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry5 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry5.place(x=180.0, y=offset_top + 4*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 5*40, anchor="nw",
+    text="TestFw_Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry6 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry6.place(x=180.0, y=offset_top + 5*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 6*40, anchor="nw",
+    text="TestFw_Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry7 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry7.place(x=180.0, y=offset_top + 6*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 7*40, anchor="nw",
+    text="TestFw_Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry8 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry8.place(x=180.0, y=offset_top + 7*40, width=95.0, height=20.0)
+
+canvas3.create_text(34.0, offset_top + 8*40, anchor="nw",
+    text="TestFw_Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
 
 
-tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
-tab3_entry_1.place(x=180.0, y=165.0, width=95.0, height=20.0)
-
-images["tab3_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile1 = Button(tab3, image=images["tab3_tile1_run_test"], command=lambda: SendDIDGetVal(tab3_entry_1,TestFunctionCmd.TF_SG1PLUS_TEST_CMD, "TF_Sg1PlusOpamp", footer3 ), bd = 0)
-tab3_run_test_tile1.place(x=250, y=94, width=31, height=31)
-
-# ===================================================================================================================
-# ========== Tile-2 =================================================================================================
-
-images["tile2_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(487, 178, image=images["tile2_tab3"])
-
-canvas3.create_text(357.0, 102.0, anchor="nw", text="SG1 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
-canvas3.create_text(357.0, 164.0, anchor="nw", text="SG1 Minus Test result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-
-
-
-tab3_entry2 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry2.place(x=517.0, y=163.0, width=95.0, height=20.0)
-
-
-images["tab3_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile2 = Button(tab3, image=images["tab3_tile2_run_test"], command=lambda: SendDIDGetVal(tab3_entry2, TestFunctionCmd.TF_SG1MINUS_TEST_CMD, "TF_Sg1MinusOpamp",footer3), bd = 0)
-tab3_run_test_tile2.place(x=570 , y=94, width=31, height=31)
-
-# ===================================================================================================================
-# ========== Tile-3 =================================================================================================
-
-images["tile3_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(810.0, 178, image=images["tile3_tab3"])
-
-canvas3.create_text(680.0, 102.0, anchor="nw", text="SG2 Plus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
-canvas3.create_text(680.0, 164.0, anchor="nw", text="SG2 Plus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-
-
-tab3_entry3 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry3.place(x=840, y=164.0, width=95.0, height=20.0)
-
+sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg1Dac", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp", "TestFw_Sg2Dac"]
+sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, tab3_entry6,tab3_entry7, tab3_entry8, tab3_entry9]
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal(tab3_entry3, TestFunctionCmd.TF_SG2PLUS_TEST_CMD, "TF_Sg2PlusOpamp", footer3 ), bd = 0)
+tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e,  footer3 ), bd = 0)
 tab3_run_test_tile3.place(x=895, y=94., width=31.073986053466797, height=31.845783233642578)
-
-# ===================================================================================================================
-# ========== Tile-4 =================================================================================================
-
-images["tile4_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(164, 411, image=images["tile4_tab3"])
-
-canvas3.create_text(34.0, 335.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
-canvas3.create_text(34, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-
-
-tab3_entry4 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry4.place(x=190, y=402.0, width=95.0, height=20.0)
-
-
-images["tab3_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile4_run_test"], command=lambda: SendDIDGetVal(tab3_entry4, TestFunctionCmd.TF_SG2MINUS_TEST_CMD, "TF_Sg2MinusOpamp", footer3), bd = 0)
-tab3_run_test_tile4.place(x=245, y=327, width=31, height=31)
-
-# ===================================================================================================================
-# ========== Tile-5 =================================================================================================
-
-images["tile5_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(487, 411, image=images["tile5_tab3"])
-
-canvas3.create_text(357.0, 335.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
-canvas3.create_text(357, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-
-
-tab3_entry5 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry5.place(x=517, y=402.0, width=95.0, height=20.0)
-
-
-images["tab3_tile5_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile5_run_test"], command=lambda:SendDIDGetVal(tab3_entry5, TestFunctionCmd.TF_SG1_TEST_CMD, "TF_Sg1Opamp", footer3), bd = 0)
-tab3_run_test_tile4.place(x=570, y=327, width=31, height=31)
-
-# ===================================================================================================================
-# ========== Tile-6 =================================================================================================
-
-images["tile6_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
-canvas3.create_image(810, 411, image=images["tile6_tab3"])
-
-canvas3.create_text(680.0, 335.0, anchor="nw", text="SG2 Minus Test", fill="#FFFFFF", font=("Inter SemiBold", 16 * -1))
-canvas3.create_text(680, 403.0, anchor="nw", text="SG2 Minus Test Result", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-
-
-tab3_entry6 = ttk.Entry(tab3_frame, style = 'Background_grey.TEntry')
-tab3_entry6.place(x=840, y=402.0, width=95.0, height=20.0)
-
-
-images["tab3_tile6_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile4 = Button(tab3, image=images["tab3_tile6_run_test"], command=lambda: SendDIDGetVal(tab3_entry6, TestFunctionCmd.TF_SG2_TEST_CMD, "TF_Sg2Opamp", footer3), bd = 0)
-tab3_run_test_tile4.place(x=895, y=327, width=31, height=31)
-
-
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
@@ -601,24 +537,54 @@ tab4_run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
 
-images["tile2_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
-canvas4.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab4"])
-
-canvas4.create_text(560.0, 113.0, anchor="nw", text="BATT Monitor (DID 102)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(560.0, 168.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(560.0, 214.0, anchor="nw", text="Get Vbatt value", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+placement_y_coord = 168
 
 
+canvas4.create_text(73.0 + 475.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
+
+
+canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="TestFw_MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry3.place(x=780.0, y=168.0, width=95.0, height=20.0)
+tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
 
+canvas4.create_text(73.0 + 475.0, placement_y_coord + 35*2, anchor="nw", text="TestFw_MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry4 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry4.place(x=780.0, y=214.0, width=95.0, height=20.0)
+tab4_entry4.place(x=306+475, y=placement_y_coord + 35*2, width=95.0, height=20.0)
 
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*3, anchor="nw", text="TestFw_MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry7.place(x=306+475, y=placement_y_coord + 35*3, width=95.0, height=20.0)
 
-images["tab4_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile2 = Button(tab4, image=images["tab4_tile2_run_test"], command= DoNothing, bd = 0)
-tab4_run_test_tile2.place(x=840 , y=106, width=34, height=34)
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="TestFw_MotorPwmOut", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry8.place(x=306+475, y=placement_y_coord + 35*4, width=95.0, height=20.0)
+
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*5, anchor="nw", text="TestFw_PwmMotorDriverIn1", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry9 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry9.place(x=306+475, y=placement_y_coord + 35*5, width=95.0, height=20.0)
+
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*6, anchor="nw", text="TestFw_PwmMotorDriverIn2", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry10 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry10.place(x=306+475, y=placement_y_coord + 35*6, width=95.0, height=20.0)
+
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*7, anchor="nw", text="TestFw_DoMotorNsleep", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry11 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry11.place(x=306+475, y=placement_y_coord + 35*7, width=95.0, height=20.0)
+
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*8, anchor="nw", text="TestFw_DoMotorDiagEnable", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry12 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry12.place(x=306+475, y=placement_y_coord + 35*8, width=95.0, height=20.0)
+
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*9, anchor="nw", text="TestFw_DiMotorNfault", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry13 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry13.place(x=306+475, y=placement_y_coord + 35*9, width=95.0, height=20.0)
+
+motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorPwmOut", "TestFw_PwmMotorDriverIn1", "TestFw_PwmMotorDriverIn2", "TestFw_DoMotorNsleep", "TestFw_DoMotorDiagEnable", "TestFw_DiMotorNfault"]
+motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13]
+
+images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
+tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e, footer4), bd = 0)
+tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 
 # ===================================================================================================================
 # ========== Tile-3 =================================================================================================
@@ -639,37 +605,12 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
 
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TF_EOS_TEST_CMD,"TF_AiEosDiag", footer4 ), bd = 0)
+tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage", footer4 ), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
 
-# ===================================================================================================================
-# ========== Tile-4 =================================================================================================
 
-images["tile4_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
-canvas4.create_image((tablet1_X + 475), (tablet1_Y + 235), image=images["tile4_tab4"])
-
-canvas4.create_text(73.0 + 475, 348.0, anchor="nw", text="Motor Test (DID 104)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0 + 475, 403.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0 + 475, 438.0, anchor="nw", text="Duty Forward/Reverse", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0 + 475, 473.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry7.place(x=306+475, y=403.0, width=95.0, height=20.0)
-
-tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry8.place(x=306+475, y=438.0, width=95.0, height=20.0)
-
-tab4_entry9 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry9.place(x=306+475, y=473.0, width=95.0, height=20.0)
-
-
-
-
-images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal(tab4_entry9,TestFunctionCmd.TF_MOTOR_VOLTAGE_TEST_CMD, "TF_AiMotorDiag", footer4), bd = 0)
-tab4_run_test_tile4.place(x=368+475, y=341, width=34, height=34)
 
 
 # ===================================================================================================================
@@ -727,50 +668,19 @@ canvas5.place(x=0, y=0)
 images["tile_tab5"] = PhotoImage(file=relative_to_assets("Tile.png", "tab5")) 
 canvas5.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab5"])
 
-canvas5.create_text(73.0, 113.0, anchor="nw", text="Configure NFC Antenna", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas5.create_text(73.0, 168.0, anchor="nw", text="Set VDDPA", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas5.create_text(73.0, 214.0, anchor="nw", text="Set RSSI", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas5.create_text(73.0, 260.0, anchor="nw", text="Set RSSI HYST", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(73.0, 113.0, anchor="nw", text="NFC Test Result", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
+canvas5.create_text(73.0, 168.0, anchor="nw", text="TestFw_IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab5_entry_1 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
 tab5_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
-tab5_entry_2 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
-tab5_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
 
-tab5_entry_3 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
-tab5_entry_3.place(x=306.0, y=260.0, width=95.0, height=20.0)
 
 images["tab5_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
-tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
+tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: SendDIDGetVal(tab5_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard", footer5 ), bd = 0)
 tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
-# ===================================================================================================================
-# ========== Tile-2 =================================================================================================
 
-images["tile2_tab5"] = PhotoImage(file=relative_to_assets("Tile.png", "tab5")) 
-canvas5.create_image((tablet1_X + 475), (tablet1_Y + 10), image=images["tile2_tab5"])
-
-canvas5.create_text(560.0, 113.0, anchor="nw", text="NFC Antenna Data Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas5.create_text(560.0, 168.0, anchor="nw", text="Impedence (Ohm)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas5.create_text(560.0, 214.0, anchor="nw", text="SPI Data", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas5.create_text(560.0, 260.0, anchor="nw", text="Data", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-
-tab5_entry4 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
-tab5_entry4.place(x=780.0, y=168.0, width=95.0, height=20.0)
-
-tab5_entry5 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
-tab5_entry5.place(x=780.0, y=214.0, width=95.0, height=20.0)
-
-tab6_entry5 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
-tab6_entry5.place(x=780.0, y=260.0, width=95.0, height=20.0)
-
-
-
-images["tab5_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
-tab5_run_test_tile2 = Button(tab5, image=images["tab5_tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
-tab5_run_test_tile2.place(x=840 , y=106, width=34, height=34)
 
 
 # ===================================================================================================================
@@ -930,18 +840,16 @@ images["tile_tab7"] = PhotoImage(file=relative_to_assets("Tile.png", "tab7"))
 canvas7.create_image(tablet1_X, tablet1_Y, image=images["tile_tab7"])
 
 canvas7.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas7.create_text(73.0, 168.0, anchor="nw", text="Get Led Test Value", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas7.create_text(73.0, 214.0, anchor="nw", text="Lock 100pF Capacitor", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas7.create_text(73.0, 168.0, anchor="nw", text="TestFw_LedVoltage:", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
 
 tab7_entry_1 = ttk.Entry(tab7_frame, style ='Background_grey.TEntry')
 tab7_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
-
 tab7_entry_2 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
-tab7_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
 
 images["tile1_run_test_tab7"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TF_LED_TEST_CMD, "TF_AiLedDiag", footer7), bd = 0)
+run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e, "TestFw_LedVoltage", footer7), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
