@@ -147,6 +147,10 @@ class  ToolBar:
             font=("Inter SemiBold", 11 * -1)
         )
 
+
+
+
+
 # ===================================================================================================================
 # ========== Initializations ========================================================================================
 
@@ -543,6 +547,31 @@ placement_y_coord = 168
 canvas4.create_text(73.0 + 475.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
 
 
+selected_motor_state = tk.IntVar(value=0)
+
+motor_couple_cb = tk.Checkbutton(
+    tab4,
+    text="Motor Couple",
+    variable=selected_motor_state,
+    onvalue=1,
+    offvalue=0,
+    command=lambda: motor_couple(selected_motor_state)
+)
+motor_couple_cb.place(x=73.0 + 475.0, y=150)
+
+
+
+motor_decouple_cb = tk.Checkbutton(
+    tab4,
+    text="Motor Decouple",
+    variable=selected_motor_state,
+    onvalue=2,
+    offvalue=0,
+    command=lambda: motor_decouple(selected_motor_state)
+)
+motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
+
+
 canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="TestFw_MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
@@ -916,8 +945,6 @@ canvas8.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#00000
 canvas8.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 431.0, anchor="nw", text="enter repository path:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-
-
 
 
 images["tab8_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))

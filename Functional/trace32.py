@@ -138,3 +138,22 @@ def Trace32ConnectApp():
     ConnectToTraceUDP()
     time.sleep(2)
 
+def motor_couple(selected_motor_state):
+    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
+    if selected_motor_state.get() == 1:
+        selected_motor_state.set(1)
+    else:
+        selected_motor_state.set(0)
+
+    dbg.cmd(f'Var.set Take_input_from_gui = 2')
+
+
+def motor_decouple(selected_motor_state):
+    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
+    if selected_motor_state.get() == 2:
+        selected_motor_state.set(2)
+    else:
+        selected_motor_state.set(0)
+
+    dbg.cmd(f'Var.set Take_input_from_gui = 1')
+
