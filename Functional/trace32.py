@@ -49,6 +49,7 @@ def LaunchTrace32(repo_path_entry):
 
 
 def ConnectToTraceUDP():
+    global dbg
     try:
         dbg = t32.connect(node='localhost', port=20006,protocol='UDP', packlen=1024, timeout=5.0)
         dbg.print("Hello")
