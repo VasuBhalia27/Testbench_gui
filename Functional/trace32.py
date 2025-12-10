@@ -4,8 +4,9 @@ import time
 import tkinter as tk
 from enum import IntEnum
 from Functional.logging import *
+import os
 
-logs = LogApp()
+# logs = LogApp()
 
 class TestFunctionCmd(IntEnum):
     TESTFW_GUI_CMD_VOLTAGE_CHECK_e       = 100  
@@ -25,11 +26,22 @@ dbg = ''
 execution_status =''
 
 
-def LaunchTrace32():
-    t32_exe = r"C:\Users\genericece\.conan2\p\tracee4f08930e322b\p\bin\windows64\t32marm.exe"
-    config_file = r"D:\BMW_Repos\S05HBM690_Munich_testfirmware\build\xnf-handle-driver-c2-gcc-arm-relwithdebinfo\trace32\config.t32"
-    start_up = r"D:\BMW_Repos\S05HBM690_Munich_testfirmware\Tests\DebuggerScripts\autoexec_automation.cmm"
-    command = [t32_exe, '-c', config_file, '-s', start_up]
+def LaunchTrace32(repo_path_entry):
+    user_path = Path.home() #to get the path of user being currently used.
+    user_path = str(user_path) #to get the path of user being currently used.
+    user_path_cleaned = user_path.replace('/', "\\") 
+    trace32_path = f"{user_path_cleaned}\\.conan2\\p\\tracee4f08930e322b\\p\\bin\\windows64\\t32marm.exe"    
+    
+    Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
+    Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
+    trace_configfile_path = f"{Automation_repo_path}\\config.t32"    
+    
+    repo_path_XNF = repo_path_entry.get() #to get the path of XNF directory.
+    repo_path_XNF = str(repo_path_XNF)
+    repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\") 
+    autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
+    
+    command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     subprocess.Popen(command)
     # Wait until the TRACE32 instance is started
     time.sleep(5) 
@@ -37,7 +49,6 @@ def LaunchTrace32():
 
 
 def ConnectToTraceUDP():
-    global dbg
     try:
         dbg = t32.connect(node='localhost', port=20006,protocol='UDP', packlen=1024, timeout=5.0)
         dbg.print("Hello")
@@ -61,7 +72,7 @@ def SendDIDGetVal(entry_widget, DID, get_val_var, footer_instance):
         entry_widget.delete(0, tk.END)
         entry_widget.insert(0, str(val_master))
         
-        logs.add_log(DID, val_master)
+        # logs.add_log(DID, val_master)
 
     except Exception as e:
         print(e)
@@ -81,7 +92,7 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, footer_
             entry_list[i].delete(0, tk.END)
             entry_list[i].insert(0, str(fetched_var_value))
         
-        logs.add_log(DID, fetched_var_value)
+        # logs.add_log(DID, fetched_var_value)
 
     except Exception as e:
         print(e)
@@ -132,9 +143,9 @@ def PauseCode(exec_label):
 def QuitTrace32():
     dbg.exit()
 
-def Trace32ConnectApp():
+def Trace32ConnectApp(repo_path_entry):
 
-    LaunchTrace32()
+    LaunchTrace32(repo_path_entry)
     ConnectToTraceUDP()
     time.sleep(2)
 

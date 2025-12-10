@@ -465,7 +465,7 @@ sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, t
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e,  footer3 ), bd = 0)
-tab3_run_test_tile3.place(x=895, y=94., width=31.073986053466797, height=31.845783233642578)
+tab3_run_test_tile3.place(x=400, y=94., width=31.073986053466797, height=31.845783233642578)
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
@@ -859,6 +859,7 @@ canvas7 = tk.Canvas(
     bd=0,
     highlightthickness=0,
     relief="ridge"
+    
 )
 canvas7.place(x=0, y=0)
 
@@ -963,7 +964,7 @@ pwr_sup_off = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSup
 pwr_sup_off.place(x=261, y=263, width=33, height=33)
 
 images["tab8_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=Trace32ConnectApp, bd = 0)
+connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: Trace32ConnectApp(repo_path_entry), bd = 0)
 connect_trace32.place(x=261, y=319, width=33, height=33)
 
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
