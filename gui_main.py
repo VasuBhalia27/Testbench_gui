@@ -985,7 +985,7 @@ pwr_sup_off = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSup
 pwr_sup_off.place(x=261, y=263, width=33, height=33)
 
 images["tab8_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: Trace32ConnectApp(repo_path_entry), bd = 0)
+connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd = 0)
 connect_trace32.place(x=261, y=319, width=33, height=33)
 
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
