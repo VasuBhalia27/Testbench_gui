@@ -51,6 +51,8 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     repo_path_XNF = str(repo_path_XNF)
     repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\") 
     autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
+
+    edit_trace32_config_file(trace_configfile_path)
     
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     subprocess.Popen(command)
@@ -190,6 +192,38 @@ def get_select_preset(selected_preset, repo_path_entry):
         print("Select correct preset")
         raise ValueError("Select correct preset: Realwithdebinfo  or Minsizerel")
 
+def edit_trace32_config_file(filename):
+
+    target_prefix = "SYS="
+    
+    user_path = Path.home() #to get the path of user being currently used.
+    user_path = str(user_path) #to get the path of user being currently used.
+    user_path_cleaned = user_path.replace('/', "\\") 
+    new_path = f"{user_path_cleaned}\\.conan2\\p\\tracee4f08930e322b\\p"
+
+
+    replacement_line = "SYS=" + new_path + "\n"
+    
+
+    with open(filename, "r", encoding="utf-8", newline=None) as f:
+        lines = f.readlines()
+
+    found = False
+    for i, line in enumerate(lines):
+
+        stripped = line.strip()
+        if stripped.startswith(target_prefix):
+
+            lines[i] = replacement_line
+            found = True
+
+    if not found:
+        return False
+
+    with open(filename, "w", encoding="utf-8", newline='') as f:
+        f.writelines(lines)
+
+    return True
 
 
 
