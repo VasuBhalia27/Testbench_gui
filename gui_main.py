@@ -4,12 +4,13 @@ from tkinter import ttk, Button, PhotoImage
 import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
+from tkinter import filedialog
 
 
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-except Exception:
-    ctypes.windll.user32.SetProcessDPIAware()
+# try:
+#     ctypes.windll.shcore.SetProcessDpiAwareness(1)
+# except Exception:
+#     ctypes.windll.user32.SetProcessDPIAware()
 
 
 # ===================================================================================================================
@@ -147,7 +148,12 @@ class  ToolBar:
             font=("Inter SemiBold", 11 * -1)
         )
 
-
+def browse_repo_path():
+    folder_path = filedialog.askdirectory(mustexist=False)
+    if folder_path:
+        repo_path_entry.delete(0, "end")
+        repo_path_entry.insert(0, folder_path)
+        repo_path_entry.xview_moveto(1)   # scroll so long paths stay visible
 
 
 
@@ -220,6 +226,7 @@ tablet1_Y = 192
 
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text="Versions")
+
 
 canvas1 = tk.Canvas(tab1, bg="#DFDFDF", height=651, width=973, bd=0, highlightthickness=0, relief="ridge")
 canvas1.place(x=0, y=0)
@@ -916,6 +923,21 @@ toolbar = ToolBar(
 # ===================================================================================================================
 # ========== TAB 8 (Settings) =======================================================================================
 
+def preset_realwithdebinfo(selected_preset):
+    if selected_preset.get() == 1:
+        selected_preset.set(1)
+    else:
+        selected_preset.set(0)
+
+
+
+def preset_minsizerel(selected_preset):
+    if selected_preset.get() == 2:
+        selected_preset.set(2)
+    else:
+        selected_preset.set(0)
+
+
 
 tab8 = ttk.Frame(notebook)
 notebook.add(tab8, text="Settings")
@@ -945,15 +967,14 @@ canvas8.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000
 canvas8.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 431.0, anchor="nw", text="enter repository path:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(61.0, 431.0, anchor="nw", text="Select BMW Repository:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(61.0, 600.0, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
 
 
 images["tab8_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-if (usb_addr == None):
-    connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=DoNothing, bd = 0)
-else:
-    connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
+connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
 connect_to_Psupply.place(x=261, y=144, width=33, height=33)
+
 
 images["tab8_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 pwr_sup_on = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOn, bd = 0)
@@ -973,10 +994,46 @@ disconnect_trace32.place(x=261, y=375, width=33, height=33)
 
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
 repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
+repo_browse_button = ttk.Button(tab8, text="Browse", command=browse_repo_path) #browse button to get repo path
+repo_browse_button.place(x=680, y=428, width=70, height=32)
+
+selected_preset = tk.IntVar(value=0)
+
+selected_preset_relwithdeb = tk.Checkbutton(
+    tab8,
+    text="Realwithdebinfo",
+    variable=selected_preset,
+    onvalue=1,
+    offvalue=0,
+    command=lambda: preset_realwithdebinfo(selected_preset)
+)
+selected_preset_relwithdeb.place(x=61, y=487)
+
+
+
+selected_preset_minsizerel = tk.Checkbutton(
+    tab8,
+    text="Minsizerel",
+    variable=selected_preset,
+    onvalue=2,
+    offvalue=0,
+    command=lambda: preset_minsizerel(selected_preset)
+)
+selected_preset_minsizerel.place(x=61 + 120, y=487)
+
+
+if (usb_addr == None):
+    connect_to_Psupply.config(state="disabled")
+    pwr_sup_on.config(state="disabled")
+    pwr_sup_off.config(state="disabled")
+else:
+    connect_to_Psupply.config(state="normal")
+    pwr_sup_on.config(state="normal")
+    pwr_sup_off.config(state="normal")
 
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 
 
-window.resizable(False, False)
+window.resizable(True, True)
 window.mainloop()

@@ -5,6 +5,10 @@ import tkinter as tk
 from enum import IntEnum
 from Functional.logging import *
 import os
+import shutil
+import tempfile
+import re
+import io
 
 # logs = LogApp()
 
@@ -26,7 +30,14 @@ dbg = ''
 execution_status =''
 
 
-def LaunchTrace32(repo_path_entry):
+def LaunchTrace32(repo_path_entry, selected_preset):
+    repo_path_XNF = repo_path_entry.get() #to get the path of XNF directory.
+    if repo_path_XNF:
+        if os.path.exists(repo_path_XNF):
+
+            autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
+
+
     user_path = Path.home() #to get the path of user being currently used.
     user_path = str(user_path) #to get the path of user being currently used.
     user_path_cleaned = user_path.replace('/', "\\") 
@@ -36,7 +47,7 @@ def LaunchTrace32(repo_path_entry):
     Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
     trace_configfile_path = f"{Automation_repo_path}\\config.t32"    
     
-    repo_path_XNF = repo_path_entry.get() #to get the path of XNF directory.
+
     repo_path_XNF = str(repo_path_XNF)
     repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\") 
     autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
@@ -45,6 +56,140 @@ def LaunchTrace32(repo_path_entry):
     subprocess.Popen(command)
     # Wait until the TRACE32 instance is started
     time.sleep(5) 
+
+def autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry):
+    autoexec_cmm = "autoexec.cmm"
+    flash_cmm = "flash.cmm"
+    autoexec_changed_cmm = "autoexec_automation.cmm"
+    flash_changed_cmm = "flash_automation.cmm"
+
+    cmms_path = os.path.join(repo_path_XNF, "Tests", "DebuggerScripts")
+    if not os.path.isdir(cmms_path):
+        raise KeyError("Repo not found for debugger scripts!!!")
+
+    autoexec_cmm_path = None
+    flash_cmm_path = None
+    autoexec_changed_cmm_path = None
+    flash_changed_cmm_path = None
+
+    # Walk and collect paths
+    for root, dirs, files in os.walk(cmms_path):
+        if autoexec_cmm in files:
+            autoexec_cmm_path = os.path.join(root, autoexec_cmm)
+        if flash_cmm in files:
+            flash_cmm_path = os.path.join(root, flash_cmm)
+        if autoexec_changed_cmm in files:
+            autoexec_changed_cmm_path = os.path.join(root, autoexec_changed_cmm)
+        if flash_changed_cmm in files:
+            flash_changed_cmm_path = os.path.join(root, flash_changed_cmm)
+
+        # You can break early if you found originals and changed ones, if that meets your logic
+        # but careful: you may want to find all
+
+    # After walking, check what you found
+    if not autoexec_cmm_path:
+        raise KeyError("CMM for autoexec not found")
+    if not flash_cmm_path:
+        raise KeyError("CMM for flash not found")
+
+    # If changed ones are present already
+    if autoexec_changed_cmm_path and flash_changed_cmm_path:
+        os.remove(autoexec_changed_cmm_path)
+        os.remove(flash_changed_cmm_path)
+
+    # Otherwise create & edit copies
+    new_flash_path = create_flash_cmm_copy(flash_cmm_path)
+    edit_flash_cmm(new_flash_path, selected_preset, repo_path_entry)
+
+    new_autoexec_path = create_autoexec_cmm_copy(autoexec_cmm_path)
+    edit_autoexec_cmm(new_autoexec_path)
+    # You would similarly have an edit_autoexec_cmm(new_auto) if needed  
+
+def create_flash_cmm_copy(flash_cmm_path):
+    flash_changed_cmm_automation = edit_cmm_path_name(flash_cmm_path)
+    
+    shutil.copy(flash_cmm_path, flash_changed_cmm_automation)
+    return flash_changed_cmm_automation
+    
+def create_autoexec_cmm_copy(autoexec_changed_cmm):
+    autoexec_changed_cmm_automation = edit_cmm_path_name(autoexec_changed_cmm)
+    
+    shutil.copy(autoexec_changed_cmm, autoexec_changed_cmm_automation)
+    return autoexec_changed_cmm_automation
+
+def edit_cmm_path_name(changed_cmm):
+    dir_name, base_name = os.path.split(changed_cmm)
+    name, ext = os.path.splitext(base_name)
+    
+    # Create the new file name with '_copied' suffix
+    new_name = f"{name}_automation{ext}"
+    changed_cmm_automation = os.path.join(dir_name, new_name)
+    return changed_cmm_automation
+
+def edit_flash_cmm(filepath, selected_preset, repo_path_entry) -> None:
+    """
+    Replace the line starting with Data.LOAD.Elf in the file at filepath
+    with `new_line` (exactly). Other lines stay the _same.
+    """
+    new_line = get_select_preset(selected_preset, repo_path_entry)
+    dirn = os.path.dirname(filepath) or "."
+    fd, tmpname = tempfile.mkstemp(dir=dirn)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as fout, open(filepath, 'r', encoding='utf-8', errors='ignore') as fin:
+            for line in fin:
+                if re.match(r'^\s*Data\.LOAD\.Elf\b', line):
+                    fout.write("Data.LOAD.Elf " + new_line.rstrip('\r\n') + "\n")
+                else:
+                    fout.write(line)
+        os.replace(tmpname, filepath)
+    except Exception:
+        os.remove(tmpname)
+        raise
+
+
+def edit_autoexec_cmm(filepath: str) -> None:
+    """
+    Replace any line that calls flash.cmm (with any number of spaces or tildes)
+    with one that calls flash_automation.cmm.
+    """
+    
+
+    new_line = r"DO ~~~~\flash_automation.cmm"
+
+    # Match any line that has DO and ends with \flash.cmm, ignoring case, spaces, tildes, etc.
+    pattern = re.compile(r'DO\s*[~\s]*\\flash\.cmm', re.IGNORECASE)
+
+    dirn = os.path.dirname(filepath) or "."
+    fd, tmpname = tempfile.mkstemp(dir=dirn)
+    try:
+        with io.open(filepath, 'r', encoding='utf-8-sig', errors='ignore') as fin, \
+             io.open(fd, 'w', encoding='utf-8', newline='\n') as fout:
+            replaced = False
+            for line in fin:
+                if pattern.search(line):  # use search instead of match
+                    fout.write(new_line + "\n")
+                    replaced = True
+                else:
+                    fout.write(line)
+        os.replace(tmpname, filepath)
+        
+    except Exception:
+        os.remove(tmpname)
+        raise
+
+def get_select_preset(selected_preset, repo_path_entry):
+    repo_path_XNF = repo_path_entry.get()
+    repo_path_XNF_cleaned = repo_path_XNF.replace('/', '\\')
+    if selected_preset.get() == 1:#Realwithdeb
+        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-driver-c2-gcc-arm-relwithdebinfo\XNF-Handle_Driver_C2_App.elf"
+    
+    if selected_preset.get() == 2:#Minsizerel
+        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-driver-c2-gcc-arm-minsizerel\XNF-Handle_Driver_C2_App.elf"
+
+    else:
+        print("Select correct preset")
+        raise ValueError("Select correct preset: Realwithdebinfo  or Minsizerel")
+
 
 
 
@@ -144,9 +289,9 @@ def PauseCode(exec_label):
 def QuitTrace32():
     dbg.exit()
 
-def Trace32ConnectApp(repo_path_entry):
+def Trace32ConnectApp(repo_path_entry, selected_preset):
 
-    LaunchTrace32(repo_path_entry)
+    LaunchTrace32(repo_path_entry, selected_preset)
     ConnectToTraceUDP()
     time.sleep(2)
 
