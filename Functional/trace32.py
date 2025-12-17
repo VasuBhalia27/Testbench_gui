@@ -348,3 +348,39 @@ def motor_decouple(selected_motor_state):
 
     dbg.cmd(f'Var.set Take_input_from_gui = 1')
 
+
+def SG_input_1(SG_input_1):
+    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
+    if SG_input_1.get() == 1:
+        SG_input_1.set(1)
+    else:
+        SG_input_1.set(0)
+
+    dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 1')
+    dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 0')
+
+def SG_input_2(SG_input_2):
+    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
+    if SG_input_2.get() == 2:
+        SG_input_2.set(2)
+    else:
+        SG_input_2.set(0)
+
+    dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 0')
+    dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 1')
+
+def SG_no_input(SG_input_3):
+    # If cb2 is turned ON, set shared var to 3; if OFF, reset to 0
+    if SG_input_3.get() == 3:
+        SG_input_3.set(3)
+    else:
+        SG_input_3.set(0)
+
+    dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 0')
+    dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 0')
+
+def clear_entries(entries_list):
+    for i in range(len(entries_list)):
+        
+        entries_list[i].delete(0, tk.END)
+

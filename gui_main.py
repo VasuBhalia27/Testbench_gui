@@ -417,52 +417,88 @@ canvas3 = tk.Canvas(
     relief="ridge"
 )
 canvas3.place(x=0, y=0)
+offset_top = 150  # offset from top of the frame/window
 
 
-offset_top = 80  # offset from top of the frame/window
+SG_input_conditon = tk.IntVar(value=0)
+
+motor_couple_cb = tk.Checkbutton(
+    tab3,
+    text="TestFw_Sg1ToggleGui",
+    variable=SG_input_conditon,
+    onvalue=1,
+    offvalue=0,
+    command=lambda: SG_input_1(selected_motor_state)
+)
+motor_couple_cb.place(x=34, y=110)
+
+
+
+motor_decouple_cb = tk.Checkbutton(
+    tab3,
+    text="TestFw_Sg2ToggleGui",
+    variable=SG_input_conditon,
+    onvalue=2,
+    offvalue=0,
+    command=lambda: SG_input_2(selected_motor_state)
+)
+motor_decouple_cb.place(x=34+150, y=110)
+
+
+
+motor_decouple_cb = tk.Checkbutton(
+    tab3,
+    text="SG no input",
+    variable=SG_input_conditon,
+    onvalue=3,
+    offvalue=0,
+    command=lambda: SG_no_input(selected_motor_state)
+)
+motor_decouple_cb.place(x=34+150+150, y=110)
+
 
 canvas3.create_text(34.0, offset_top + 0*40, anchor="nw",
-    text="TestFw_DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry_1 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry_1.place(x=180.0, y=offset_top + 0*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 1*40, anchor="nw",
-    text="TestFw_Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry2 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry2.place(x=180.0, y=offset_top + 1*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 2*40, anchor="nw",
-    text="TestFw_Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry3 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry3.place(x=180.0, y=offset_top + 2*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 3*40, anchor="nw",
-    text="TestFw_Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry4 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry4.place(x=180.0, y=offset_top + 3*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 4*40, anchor="nw",
-    text="TestFw_Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry5 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry5.place(x=180.0, y=offset_top + 4*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 5*40, anchor="nw",
-    text="TestFw_Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry6 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry6.place(x=180.0, y=offset_top + 5*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 6*40, anchor="nw",
-    text="TestFw_Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry7 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry7.place(x=180.0, y=offset_top + 6*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 7*40, anchor="nw",
-    text="TestFw_Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry8 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry8.place(x=180.0, y=offset_top + 7*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 8*40, anchor="nw",
-    text="TestFw_Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
 
@@ -472,7 +508,10 @@ sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, t
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e,  footer3 ), bd = 0)
-tab3_run_test_tile3.place(x=400, y=94., width=31.073986053466797, height=31.845783233642578)
+tab3_run_test_tile3.place(x=450, y=110, width=31.073986053466797, height=31.845783233642578)
+
+reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
+reset_entries.place(x=500, y=110, width=85, height=32)
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
@@ -577,6 +616,7 @@ motor_decouple_cb = tk.Checkbutton(
     command=lambda: motor_decouple(selected_motor_state)
 )
 motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
+
 
 
 canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="TestFw_MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
