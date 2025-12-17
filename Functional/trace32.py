@@ -2,6 +2,7 @@ import lauterbach.trace32.rcl as t32
 import subprocess # module to create an additional process
 import time
 import tkinter as tk
+from tkinter import messagebox
 from enum import IntEnum
 from Functional.logging import *
 import os
@@ -34,8 +35,12 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     repo_path_XNF = repo_path_entry.get() #to get the path of XNF directory.
     if repo_path_XNF:
         if os.path.exists(repo_path_XNF):
-
             autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
+        else:
+            messagebox.showerror("Error", "BMW repository not found")
+    else:
+        messagebox.showerror("Error", "BMW repository not found")
+
 
 
     user_path = Path.home() #to get the path of user being currently used.
@@ -234,8 +239,8 @@ def ConnectToTraceUDP():
         dbg.print("Hello")
 
     except Exception as e:
+        messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
 
-        print("❌ Unable to connect:", e)
 
 def GetValueVbatt(entry_widget):
     global dbg 
@@ -244,7 +249,7 @@ def GetValueVbatt(entry_widget):
     entry_widget.delete(0, tk.END)
     entry_widget.insert(0, str(val_master))
 
-def SendDIDGetVal(entry_widget, DID, get_val_var, footer_instance):
+def SendDIDGetVal(entry_widget, DID, get_val_var):
     try:
         dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
         time.sleep(0.5)
@@ -258,10 +263,12 @@ def SendDIDGetVal(entry_widget, DID, get_val_var, footer_instance):
         print(e)
         error_msg = str(e)
         if "'str' object has no attribute 'cmd'" in error_msg:
-            footer_instance.update_additional_entry("Not connected to Trace32")
+            messagebox.showerror("Error", "Trace32 not connected!!!")
 
 
-def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, footer_instance):
+
+
+def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID):
     
     try:
         dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
@@ -278,18 +285,14 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, footer_
         print(e)
         error_msg = str(e)
         if "'str' object has no attribute 'cmd'" in error_msg:
-            footer_instance.update_additional_entry("Not connected to Trace32")
+            messagebox.showerror("Error","Trace32 not connected!!!")
 
 
-    except Exception as e:
-        print(e)
-        error_msg = str(e)
-        if "'str' object has no attribute 'cmd'" in error_msg:
-            footer_instance.update_additional_entry("Not connected to Trace32")
 
 
 
 def SendCmdToDbg(command):
+
     dbg.cmd(command)
     
 def UpdateCodeExecLabel_running(exec_label):

@@ -5,6 +5,7 @@ import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
 from tkinter import filedialog
+from tkinter import messagebox
 
 
 # try:
@@ -358,7 +359,7 @@ entry_list = [tab2_entry_1,tab2_entry_2, tab2_entry3, tab2_entry4, tab2_entry5, 
 capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
 
 images["tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e, footer2), bd = 0)
+run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -366,31 +367,10 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer2 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab2,
-    tab_frame=tab2_frame,
-    canvas=canvas2,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-
-toolbar = ToolBar(
-    parent = window,
-    tab = tab2,
-    tab_frame = tab2_frame,
-    canvas = canvas2,
-    images = images,
-    relative_to_assets= relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
-
 
 
 
@@ -507,7 +487,7 @@ sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1Minus
 sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, tab3_entry6,tab3_entry7, tab3_entry8, tab3_entry9]
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e,  footer3 ), bd = 0)
+tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e), bd = 0)
 tab3_run_test_tile3.place(x=450, y=110, width=31.073986053466797, height=31.845783233642578)
 
 reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
@@ -516,30 +496,12 @@ reset_entries.place(x=500, y=110, width=85, height=32)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer3 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab3,
-    tab_frame=tab3_frame,
-    canvas=canvas3,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab3,
-    tab_frame = tab3_frame,
-    canvas = canvas3,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -659,7 +621,7 @@ motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVo
 motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13]
 
 images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e, footer4), bd = 0)
+tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
 tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 
 # ===================================================================================================================
@@ -681,7 +643,7 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
 
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage", footer4 ), bd = 0)
+tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
@@ -692,29 +654,11 @@ tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer4 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab4,
-    tab_frame=tab4_frame,
-    canvas=canvas4,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-toolbar = ToolBar(
-    parent = window,
-    tab = tab4,
-    tab_frame = tab4_frame,
-    canvas = canvas4,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -753,7 +697,7 @@ tab5_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
 
 images["tab5_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
-tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: SendDIDGetVal(tab5_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard", footer5 ), bd = 0)
+tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: SendDIDGetVal(tab5_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard"), bd = 0)
 tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -762,31 +706,12 @@ tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer5 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab5,
-    tab_frame=tab5_frame,
-    canvas=canvas5,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab5,
-    tab_frame = tab5_frame,
-    canvas = canvas5,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
 
 
 # ===================================================================================================================
@@ -861,31 +786,13 @@ tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer6 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab6,
-    tab_frame=tab6_frame,
-    canvas=canvas6,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab6,
-    tab_frame = tab6_frame,
-    canvas = canvas6,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ========== TAB 7 ==================================================================================================
@@ -926,7 +833,7 @@ tab7_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 tab7_entry_2 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
 
 images["tile1_run_test_tab7"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e, "TestFw_LedVoltage", footer7), bd = 0)
+run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e, "TestFw_LedVoltage"), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -934,30 +841,12 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer7 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab7,
-    tab_frame=tab7_frame,
-    canvas=canvas7,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab7,
-    tab_frame = tab7_frame,
-    canvas = canvas7,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ===================================================================================================================
