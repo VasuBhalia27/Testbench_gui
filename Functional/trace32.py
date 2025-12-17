@@ -268,7 +268,7 @@ def SendDIDGetVal(entry_widget, DID, get_val_var):
 
 
 
-def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID):
+def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, fetch_run_status = None, running_status_label = None):
     
     try:
         dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
@@ -276,8 +276,25 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID):
 
         for i in range(len(capa_output_variables)):
             fetched_var_value = dbg.fnc(f"Var.VALUE({capa_output_variables[i]})")
+            fetched_var_value = int(fetched_var_value)
             entry_list[i].delete(0, tk.END)
             entry_list[i].insert(0, str(fetched_var_value))
+
+        if fetch_run_status == True and running_status_label:
+            running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+            running_status = int(running_status)
+            
+            if running_status == 1:
+                running_status_label.config(text= "Running Status: Sleep")
+
+            elif running_status == 0:
+                running_status_label.config(text= "Running Status: Running")
+
+            else:
+                running_status_label.config(text= "Running Status: Error")
+
+        # reset_cb()
+        
         
         # logs.add_log(DID, fetched_var_value)
 
@@ -339,7 +356,7 @@ def motor_couple(selected_motor_state):
     else:
         selected_motor_state.set(0)
 
-    dbg.cmd(f'Var.set Take_input_from_gui = 2')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 2')
 
 
 def motor_decouple(selected_motor_state):
@@ -349,7 +366,7 @@ def motor_decouple(selected_motor_state):
     else:
         selected_motor_state.set(0)
 
-    dbg.cmd(f'Var.set Take_input_from_gui = 1')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
 
 
 def SG_input_1(SG_input_1):
@@ -387,3 +404,17 @@ def clear_entries(entries_list):
         
         entries_list[i].delete(0, tk.END)
 
+def reset_cb(SG_input_1, SG_input_2, SG_input_3):
+    
+    SG_input_1.set(0)
+    SG_input_2.set(0)
+    SG_input_3.set(0)
+
+
+# def poll_target_state(label):
+#     try:
+#         val_master = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+#         label.config(text=f"myVar = {val_master}")
+#     except Exception as e:
+#         label.config(text=f"Error reading variable: {e}")
+    

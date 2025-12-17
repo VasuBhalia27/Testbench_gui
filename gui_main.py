@@ -478,7 +478,7 @@ tab3_entry8 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry8.place(x=180.0, y=offset_top + 7*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 8*40, anchor="nw",
-    text="Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
 
@@ -487,11 +487,15 @@ sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1Minus
 sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, tab3_entry6,tab3_entry7, tab3_entry8, tab3_entry9]
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e), bd = 0)
+tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e, True, running_status), bd = 0)
 tab3_run_test_tile3.place(x=450, y=110, width=31.073986053466797, height=31.845783233642578)
 
 reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
 reset_entries.place(x=500, y=110, width=85, height=32)
+
+running_status = tk.Label(tab3_frame, text="Running Status: None")
+running_status.config(bg = "#DFDFDF")
+running_status.place(x = 20, y = 610)
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
@@ -959,6 +963,8 @@ else:
     connect_to_Psupply.config(state="normal")
     pwr_sup_on.config(state="normal")
     pwr_sup_off.config(state="normal")
+
+# window.after(1000, lambda: poll_target_state())
 
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
