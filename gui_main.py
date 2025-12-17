@@ -4,12 +4,14 @@ from tkinter import ttk, Button, PhotoImage
 import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
+from tkinter import filedialog
+from tkinter import messagebox
 
 
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-except Exception:
-    ctypes.windll.user32.SetProcessDPIAware()
+# try:
+#     ctypes.windll.shcore.SetProcessDpiAwareness(1)
+# except Exception:
+#     ctypes.windll.user32.SetProcessDPIAware()
 
 
 # ===================================================================================================================
@@ -147,7 +149,12 @@ class  ToolBar:
             font=("Inter SemiBold", 11 * -1)
         )
 
-
+def browse_repo_path():
+    folder_path = filedialog.askdirectory(mustexist=False)
+    if folder_path:
+        repo_path_entry.delete(0, "end")
+        repo_path_entry.insert(0, folder_path)
+        repo_path_entry.xview_moveto(1)   # scroll so long paths stay visible
 
 
 
@@ -220,6 +227,7 @@ tablet1_Y = 192
 
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text="Versions")
+
 
 canvas1 = tk.Canvas(tab1, bg="#DFDFDF", height=651, width=973, bd=0, highlightthickness=0, relief="ridge")
 canvas1.place(x=0, y=0)
@@ -351,7 +359,7 @@ entry_list = [tab2_entry_1,tab2_entry_2, tab2_entry3, tab2_entry4, tab2_entry5, 
 capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
 
 images["tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e, footer2), bd = 0)
+run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -359,31 +367,10 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer2 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab2,
-    tab_frame=tab2_frame,
-    canvas=canvas2,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-
-toolbar = ToolBar(
-    parent = window,
-    tab = tab2,
-    tab_frame = tab2_frame,
-    canvas = canvas2,
-    images = images,
-    relative_to_assets= relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
-
 
 
 
@@ -410,52 +397,88 @@ canvas3 = tk.Canvas(
     relief="ridge"
 )
 canvas3.place(x=0, y=0)
+offset_top = 150  # offset from top of the frame/window
 
 
-offset_top = 80  # offset from top of the frame/window
+SG_input_conditon = tk.IntVar(value=0)
+
+motor_couple_cb = tk.Checkbutton(
+    tab3,
+    text="TestFw_Sg1ToggleGui",
+    variable=SG_input_conditon,
+    onvalue=1,
+    offvalue=0,
+    command=lambda: SG_input_1(selected_motor_state)
+)
+motor_couple_cb.place(x=34, y=110)
+
+
+
+motor_decouple_cb = tk.Checkbutton(
+    tab3,
+    text="TestFw_Sg2ToggleGui",
+    variable=SG_input_conditon,
+    onvalue=2,
+    offvalue=0,
+    command=lambda: SG_input_2(selected_motor_state)
+)
+motor_decouple_cb.place(x=34+150, y=110)
+
+
+
+motor_decouple_cb = tk.Checkbutton(
+    tab3,
+    text="SG no input",
+    variable=SG_input_conditon,
+    onvalue=3,
+    offvalue=0,
+    command=lambda: SG_no_input(selected_motor_state)
+)
+motor_decouple_cb.place(x=34+150+150, y=110)
+
 
 canvas3.create_text(34.0, offset_top + 0*40, anchor="nw",
-    text="TestFw_DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry_1 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry_1.place(x=180.0, y=offset_top + 0*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 1*40, anchor="nw",
-    text="TestFw_Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry2 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry2.place(x=180.0, y=offset_top + 1*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 2*40, anchor="nw",
-    text="TestFw_Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry3 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry3.place(x=180.0, y=offset_top + 2*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 3*40, anchor="nw",
-    text="TestFw_Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry4 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry4.place(x=180.0, y=offset_top + 3*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 4*40, anchor="nw",
-    text="TestFw_Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry5 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry5.place(x=180.0, y=offset_top + 4*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 5*40, anchor="nw",
-    text="TestFw_Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry6 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry6.place(x=180.0, y=offset_top + 5*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 6*40, anchor="nw",
-    text="TestFw_Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry7 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry7.place(x=180.0, y=offset_top + 6*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 7*40, anchor="nw",
-    text="TestFw_Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry8 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry8.place(x=180.0, y=offset_top + 7*40, width=95.0, height=20.0)
 
 canvas3.create_text(34.0, offset_top + 8*40, anchor="nw",
-    text="TestFw_Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
+    text="Sg2Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
 
@@ -464,36 +487,25 @@ sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1Minus
 sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, tab3_entry6,tab3_entry7, tab3_entry8, tab3_entry9]
 
 images["tab3_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e,  footer3 ), bd = 0)
-tab3_run_test_tile3.place(x=895, y=94., width=31.073986053466797, height=31.845783233642578)
+tab3_run_test_tile3 = Button(tab3, image=images["tab3_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e, True, running_status), bd = 0)
+tab3_run_test_tile3.place(x=450, y=110, width=31.073986053466797, height=31.845783233642578)
+
+reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
+reset_entries.place(x=500, y=110, width=85, height=32)
+
+running_status = tk.Label(tab3_frame, text="Running Status: None")
+running_status.config(bg = "#DFDFDF")
+running_status.place(x = 20, y = 610)
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer3 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab3,
-    tab_frame=tab3_frame,
-    canvas=canvas3,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab3,
-    tab_frame = tab3_frame,
-    canvas = canvas3,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -572,6 +584,7 @@ motor_decouple_cb = tk.Checkbutton(
 motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
 
 
+
 canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="TestFw_MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
@@ -612,7 +625,7 @@ motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVo
 motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13]
 
 images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e, footer4), bd = 0)
+tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
 tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 
 # ===================================================================================================================
@@ -634,7 +647,7 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
 
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage", footer4 ), bd = 0)
+tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
@@ -645,29 +658,11 @@ tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer4 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab4,
-    tab_frame=tab4_frame,
-    canvas=canvas4,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
-toolbar = ToolBar(
-    parent = window,
-    tab = tab4,
-    tab_frame = tab4_frame,
-    canvas = canvas4,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -706,7 +701,7 @@ tab5_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
 
 images["tab5_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
-tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: SendDIDGetVal(tab5_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard", footer5 ), bd = 0)
+tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: SendDIDGetVal(tab5_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard"), bd = 0)
 tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -715,31 +710,12 @@ tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer5 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab5,
-    tab_frame=tab5_frame,
-    canvas=canvas5,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab5,
-    tab_frame = tab5_frame,
-    canvas = canvas5,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
 
 
 # ===================================================================================================================
@@ -814,31 +790,13 @@ tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer6 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab6,
-    tab_frame=tab6_frame,
-    canvas=canvas6,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab6,
-    tab_frame = tab6_frame,
-    canvas = canvas6,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ========== TAB 7 ==================================================================================================
@@ -859,6 +817,7 @@ canvas7 = tk.Canvas(
     bd=0,
     highlightthickness=0,
     relief="ridge"
+    
 )
 canvas7.place(x=0, y=0)
 
@@ -878,7 +837,7 @@ tab7_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 tab7_entry_2 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
 
 images["tile1_run_test_tab7"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e, "TestFw_LedVoltage", footer7), bd = 0)
+run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e, "TestFw_LedVoltage"), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 
@@ -886,34 +845,31 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-footer7 = FooterBar(
-    parent=window,  # or whatever your root window is
-    tab=tab7,
-    tab_frame=tab7_frame,
-    canvas=canvas7,
-    images=images,
-    relative_to_assets=relative_to_assets,
-    set_voltage_callback=SetVoltage,
-    get_voltage_callback=GetVoltage
-)
+
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-toolbar = ToolBar(
-    parent = window,
-    tab = tab7,
-    tab_frame = tab7_frame,
-    canvas = canvas7,
-    images = images,
-    relative_to_assets=relative_to_assets,
-    run_code_callback = RunCode,
-    pause_code_callback=PauseCode
-)
+
 
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 8 (Settings) =======================================================================================
+
+def preset_realwithdebinfo(selected_preset):
+    if selected_preset.get() == 1:
+        selected_preset.set(1)
+    else:
+        selected_preset.set(0)
+
+
+
+def preset_minsizerel(selected_preset):
+    if selected_preset.get() == 2:
+        selected_preset.set(2)
+    else:
+        selected_preset.set(0)
+
 
 
 tab8 = ttk.Frame(notebook)
@@ -944,15 +900,14 @@ canvas8.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000
 canvas8.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 431.0, anchor="nw", text="enter repository path:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(61.0, 431.0, anchor="nw", text="Select BMW Repository:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(61.0, 600.0, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
 
 
 images["tab8_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-if (usb_addr == None):
-    connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=DoNothing, bd = 0)
-else:
-    connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
+connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
 connect_to_Psupply.place(x=261, y=144, width=33, height=33)
+
 
 images["tab8_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 pwr_sup_on = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOn, bd = 0)
@@ -963,7 +918,7 @@ pwr_sup_off = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSup
 pwr_sup_off.place(x=261, y=263, width=33, height=33)
 
 images["tab8_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=Trace32ConnectApp, bd = 0)
+connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd = 0)
 connect_trace32.place(x=261, y=319, width=33, height=33)
 
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
@@ -972,10 +927,48 @@ disconnect_trace32.place(x=261, y=375, width=33, height=33)
 
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
 repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
+repo_browse_button = ttk.Button(tab8, text="Browse", command=browse_repo_path) #browse button to get repo path
+repo_browse_button.place(x=680, y=428, width=70, height=32)
+
+selected_preset = tk.IntVar(value=0)
+
+selected_preset_relwithdeb = tk.Checkbutton(
+    tab8,
+    text="Realwithdebinfo",
+    variable=selected_preset,
+    onvalue=1,
+    offvalue=0,
+    command=lambda: preset_realwithdebinfo(selected_preset)
+)
+selected_preset_relwithdeb.place(x=61, y=487)
+
+
+
+selected_preset_minsizerel = tk.Checkbutton(
+    tab8,
+    text="Minsizerel",
+    variable=selected_preset,
+    onvalue=2,
+    offvalue=0,
+    command=lambda: preset_minsizerel(selected_preset)
+)
+selected_preset_minsizerel.place(x=61 + 120, y=487)
+
+
+if (usb_addr == None):
+    connect_to_Psupply.config(state="disabled")
+    pwr_sup_on.config(state="disabled")
+    pwr_sup_off.config(state="disabled")
+else:
+    connect_to_Psupply.config(state="normal")
+    pwr_sup_on.config(state="normal")
+    pwr_sup_off.config(state="normal")
+
+# window.after(1000, lambda: poll_target_state())
 
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 
 
-window.resizable(False, False)
+window.resizable(True, True)
 window.mainloop()
