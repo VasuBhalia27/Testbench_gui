@@ -621,8 +621,12 @@ canvas4.create_text(73.0 + 475, placement_y_coord + 35*9, anchor="nw", text="Tes
 tab4_entry13 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry13.place(x=306+475, y=placement_y_coord + 35*9, width=95.0, height=20.0)
 
-motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorPwmOut", "TestFw_PwmMotorDriverIn1", "TestFw_PwmMotorDriverIn2", "TestFw_DoMotorNsleep", "TestFw_DoMotorDiagEnable", "TestFw_DiMotorNfault"]
-motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13]
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*10, anchor="nw", text="TestFw_MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
+tab4_entry14 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
+tab4_entry14.place(x=306+475, y=placement_y_coord + 35*10, width=95.0, height=20.0)
+
+motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorPwmOut", "TestFw_PwmMotorDriverIn1", "TestFw_PwmMotorDriverIn2", "TestFw_DoMotorNsleep", "TestFw_DoMotorDiagEnable", "TestFw_DiMotorNfault", "TestFw_MotorLoadError"]
+motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13, tab4_entry14]
 
 images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
 tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
@@ -649,9 +653,6 @@ tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
 tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
-
-
-
 
 
 
