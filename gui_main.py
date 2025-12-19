@@ -330,12 +330,12 @@ tab2_entry_2.place(x=350.0, y=214.0, width=95.0, height=20.0)
 # images["tile2_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 # canvas2.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab2"])
 
-canvas2.create_text(73.0, 260.0, anchor="nw", text="TestFw_CapaUnlock", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 260.0, anchor="nw", text="CapaUnlock", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry3 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry3.place(x=350.0, y=260.0, width=95.0, height=20.0)
 
 
-canvas2.create_text(73.0, 306.0, anchor="nw", text="TestFw_CapaApproachSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 306.0, anchor="nw", text="CapaApproachSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry4 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry4.place(x=350.0, y=306.0, width=95.0, height=20.0)
 
@@ -346,12 +346,12 @@ tab2_entry4.place(x=350.0, y=306.0, width=95.0, height=20.0)
 # images["tile3_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 # canvas2.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab2"])
 
-canvas2.create_text(73.0, 352.0, anchor="nw", text="TestFw_CapaLockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 352.0, anchor="nw", text="CapaLockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry5 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry5.place(x=350.0, y=352.0, width=95.0, height=20.0)
 
 
-canvas2.create_text(73.0, 398.0, anchor="nw", text="TestFw_CapaUnlockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 398.0, anchor="nw", text="CapaUnlockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry6 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry6.place(x=350.0, y=398.0, width=95.0, height=20.0)
 
@@ -585,43 +585,43 @@ motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
 
 
 
-canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="TestFw_MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475.0, placement_y_coord + 35*2, anchor="nw", text="TestFw_MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475.0, placement_y_coord + 35*2, anchor="nw", text="MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry4 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry4.place(x=306+475, y=placement_y_coord + 35*2, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*3, anchor="nw", text="TestFw_MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*3, anchor="nw", text="MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry7.place(x=306+475, y=placement_y_coord + 35*3, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="TestFw_MotorPwmOut", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="MotorPwmOut", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry8.place(x=306+475, y=placement_y_coord + 35*4, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*5, anchor="nw", text="TestFw_PwmMotorDriverIn1", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*5, anchor="nw", text="PwmMotorDriverIn1", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry9 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry9.place(x=306+475, y=placement_y_coord + 35*5, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*6, anchor="nw", text="TestFw_PwmMotorDriverIn2", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*6, anchor="nw", text="PwmMotorDriverIn2", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry10 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry10.place(x=306+475, y=placement_y_coord + 35*6, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*7, anchor="nw", text="TestFw_DoMotorNsleep", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*7, anchor="nw", text="DoMotorNsleep", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry11 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry11.place(x=306+475, y=placement_y_coord + 35*7, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*8, anchor="nw", text="TestFw_DoMotorDiagEnable", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*8, anchor="nw", text="DoMotorDiagEnable", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry12 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry12.place(x=306+475, y=placement_y_coord + 35*8, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*9, anchor="nw", text="TestFw_DiMotorNfault", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*9, anchor="nw", text="DiMotorNfault", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry13 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry13.place(x=306+475, y=placement_y_coord + 35*9, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*10, anchor="nw", text="TestFw_MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*10, anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry14 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry14.place(x=306+475, y=placement_y_coord + 35*10, width=95.0, height=20.0)
 
@@ -923,7 +923,7 @@ connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lamb
 connect_trace32.place(x=261, y=319, width=33, height=33)
 
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=QuitTrace32, bd = 0)
+disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=DoNothing, bd = 0)
 disconnect_trace32.place(x=261, y=375, width=33, height=33)
 
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
@@ -965,7 +965,7 @@ else:
     pwr_sup_on.config(state="normal")
     pwr_sup_off.config(state="normal")
 
-# window.after(1000, lambda: poll_target_state())
+window.after(1000, lambda: poll_target_state(running_status, window))
 
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================

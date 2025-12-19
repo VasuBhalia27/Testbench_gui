@@ -280,18 +280,18 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, fetch_r
             entry_list[i].delete(0, tk.END)
             entry_list[i].insert(0, str(fetched_var_value))
 
-        if fetch_run_status == True and running_status_label:
-            running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
-            running_status = int(running_status)
+        # if fetch_run_status == True and running_status_label:
+        #     running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+        #     running_status = int(running_status)
             
-            if running_status == 1:
-                running_status_label.config(text= "Running Status: Sleep")
+        #     if running_status == 1:
+        #         running_status_label.config(text= "Running Status: Sleep")
 
-            elif running_status == 0:
-                running_status_label.config(text= "Running Status: Running")
+        #     elif running_status == 0:
+        #         running_status_label.config(text= "Running Status: Running")
 
-            else:
-                running_status_label.config(text= "Running Status: Error")
+        #     else:
+        #         running_status_label.config(text= "Running Status: Error")
 
         # reset_cb()
         
@@ -411,10 +411,24 @@ def reset_cb(SG_input_1, SG_input_2, SG_input_3):
     SG_input_3.set(0)
 
 
-# def poll_target_state(label):
-#     try:
-#         val_master = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
-#         label.config(text=f"myVar = {val_master}")
-#     except Exception as e:
-#         label.config(text=f"Error reading variable: {e}")
-    
+def poll_target_state(label, window):
+
+    try:
+
+        running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+        running_status = int(running_status)
+        
+        if running_status == 1:
+            label.config(text= "Running Status: Sleep")
+
+        elif running_status == 0:
+            label.config(text= "Running Status: Running")
+
+        else:
+            label.config(text= "Running Status: Error")
+        window.after(1000, lambda: poll_target_state(label, window))
+
+        
+    except Exception as e:
+        window.after(1000, lambda: poll_target_state(label, window))
+
