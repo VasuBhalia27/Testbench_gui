@@ -185,6 +185,10 @@ def relative_to_assets(path: str, tab: str) -> Path:
         return ASSETS_PATH_TAB3 / Path(path)
     elif tab == "tab4":
         return ASSETS_PATH_TAB4 / Path(path)
+    elif tab == "tab4a":
+        return ASSETS_PATH_TAB4 / Path(path)
+    elif tab == "tab4b":
+        return ASSETS_PATH_TAB4 / Path(path)
     elif tab == "tab5":
         return ASSETS_PATH_TAB5 / Path(path)
     elif tab == "tab6":
@@ -509,12 +513,12 @@ running_status.place(x = 20, y = 610)
 
 # ===================================================================================================================
 # ===================================================================================================================
-# ========== TAB 4 (V-BATT/Motor/EOS) ===============================================================================
+# ========== TAB 4 (Motor) ==========================================================================================
 
 
 
 tab4 = ttk.Frame(notebook)
-notebook.add(tab4, text="V-BATT/Motor/EOS")
+notebook.add(tab4, text="Motor")
 
 tab4_frame = tk.Frame(tab4, bg="#DFDFDF")
 tab4_frame.pack(fill="both", expand=True)
@@ -529,26 +533,6 @@ canvas4 = tk.Canvas(
     relief="ridge"
 )
 canvas4.place(x=0, y=0)
-
-# ===================================================================================================================
-# ========== Tile-1 =================================================================================================
-
-images["tile_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
-canvas4.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4"])
-
-canvas4.create_text(73.0, 113.0, anchor="nw", text="Voltage Check (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 168.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 214.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-tab4_entry_1 = ttk.Entry(tab4_frame, style ='Background_grey.TEntry')
-tab4_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
-
-tab4_entry_2 = ttk.Entry(tab4_frame, style ='Background_grey.TEntry')
-tab4_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
-
-images["tab4_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile1 = Button(tab4, image=images["tab4_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
-tab4_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
@@ -632,27 +616,7 @@ images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_
 tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
 tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 
-# ===================================================================================================================
-# ========== Tile-3 =================================================================================================
 
-images["tile3_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
-canvas4.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4"])
-
-canvas4.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 403.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 449.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-
-tab4_entry5 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
-
-tab4_entry6 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
-
-
-images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
-tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
 
@@ -663,6 +627,62 @@ tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
+
+
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 4B (EOS) ===========================================================================================
+
+
+
+tab4b = ttk.Frame(notebook)
+notebook.add(tab4b, text="EOS")
+
+tab4b_frame = tk.Frame(tab4b, bg="#DFDFDF")
+tab4b_frame.pack(fill="both", expand=True)
+
+canvas4 = tk.Canvas(
+    tab4b_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas4.place(x=0, y=0)
+
+# ===================================================================================================================
+# ========== Tile-3 =================================================================================================
+
+images["tile3_tab4b"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4b")) 
+canvas4.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4b"])
+
+canvas4.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas4.create_text(73.0, 403.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, 449.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+
+tab4b_entry5 = ttk.Entry(tab4b_frame, style = 'Background_grey.TEntry')
+tab4b_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
+
+tab4b_entry6 = ttk.Entry(tab4b_frame, style = 'Background_grey.TEntry')
+tab4b_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
+
+
+images["tab4b_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4b"))
+tab4b_run_test_tile3 = Button(tab4b, image=images["tab4b_tile3_run_test"], command=lambda: SendDIDGetVal(tab4b_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
+tab4b_run_test_tile3.place(x=368, y=341, width=34, height=34)
+
+
+# ===================================================================================================================
+# ========== Footerbar ==============================================================================================
+
+
+
+# ===================================================================================================================
+# ========== Toolbar ================================================================================================
+
 
 
 # ===================================================================================================================
