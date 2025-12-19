@@ -511,8 +511,6 @@ running_status.place(x = 20, y = 610)
 # ===================================================================================================================
 # ========== TAB 4 (V-BATT/Motor/EOS) ===============================================================================
 
-
-
 tab4 = ttk.Frame(notebook)
 notebook.add(tab4, text="V-BATT/Motor/EOS")
 
@@ -531,7 +529,7 @@ canvas4 = tk.Canvas(
 canvas4.place(x=0, y=0)
 
 # ===================================================================================================================
-# ========== Tile-1 =================================================================================================
+# ========== Tile-1 (Voltage Check) =================================================================================
 
 images["tile_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
 canvas4.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4"])
@@ -547,17 +545,16 @@ tab4_entry_2 = ttk.Entry(tab4_frame, style ='Background_grey.TEntry')
 tab4_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
 
 images["tab4_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile1 = Button(tab4, image=images["tab4_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
+# Note: Ensure GetValueVbatt or equivalent is linked if intended
+tab4_run_test_tile1 = Button(tab4, image=images["tab4_tile1_run_test"], command=lambda: GetValueVbatt(tab4_entry_2), bd = 0)
 tab4_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
 # ===================================================================================================================
-# ========== Tile-2 =================================================================================================
+# ========== Tile-2 (Motor Test) ====================================================================================
 
 placement_y_coord = 168
 
-
 canvas4.create_text(73.0 + 475.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
-
 
 selected_motor_state = tk.IntVar(value=0)
 
@@ -571,8 +568,6 @@ motor_couple_cb = tk.Checkbutton(
 )
 motor_couple_cb.place(x=73.0 + 475.0, y=150)
 
-
-
 motor_decouple_cb = tk.Checkbutton(
     tab4,
     text="Motor Decouple",
@@ -583,57 +578,38 @@ motor_decouple_cb = tk.Checkbutton(
 )
 motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
 
-
-
+# Entry 1: Coupled Voltage
 canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
 
+# Entry 2: Decoupled Voltage
 canvas4.create_text(73.0 + 475.0, placement_y_coord + 35*2, anchor="nw", text="MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry4 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry4.place(x=306+475, y=placement_y_coord + 35*2, width=95.0, height=20.0)
 
+# Entry 3: Current Value
 canvas4.create_text(73.0 + 475, placement_y_coord + 35*3, anchor="nw", text="MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry7.place(x=306+475, y=placement_y_coord + 35*3, width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="MotorPwmOut", fill="#000000", font=("Inter SemiBold", 15 * -1))
-tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry8.place(x=306+475, y=placement_y_coord + 35*4, width=95.0, height=20.0)
-
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*5, anchor="nw", text="PwmMotorDriverIn1", fill="#000000", font=("Inter SemiBold", 15 * -1))
-tab4_entry9 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry9.place(x=306+475, y=placement_y_coord + 35*5, width=95.0, height=20.0)
-
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*6, anchor="nw", text="PwmMotorDriverIn2", fill="#000000", font=("Inter SemiBold", 15 * -1))
-tab4_entry10 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry10.place(x=306+475, y=placement_y_coord + 35*6, width=95.0, height=20.0)
-
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*7, anchor="nw", text="DoMotorNsleep", fill="#000000", font=("Inter SemiBold", 15 * -1))
-tab4_entry11 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry11.place(x=306+475, y=placement_y_coord + 35*7, width=95.0, height=20.0)
-
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*8, anchor="nw", text="DoMotorDiagEnable", fill="#000000", font=("Inter SemiBold", 15 * -1))
-tab4_entry12 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry12.place(x=306+475, y=placement_y_coord + 35*8, width=95.0, height=20.0)
-
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*9, anchor="nw", text="DiMotorNfault", fill="#000000", font=("Inter SemiBold", 15 * -1))
-tab4_entry13 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry13.place(x=306+475, y=placement_y_coord + 35*9, width=95.0, height=20.0)
-
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*10, anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
+# Entry 4: MotorLoadError (Shifted Up to remove space)
+canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry14 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry14.place(x=306+475, y=placement_y_coord + 35*10, width=95.0, height=20.0)
+tab4_entry14.place(x=306+475, y=placement_y_coord + 35*4, width=95.0, height=20.0)
 
-motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorPwmOut", "TestFw_PwmMotorDriverIn1", "TestFw_PwmMotorDriverIn2", "TestFw_DoMotorNsleep", "TestFw_DoMotorDiagEnable", "TestFw_DiMotorNfault", "TestFw_MotorLoadError"]
-motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13, tab4_entry14]
+# These lists must match the 4 items above for trace32 alignment
+motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorLoadError"]
+motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry14]
 
 images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
+tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], 
+                             command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), 
+                             bd = 0)
 tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 
 # ===================================================================================================================
-# ========== Tile-3 =================================================================================================
+# ========== Tile-3 (EOS Test) ======================================================================================
 
 images["tile3_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
 canvas4.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4"])
@@ -642,16 +618,16 @@ canvas4.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#
 canvas4.create_text(73.0, 403.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas4.create_text(73.0, 449.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-
 tab4_entry5 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
 
 tab4_entry6 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
 tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
-
 images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
+tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], 
+                             command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), 
+                             bd = 0)
 tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
