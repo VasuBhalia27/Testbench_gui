@@ -174,7 +174,10 @@ ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"assets_GC\Page_3(SG)\assets\frame0")
 ASSETS_PATH_TAB4 = OUTPUT_PATH / Path(r"assets_GC\Page_4(EMV)\assets\frame0")
 ASSETS_PATH_TAB5 = OUTPUT_PATH / Path(r"assets_GC\Page_5(NFC)\assets\frame0")
 ASSETS_PATH_TAB6 = OUTPUT_PATH / Path(r"assets_GC\Page_6(CAN-LIN)\assets\frame0")
+ASSETS_PATH_TAB7 = OUTPUT_PATH / Path(r"assets_GC\Page_7(Led)\assets\frame0")
 ASSETS_PATH_TAB8 = OUTPUT_PATH / Path(r"assets_GC\Page_8(settings)\assets\frame0")
+ASSETS_PATH_TAB9 = OUTPUT_PATH / Path(r"assets_GC\Page_9(Eos)\assets\frame0")
+ASSETS_PATH_TAB10 = OUTPUT_PATH / Path(r"assets_GC\Page_10(BatMon)\assets\frame0")
 
 def relative_to_assets(path: str, tab: str) -> Path:
     if tab == "tab1":
@@ -190,9 +193,13 @@ def relative_to_assets(path: str, tab: str) -> Path:
     elif tab == "tab6":
         return ASSETS_PATH_TAB6 / Path(path)
     elif tab == "tab7":
-        return ASSETS_PATH_TAB2 / Path(path)
+        return ASSETS_PATH_TAB7 / Path(path)
     elif tab == "tab8":
         return ASSETS_PATH_TAB8 / Path(path)
+    elif tab == "tab9":
+        return ASSETS_PATH_TAB9 / Path(path)
+    elif tab == "tab10":
+        return ASSETS_PATH_TAB10 / Path(path)
     else:
         raise Exception
 
@@ -227,7 +234,6 @@ tablet1_Y = 192
 
 tab1 = ttk.Frame(notebook)
 notebook.add(tab1, text="Versions")
-
 
 canvas1 = tk.Canvas(tab1, bg="#DFDFDF", height=651, width=973, bd=0, highlightthickness=0, relief="ridge")
 canvas1.place(x=0, y=0)
@@ -284,7 +290,6 @@ canvas1.create_text(
     font=("Inter BoldItalic", 24 * -1)
 )
 
-
 # ===================================================================================================================
 # ========== TAB 2 ==================================================================================================
 
@@ -307,19 +312,19 @@ canvas2.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
+images["minibea_logo_2"] = PhotoImage(file=relative_to_assets("minebea_logo_2.png", "tab2"))
+canvas2.create_image(145.0, 37.0, image=images["minibea_logo_2"])
 
 # images["tile_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 # canvas2.create_image(tablet1_X, tablet1_Y, image=images["tile_tab2"])
 
-
-
 canvas2.create_text(73.0, 113.0, anchor="nw", text="Capa Test Outputs", fill="#000000", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 168.0, anchor="nw", text="TestFw_CapaApproach", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 168.0, anchor="nw", text="CapaApproach", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
 tab2_entry_1.place(x=350.0, y=168.0, width=95.0, height=20.0)
 
 
-canvas2.create_text(73.0, 214.0, anchor="nw", text="TestFw_CapaLock", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(73.0, 214.0, anchor="nw", text="CapaLock", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry_2 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
 tab2_entry_2.place(x=350.0, y=214.0, width=95.0, height=20.0)
 
@@ -362,24 +367,9 @@ images["tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_butto
 run_test_tile1 = Button(tab2, image=images["tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
 
-
-
-# ===================================================================================================================
-# ========== Footerbar ==============================================================================================
-
-
-
-# ===================================================================================================================
-# ========== Toolbar ================================================================================================
-
-
-
-
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 3 (SG tests) =======================================================================================
-
-
 
 tab3 = ttk.Frame(notebook)
 notebook.add(tab3, text="SG Sensor Tests")
@@ -397,8 +387,12 @@ canvas3 = tk.Canvas(
     relief="ridge"
 )
 canvas3.place(x=0, y=0)
-offset_top = 150  # offset from top of the frame/window
+# ===================================================================================================================
+# ========== Tile-1 =================================================================================================
+images["minibea_logo_3"] = PhotoImage(file=relative_to_assets("minebea_logo_3.png", "tab3"))
+canvas3.create_image(145.0, 37.0, image=images["minibea_logo_3"])
 
+offset_top = 150  # offset from top of the frame/window
 
 SG_input_conditon = tk.IntVar(value=0)
 
@@ -412,8 +406,6 @@ motor_couple_cb = tk.Checkbutton(
 )
 motor_couple_cb.place(x=34, y=110)
 
-
-
 motor_decouple_cb = tk.Checkbutton(
     tab3,
     text="TestFw_Sg2ToggleGui",
@@ -424,8 +416,6 @@ motor_decouple_cb = tk.Checkbutton(
 )
 motor_decouple_cb.place(x=34+150, y=110)
 
-
-
 motor_decouple_cb = tk.Checkbutton(
     tab3,
     text="SG no input",
@@ -435,7 +425,6 @@ motor_decouple_cb = tk.Checkbutton(
     command=lambda: SG_no_input(selected_motor_state)
 )
 motor_decouple_cb.place(x=34+150+150, y=110)
-
 
 canvas3.create_text(34.0, offset_top + 0*40, anchor="nw",
     text="DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
@@ -482,7 +471,6 @@ canvas3.create_text(34.0, offset_top + 8*40, anchor="nw",
 tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
 tab3_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
 
-
 sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg1Dac", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp", "TestFw_Sg2Dac"]
 sg_entries = [tab3_entry_1, tab3_entry2, tab3_entry3, tab3_entry4,tab3_entry5, tab3_entry6,tab3_entry7, tab3_entry8, tab3_entry9]
 
@@ -498,21 +486,10 @@ running_status.config(bg = "#DFDFDF")
 running_status.place(x = 20, y = 610)
 
 # ===================================================================================================================
-# ========== Footerbar ==============================================================================================
-
-
-
 # ===================================================================================================================
-# ========== Toolbar ================================================================================================
-
-
-
-# ===================================================================================================================
-# ===================================================================================================================
-# ========== TAB 4 (V-BATT/Motor/EOS) ===============================================================================
-
+# ========== TAB 4 (Motor Test ONLY) ================================================================================
 tab4 = ttk.Frame(notebook)
-notebook.add(tab4, text="V-BATT/Motor/EOS")
+notebook.add(tab4, text="Motor Test")
 
 tab4_frame = tk.Frame(tab4, bg="#DFDFDF")
 tab4_frame.pack(fill="both", expand=True)
@@ -527,124 +504,50 @@ canvas4 = tk.Canvas(
     relief="ridge"
 )
 canvas4.place(x=0, y=0)
-
 # ===================================================================================================================
-# ========== Tile-1 (Voltage Check) =================================================================================
-
-images["tile_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
-canvas4.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4"])
-
-canvas4.create_text(73.0, 113.0, anchor="nw", text="Voltage Check (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 168.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 214.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-tab4_entry_1 = ttk.Entry(tab4_frame, style ='Background_grey.TEntry')
-tab4_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
-
-tab4_entry_2 = ttk.Entry(tab4_frame, style ='Background_grey.TEntry')
-tab4_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
-
-images["tab4_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-# Note: Ensure GetValueVbatt or equivalent is linked if intended
-tab4_run_test_tile1 = Button(tab4, image=images["tab4_tile1_run_test"], command=lambda: GetValueVbatt(tab4_entry_2), bd = 0)
-tab4_run_test_tile1.place(x=368, y=106, width=34, height=34)
-
-# ===================================================================================================================
-# ========== Tile-2 (Motor Test) ====================================================================================
+# ========== Tile-1 =================================================================================================
+images["minibea_logo_4"] = PhotoImage(file=relative_to_assets("minebea_logo_4.png", "tab4"))
+canvas4.create_image(145.0, 37.0, image=images["minibea_logo_4"])
 
 placement_y_coord = 168
+canvas4.create_text(73.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
 
-canvas4.create_text(73.0 + 475.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
-
+# Checkboxes
 selected_motor_state = tk.IntVar(value=0)
+motor_couple_cb = tk.Checkbutton(tab4, text="Motor Couple", variable=selected_motor_state, onvalue=1, offvalue=0, command=lambda: motor_couple(selected_motor_state))
+motor_couple_cb.place(x=73.0, y=150)
 
-motor_couple_cb = tk.Checkbutton(
-    tab4,
-    text="Motor Couple",
-    variable=selected_motor_state,
-    onvalue=1,
-    offvalue=0,
-    command=lambda: motor_couple(selected_motor_state)
-)
-motor_couple_cb.place(x=73.0 + 475.0, y=150)
+motor_decouple_cb = tk.Checkbutton(tab4, text="Motor Decouple", variable=selected_motor_state, onvalue=2, offvalue=0, command=lambda: motor_decouple(selected_motor_state))
+motor_decouple_cb.place(x=73.0 + 120, y=150)
 
-motor_decouple_cb = tk.Checkbutton(
-    tab4,
-    text="Motor Decouple",
-    variable=selected_motor_state,
-    onvalue=2,
-    offvalue=0,
-    command=lambda: motor_decouple(selected_motor_state)
-)
-motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
-
-# Entry 1: Coupled Voltage
-canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
+# Entries
+canvas4.create_text(73.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
+tab4_entry3.place(x=306, y=placement_y_coord+35, width=95.0, height=20.0)
 
-# Entry 2: Decoupled Voltage
-canvas4.create_text(73.0 + 475.0, placement_y_coord + 35*2, anchor="nw", text="MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, placement_y_coord + 35*2, anchor="nw", text="MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry4 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry4.place(x=306+475, y=placement_y_coord + 35*2, width=95.0, height=20.0)
+tab4_entry4.place(x=306, y=placement_y_coord + 35*2, width=95.0, height=20.0)
 
-# Entry 3: Current Value
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*3, anchor="nw", text="MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, placement_y_coord + 35*3, anchor="nw", text="MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry7.place(x=306+475, y=placement_y_coord + 35*3, width=95.0, height=20.0)
+tab4_entry7.place(x=306, y=placement_y_coord + 35*3, width=95.0, height=20.0)
 
-# Entry 4: MotorLoadError (Shifted Up to remove space)
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, placement_y_coord + 35*4, anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry14 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry14.place(x=306+475, y=placement_y_coord + 35*4, width=95.0, height=20.0)
+tab4_entry14.place(x=306, y=placement_y_coord + 35*4, width=95.0, height=20.0)
 
-# These lists must match the 4 items above for trace32 alignment
+# Execution
 motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorLoadError"]
 motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry14]
 
-images["tab4_tile4_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile4 = Button(tab4, image=images["tab4_tile4_run_test"], 
-                             command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), 
-                             bd = 0)
-tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
-
-# ===================================================================================================================
-# ========== Tile-3 (EOS Test) ======================================================================================
-
-images["tile3_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
-canvas4.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4"])
-
-canvas4.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 403.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 449.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
-tab4_entry5 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
-
-tab4_entry6 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
-
-images["tab4_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-tab4_run_test_tile3 = Button(tab4, image=images["tab4_tile3_run_test"], 
-                             command=lambda: SendDIDGetVal(tab4_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), 
-                             bd = 0)
-tab4_run_test_tile3.place(x=368, y=341, width=34, height=34)
-
-
-
-# ===================================================================================================================
-# ========== Footerbar ==============================================================================================
-
-
-
-# ===================================================================================================================
-# ========== Toolbar ================================================================================================
-
+images["tab4_motor_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
+tab4_run_btn = Button(tab4, image=images["tab4_motor_run"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
+tab4_run_btn.place(x=368, y=113, width=34, height=34)
 
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 5 (NFC Test) =======================================================================================
-
 
 tab5 = ttk.Frame(notebook)
 notebook.add(tab5, text="NFC")
@@ -665,40 +568,26 @@ canvas5.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
+images["minibea_logo_5"] = PhotoImage(file=relative_to_assets("minebea_logo_5.png", "tab5"))
+canvas5.create_image(145.0, 37.0, image=images["minibea_logo_5"])
+
 
 images["tile_tab5"] = PhotoImage(file=relative_to_assets("Tile.png", "tab5")) 
 canvas5.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab5"])
 
 canvas5.create_text(73.0, 113.0, anchor="nw", text="NFC Test Result", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
-canvas5.create_text(73.0, 168.0, anchor="nw", text="TestFw_IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(73.0, 168.0, anchor="nw", text="IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab5_entry_1 = ttk.Entry(tab5_frame, style ='Background_grey.TEntry')
 tab5_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
-
-
 
 images["tab5_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
 tab5_run_test_tile1 = Button(tab5, image=images["tab5_tile1_run_test"], command=lambda: SendDIDGetVal(tab5_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard"), bd = 0)
 tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 
-
-
-
-# ===================================================================================================================
-# ========== Footerbar ==============================================================================================
-
-
-
-
-# ===================================================================================================================
-# ========== Toolbar ================================================================================================
-
-
-
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 6 (CAN LIN) =======================================================================================
-
 
 tab6 = ttk.Frame(notebook)
 notebook.add(tab6, text="CAN/LIN")
@@ -719,6 +608,8 @@ canvas6.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
+images["minibea_logo_6"] = PhotoImage(file=relative_to_assets("minebea_logo_6.png", "tab6"))
+canvas6.create_image(145.0, 37.0, image=images["minibea_logo_6"])
 
 images["tile_tab6"] = PhotoImage(file=relative_to_assets("Tile.png", "tab6")) 
 canvas6.create_image(364, 190, image=images["tile_tab6"])
@@ -727,14 +618,11 @@ canvas6.create_text(61.0, 110.0, anchor="nw", text="CAN Test", fill="#FFFFFF", f
 canvas6.create_text(61.0, 144.0, anchor="nw", text="Transmit CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas6.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-
 tab6_entry_1 = ttk.Entry(tab6_frame, style ='Background_grey.TEntry')
 tab6_entry_1.place(x=61.0, y=168.0, width=250.0, height=20.0)
 
 tab6_entry_2 = ttk.Entry(tab6_frame, style ='Background_grey.TEntry')
 tab6_entry_2.place(x=61.0, y=230.0, width=250.0, height=20.0)
-
-
 
 images["tab6_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
 tab6_run_test_tile1 = Button(tab6, image=images["tab6_tile1_run_test"], command=lambda: print("tile one capa run test ..."), bd = 0)
@@ -742,7 +630,6 @@ tab6_run_test_tile1.place(x=630, y=105, width=33, height=33)
 
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
-
 images["tile2_tab6"] = PhotoImage(file=relative_to_assets("Tile.png", "tab6")) 
 canvas6.create_image(612, 412, image=images["tile2_tab6"])
 
@@ -756,29 +643,11 @@ tab6_entry4.place(x=309.0, y=389.0, width=250.0, height=20.0)
 tab6_entry5 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry5.place(x=309.0, y=449.0, width=250.0, height=20.0)
 
-
-
-
 images["tab6_tile2_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
 tab6_run_test_tile2 = Button(tab6, image=images["tab6_tile2_run_test"], command=lambda: print("tile two capa run test ..."), bd = 0)
 tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
-
-
-# ===================================================================================================================
-# ========== Footerbar ==============================================================================================
-
-
-
-
-# ===================================================================================================================
-# ========== Toolbar ================================================================================================
-
-
-
 # ===================================================================================================================
 # ========== TAB 7 ==================================================================================================
-
-
 
 tab7 = ttk.Frame(notebook)
 notebook.add(tab7, text="LED Test")
@@ -800,13 +669,14 @@ canvas7.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
+images["minibea_logo_7"] = PhotoImage(file=relative_to_assets("minebea_logo_7.png", "tab7"))
+canvas7.create_image(145.0, 37.0, image=images["minibea_logo_7"])
 
 images["tile_tab7"] = PhotoImage(file=relative_to_assets("Tile.png", "tab7")) 
 canvas7.create_image(tablet1_X, tablet1_Y, image=images["tile_tab7"])
 
 canvas7.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas7.create_text(73.0, 168.0, anchor="nw", text="TestFw_LedVoltage:", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
+canvas7.create_text(73.0, 168.0, anchor="nw", text="LedVoltage:", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 tab7_entry_1 = ttk.Entry(tab7_frame, style ='Background_grey.TEntry')
 tab7_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
@@ -816,38 +686,20 @@ tab7_entry_2 = ttk.Entry(tab7_frame, style = 'Background_grey.TEntry')
 images["tile1_run_test_tab7"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
 run_test_tile1 = Button(tab7, image=images["tile1_run_test_tab7"], command=lambda: SendDIDGetVal(tab7_entry_1, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e, "TestFw_LedVoltage"), bd = 0)
 run_test_tile1.place(x=368, y=106, width=34, height=34)
-
-
-
-# ===================================================================================================================
-# ========== Footerbar ==============================================================================================
-
-
-
-# ===================================================================================================================
-# ========== Toolbar ================================================================================================
-
-
-
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 8 (Settings) =======================================================================================
-
 def preset_realwithdebinfo(selected_preset):
     if selected_preset.get() == 1:
         selected_preset.set(1)
     else:
         selected_preset.set(0)
 
-
-
 def preset_minsizerel(selected_preset):
     if selected_preset.get() == 2:
         selected_preset.set(2)
     else:
         selected_preset.set(0)
-
-
 
 tab8 = ttk.Frame(notebook)
 notebook.add(tab8, text="Settings")
@@ -868,9 +720,8 @@ canvas8.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
-
-
-
+images["minibea_logo_8"] = PhotoImage(file=relative_to_assets("minebea_logo_8.png", "tab8"))
+canvas8.create_image(145.0, 37.0, image=images["minibea_logo_8"])
 
 canvas8.create_text(61.0, 144.0, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
@@ -880,11 +731,9 @@ canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ",
 canvas8.create_text(61.0, 431.0, anchor="nw", text="Select BMW Repository:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 600.0, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
 
-
 images["tab8_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
 connect_to_Psupply.place(x=261, y=144, width=33, height=33)
-
 
 images["tab8_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 pwr_sup_on = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOn, bd = 0)
@@ -919,8 +768,6 @@ selected_preset_relwithdeb = tk.Checkbutton(
 )
 selected_preset_relwithdeb.place(x=61, y=487)
 
-
-
 selected_preset_minsizerel = tk.Checkbutton(
     tab8,
     text="Minsizerel",
@@ -930,7 +777,6 @@ selected_preset_minsizerel = tk.Checkbutton(
     command=lambda: preset_minsizerel(selected_preset)
 )
 selected_preset_minsizerel.place(x=61 + 120, y=487)
-
 
 if (usb_addr == None):
     connect_to_Psupply.config(state="disabled")
@@ -942,10 +788,99 @@ else:
     pwr_sup_off.config(state="normal")
 
 window.after(1000, lambda: poll_target_state(running_status, window))
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 9 (EOS Tests) ============================================================================
+tab9 = ttk.Frame(notebook)
+notebook.add(tab9, text="EOS Tests")
 
+tab9_frame = tk.Frame(tab9, bg="#DFDFDF")
+tab9_frame.pack(fill="both", expand=True)
+
+canvas9 = tk.Canvas(
+    tab9_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas9.place(x=0, y=0)
+
+# ---------- EOS Test ----------
+images["minibea_logo_9"] = PhotoImage(file=relative_to_assets("minebea_logo_9.png", "tab9"))
+canvas9.create_image(145.0, 37.0, image=images["minibea_logo_9"])
+
+images["tile_tab9_2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab9")) 
+canvas9.create_image((tablet1_X + 0), (tablet1_Y + 10), image=images["tile_tab9_2"])
+
+canvas9.create_text(73.0, 113.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas9.create_text(73.0, 168.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas9.create_text(73.0, 223.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+tab9_entry_3 = ttk.Entry(tab9_frame, style = 'Background_grey.TEntry')
+tab9_entry_3.place(x=306.0, y=168.0, width=95.0, height=20.0)
+
+tab9_entry_4 = ttk.Entry(tab9_frame, style = 'Background_grey.TEntry')
+tab9_entry_4.place(x=306.0, y=223.0, width=95.0, height=20.0)
+
+images["tab9_tile2_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab9"))
+tab9_run_test2 = Button(tab9, image=images["tab9_tile2_run"], 
+                         command=lambda: SendDIDGetVal(tab9_entry_4, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), 
+                         bd = 0)
+tab9_run_test2.place(x=368, y=106, width=34, height=34)
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 10 (Battery Monitor) ===============================================================================
+
+tab10 = ttk.Frame(notebook)
+notebook.add(tab10, text="Battery Monitor")
+
+tab10_frame = tk.Frame(tab10, bg="#DFDFDF")
+tab10_frame.pack(fill="both", expand=True)
+
+canvas10 = tk.Canvas(
+    tab10_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas10.place(x=0, y=0)
+
+# ===================================================================================================================
+# ========== Tile-1 (Battery Monitor) =================================================================================
+images["minibea_logo_10"] = PhotoImage(file=relative_to_assets("minebea_logo_10.png", "tab10"))
+canvas10.create_image(145.0, 37.0, image=images["minibea_logo_10"])
+
+images["tile_tab10"] = PhotoImage(file=relative_to_assets("Tile.png", "tab10")) 
+canvas10.create_image(tablet1_X, tablet1_Y, image=images["tile_tab10"])
+
+# Entries
+canvas10.create_text(73.0, 113.0, anchor="nw", text="Battery Monitor (DID 102)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+
+canvas10.create_text(73.0, 168.0, anchor="nw", text="BatRefStatus", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab10_entry_1 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
+tab10_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+
+canvas10.create_text(73.0, 214.0, anchor="nw", text="AiBatRef", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab10_entry_2 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
+tab10_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
+
+# Execution
+batmot_output_variables = ["TestFw_BatRefStatus", "TestFw_AiBatRef"]
+batmon_entries = [tab10_entry_1, tab10_entry_2]
+
+images["tab10_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab10"))
+# Note: Ensure GetValueVbatt or equivalent is linked if intended
+tab10_run_btn = Button(tab4, image=images["tab4_motor_run"],
+                        command=lambda: SendDIDGetVal_multiple_entry(batmot_output_variables, batmon_entries, TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e),
+                        bd = 0)
+tab10_run_btn.place(x=368, y=106, width=34, height=34)
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
-
-
 window.resizable(True, True)
 window.mainloop()
