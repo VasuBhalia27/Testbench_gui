@@ -631,6 +631,63 @@ tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 
 # ===================================================================================================================
 # ===================================================================================================================
+# ========== TAB 4A (V-BATT) =========================================================================================
+
+
+
+tab4a = ttk.Frame(notebook)
+notebook.add(tab4a, text="V-BATT")
+
+tab4a_frame = tk.Frame(tab4a, bg="#DFDFDF")
+tab4a_frame.pack(fill="both", expand=True)
+
+canvas4 = tk.Canvas(
+    tab4a_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas4.place(x=0, y=0)
+
+# ===================================================================================================================
+# ========== Tile-1 =================================================================================================
+
+images["tile_tab4a"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4a")) 
+canvas4.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4a"])
+
+canvas4.create_text(73.0, 113.0, anchor="nw", text="VBatt Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas4.create_text(73.0, 168.0, anchor="nw", text="TestFw_BatRefStatus", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, 214.0, anchor="nw", text="TestFw_AiBatRef", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+tab4a_entry_1 = ttk.Entry(tab4a_frame, style ='Background_grey.TEntry')
+tab4a_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+
+tab4a_entry_2 = ttk.Entry(tab4a_frame, style ='Background_grey.TEntry')
+tab4a_entry_2.place(x=306.0, y=214.0, width=95.0, height=20.0)
+
+Vbatt_output_variables = ["TestFw_BatRefStatus", "TestFw_AiBatRef"]
+Vbatt_entries = [tab4a_entry_1, tab4a_entry_2]
+
+images["tab4a_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4a"))
+tab4a_run_test_tile1 = Button(tab4a, image=images["tab4a_tile1_run_test"], command=lambda: SendDIDGetVal_multiple_entry(Vbatt_output_variables, Vbatt_entries, TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e), bd = 0)
+tab4a_run_test_tile1.place(x=368, y=106, width=34, height=34)
+
+
+
+# ===================================================================================================================
+# ========== Footerbar ==============================================================================================
+
+
+
+# ===================================================================================================================
+# ========== Toolbar ================================================================================================
+
+
+# ===================================================================================================================
+# ===================================================================================================================
 # ========== TAB 4B (EOS) ===========================================================================================
 
 
@@ -659,8 +716,9 @@ images["tile3_tab4b"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4b"))
 canvas4.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4b"])
 
 canvas4.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 403.0, anchor="nw", text="Set Power Supply", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 449.0, anchor="nw", text="Get Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, 403.0, anchor="nw", text="TestFw_EosPinState", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, 449.0, anchor="nw", text="TestFw_EosErrorsWithLow", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(73.0, 495.0, anchor="nw", text="TestFw_EosErrorsWithHigh", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
 tab4b_entry5 = ttk.Entry(tab4b_frame, style = 'Background_grey.TEntry')
@@ -669,9 +727,14 @@ tab4b_entry5.place(x=306.0, y=403.0, width=95.0, height=20.0)
 tab4b_entry6 = ttk.Entry(tab4b_frame, style = 'Background_grey.TEntry')
 tab4b_entry6.place(x=306.0, y=449.0, width=95.0, height=20.0)
 
+tab4b_entry7 = ttk.Entry(tab4b_frame, style = 'Background_grey.TEntry')
+tab4b_entry7.place(x=306.0, y=495.0, width=95.0, height=20.0)
+
+Vbatt_output_variables = ["TestFw_EosPinState", "TestFw_EosErrorsWithLow", "TestFw_EosErrorsWithHigh"]
+Vbatt_entries = [tab4b_entry5,tab4b_entry6, tab4b_entry7]
 
 images["tab4b_tile3_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4b"))
-tab4b_run_test_tile3 = Button(tab4b, image=images["tab4b_tile3_run_test"], command=lambda: SendDIDGetVal(tab4b_entry6, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
+tab4b_run_test_tile3 = Button(tab4b, image=images["tab4b_tile3_run_test"], command=lambda: SendDIDGetVal_multiple_entry(Vbatt_output_variables, Vbatt_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e,"TestFw_EosDiagVoltage"), bd = 0)
 tab4b_run_test_tile3.place(x=368, y=341, width=34, height=34)
 
 
