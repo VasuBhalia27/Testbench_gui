@@ -315,8 +315,8 @@ canvas2.place(x=0, y=0)
 images["minibea_logo_2"] = PhotoImage(file=relative_to_assets("minebea_logo_2.png", "tab2"))
 canvas2.create_image(145.0, 37.0, image=images["minibea_logo_2"])
 
-# images["tile_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-# canvas2.create_image(tablet1_X, tablet1_Y, image=images["tile_tab2"])
+images["tile2_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
+canvas2.create_image(245, 230, image=images["tile2_tab2"])
 
 canvas2.create_text(73.0, 113.0, anchor="nw", text="Capa Test Outputs", fill="#000000", font=("Inter SemiBold", 20 * -1))
 canvas2.create_text(73.0, 168.0, anchor="nw", text="CapaApproach", fill="#000000", font=("Inter SemiBold", 15 * -1))
@@ -391,6 +391,9 @@ canvas3.place(x=0, y=0)
 # ========== Tile-1 =================================================================================================
 images["minibea_logo_3"] = PhotoImage(file=relative_to_assets("minebea_logo_3.png", "tab3"))
 canvas3.create_image(145.0, 37.0, image=images["minibea_logo_3"])
+
+images["tile1_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
+canvas3.create_image(245, 245, image=images["tile1_tab3"])
 
 offset_top = 150  # offset from top of the frame/window
 
@@ -483,7 +486,7 @@ reset_entries.place(x=500, y=110, width=85, height=32)
 
 running_status = tk.Label(tab3_frame, text="Running Status: None")
 running_status.config(bg = "#DFDFDF")
-running_status.place(x = 20, y = 610)
+running_status.place(x = 20, y = 550)
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -508,6 +511,9 @@ canvas4.place(x=0, y=0)
 # ========== Tile-1 =================================================================================================
 images["minibea_logo_4"] = PhotoImage(file=relative_to_assets("minebea_logo_4.png", "tab4"))
 canvas4.create_image(145.0, 37.0, image=images["minibea_logo_4"])
+
+images["tile1_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4")) 
+canvas4.create_image(245, 245, image=images["tile1_tab4"])
 
 placement_y_coord = 168
 canvas4.create_text(73.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
@@ -722,6 +728,9 @@ canvas8.place(x=0, y=0)
 # ========== Tile-1 =================================================================================================
 images["minibea_logo_8"] = PhotoImage(file=relative_to_assets("minebea_logo_8.png", "tab8"))
 canvas8.create_image(145.0, 37.0, image=images["minibea_logo_8"])
+
+images["tile1_tab8"] = PhotoImage(file=relative_to_assets("Tile.png", "tab8")) 
+canvas8.create_image(245, 265, image=images["tile1_tab8"])
 
 canvas8.create_text(61.0, 144.0, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
 canvas8.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
