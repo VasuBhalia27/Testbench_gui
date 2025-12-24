@@ -419,13 +419,13 @@ def poll_target_state(label, window):
         running_status = int(running_status)
         
         if running_status == 1:
-            label.config(text= "Running Status: Sleep")
+            label.config(text= "SmartBU Status: running (sleeping)")
 
         elif running_status == 0:
-            label.config(text= "Running Status: Running")
+            label.config(text= "SmartBU Status: running")
 
         else:
-            label.config(text= "Running Status: Error")
+            label.config(text= "SmartBU Status: Error")
         window.after(1000, lambda: poll_target_state(label, window))
 
         

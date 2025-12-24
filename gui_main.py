@@ -455,6 +455,9 @@ tab3_run_btn = Button(tab3, image=images["tab3_led_run"],
                         bd = 0)
 tab3_run_btn.place(x=325, y=106, width=34, height=34)
 
+reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(led_entries))
+reset_entries.place(x=500, y=110, width=85, height=32)
+
 canvas3.create_text(
     260.0,
     20.0,
@@ -513,6 +516,9 @@ tab4_run_btn = Button(tab4, image=images["tab4_motor_run"],
                         command=lambda: SendDIDGetVal_multiple_entry(batmot_output_variables, batmon_entries, TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e),
                         bd = 0)
 tab4_run_btn.place(x=325, y=106, width=34, height=34)
+
+reset_entries = ttk.Button(tab4, text="Reset Results", command=lambda: clear_entries(batmon_entries))
+reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas4.create_text(
     260.0,
@@ -587,6 +593,9 @@ images["tab5_motor_run"] = PhotoImage(file=relative_to_assets("tab_testrun_butto
 tab5_run_btn = Button(tab5, image=images["tab5_motor_run"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
 tab5_run_btn.place(x=368, y=113, width=34, height=34)
 
+reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: clear_entries(motor_entries))
+reset_entries.place(x=500, y=110, width=85, height=32)
+
 canvas5.create_text(
     260.0,
     20.0,
@@ -649,6 +658,9 @@ eos_entries = [tab6_entry1, tab6_entry2, tab6_entry3, tab6_entry4]
 images["tab6_eos_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
 tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
 tab6_run_btn.place(x=325, y=106, width=34, height=34)
+
+reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: clear_entries(eos_entries))
+reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas6.create_text(
     260.0,
@@ -846,6 +858,9 @@ images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_butto
 run_test_btn = Button(tab8, image=images["tile1_run_capa"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
 run_test_btn.place(x=368, y=106, width=34, height=34)
 
+reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(entry_list))
+reset_entries.place(x=500, y=110, width=85, height=32)
+
 canvas8.create_text(
     260.0,
     20.0,
@@ -885,15 +900,21 @@ canvas9.create_image(145.0, 37.0, image=images["minibea_logo_9"])
 images["tile_tab9"] = PhotoImage(file=relative_to_assets("Tile.png", "tab9")) 
 canvas9.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab9"])
 
-canvas9.create_text(73.0, 113.0, anchor="nw", text="NFC Test Result", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas9.create_text(73.0, 113.0, anchor="nw", text="NFC Test Outputs (DID 107)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
 canvas9.create_text(73.0, 168.0, anchor="nw", text="IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab9_entry_1 = ttk.Entry(tab9_frame, style ='Background_grey.TEntry')
 tab9_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
+nfc_entries = [tab9_entry_1]
+nfc_output_variables = ["TestFw_IsNfcDetectedCard"]
+
 images["tab9_nfc_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab9"))
-tab9_run_btn = Button(tab9, image=images["tab9_nfc_run"], command=lambda: SendDIDGetVal(tab9_entry_1, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e,"TestFw_IsNfcDetectedCard"), bd = 0)
-tab9_run_btn.place(x=325, y=106, width=34, height=34)
+run_test_btn = Button(tab9, image=images["tab9_nfc_run"], command=lambda: SendDIDGetVal_multiple_entry(nfc_output_variables, nfc_entries, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e), bd = 0)
+run_test_btn.place(x=325, y=106, width=34, height=34)
+
+reset_entries = ttk.Button(tab9, text="Reset Results", command=lambda: clear_entries(entry_list))
+reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas9.create_text(
     260.0,
@@ -932,19 +953,24 @@ canvas10.create_image(145.0, 37.0, image=images["minibea_logo_10"])
 images["tile1_tab10"] = PhotoImage(file=relative_to_assets("Tile.png", "tab10")) 
 canvas10.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab10"])
 
-canvas10.create_text(61.0, 110.0, anchor="nw", text="CAN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas10.create_text(61.0, 110.0, anchor="nw", text="CAN Test Outputs (DID 108)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas10.create_text(61.0, 144.0, anchor="nw", text="Transmit CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas10.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
 tab10_entry_1 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
 tab10_entry_1.place(x=61.0, y=168.0, width=250.0, height=20.0)
 
+canvas10.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab10_entry_2 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
 tab10_entry_2.place(x=61.0, y=230.0, width=250.0, height=20.0)
 
+can_entries = [tab10_entry_1]
+can_output_variables = ["DummyBytes"]
+
 images["tab10_can_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab10"))
-tab10_run_btn = Button(tab10, image=images["tab10_can_run"], command=lambda: print("tile one capa run test ..."), bd = 0)
-tab10_run_btn.place(x=225, y=106, width=34, height=34)
+run_test_btn = Button(tab10, image=images["tab10_can_run"], command=lambda: SendDIDGetVal_multiple_entry(can_output_variables, can_entries, TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e), bd = 0)
+run_test_btn.place(x=225, y=106, width=34, height=34)
+
+reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: clear_entries(entry_list))
+reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas10.create_text(
     260.0,
