@@ -254,30 +254,43 @@ images["minibea_logo"] = PhotoImage(file=relative_to_assets("minebea_logo.png", 
 canvas1.create_image(145.0, 37.0, image=images["minibea_logo"])
 
 images["version_tile"] = PhotoImage(file=relative_to_assets("tile.png", "tab1"))
-canvas1.create_image(196.0, 427.0, image=images["version_tile"])
+canvas1.create_image(256, 436, image=images["version_tile"])
 
-canvas1.create_text(112.0, 280.0, anchor="nw", text="Select Version",
-                   fill="#FFFFFF", font=("Inter", -24))
+canvas1.create_text(71.0, 300.0, anchor="nw", text="Setup", fill="#525252", font=("Inter", -24))
 
 images["photo_with_hand"] = PhotoImage(file=relative_to_assets("image.png", "tab1"))
 canvas1.create_image(746.0, 349.0, image=images["photo_with_hand"])
 
 # Buttons in Tab 1
-images["version1"] = PhotoImage(file=relative_to_assets("version1.png", "tab1"))
-btn1_tab1 = Button(tab1, image=images["version1"], command=lambda: print("version1"), bd=0)
-btn1_tab1.place(x=89, y=329, width=218, height=44)
+x_offset_tab1_btns = 71
+y_offset_tab1_btns = 360
 
-images["version2"] = PhotoImage(file=relative_to_assets("version2.png", "tab1"))
-btn2_tab2 = Button(tab1, image=images["version2"], command=lambda: print("version2"), bd=0)
-btn2_tab2.place(x=89, y=390, width=219, height=45)
+x_interelement_spacing = 0
+y_text_widget_spacing = 70
 
-images["version3"] = PhotoImage(file=relative_to_assets("version3.png", "tab1"))
-btn3_tab3 = Button(tab1, image=images["version3"], command=lambda: print("version3"), bd=0)
-btn3_tab3.place(x=89, y=451, width=220, height=45)
+images["connect_to_trace"] = PhotoImage(file=relative_to_assets("connect_to_trace.png", "tab1"))
+btn1_tab1 = Button(tab1, image=images["connect_to_trace"], command=lambda: print("version1"), bd=0)
+btn1_tab1.place(x=x_offset_tab1_btns, y=y_offset_tab1_btns + y_text_widget_spacing*0, width=355.32, height=37)
+trace_connection_status = tk.Label(tab1, text="Not Connected")
+trace_connection_status.config(bg="#797979", fg = "red")
+trace_connection_status.place(x=x_offset_tab1_btns + 262, y = y_offset_tab1_btns + 8)  
 
-images["version4"] = PhotoImage(file=relative_to_assets("version4.png", "tab1"))
-btn4_tab4 = Button(tab1, image=images["version4"], command=lambda: print("version4"), bd=0)
-btn4_tab4.place(x=89, y=512, width=220, height=45)
+
+images["add_elf_path"] = PhotoImage(file=relative_to_assets("add_elf_path.png", "tab1"))
+btn2_tab2 = Button(tab1, image=images["add_elf_path"], command=lambda: print("version2"), bd=0)
+btn2_tab2.place(x=x_offset_tab1_btns, y=y_offset_tab1_btns + y_text_widget_spacing * 1, width=355.32, height=37)
+elf_path_status = tk.Label(tab1, text="ELF not found")
+elf_path_status.config(bg="#797979", fg = "red")
+elf_path_status.place(x=x_offset_tab1_btns + 262, y = (y_offset_tab1_btns + 8) + y_text_widget_spacing *1)  
+
+
+images["connect_to_pwrsply"] = PhotoImage(file=relative_to_assets("connect_to_pwrsply.png", "tab1"))
+btn3_tab3 = Button(tab1, image=images["connect_to_pwrsply"], command=lambda: print("version3"), bd=0)
+btn3_tab3.place(x=x_offset_tab1_btns, y=y_offset_tab1_btns + y_text_widget_spacing*2, width=355.32, height=37)
+pwrsply_connection_status = tk.Label(tab1, text="Not Connected")
+pwrsply_connection_status.config(bg="#797979", fg = "red")
+pwrsply_connection_status.place(x=x_offset_tab1_btns + 262, y = (y_offset_tab1_btns + 8) + y_text_widget_spacing * 2) 
+
 
 canvas1.create_text(
     334.0,
@@ -401,7 +414,7 @@ canvas3 = tk.Canvas(
     relief="ridge"
 )
 canvas3.place(x=0, y=0)
-offset_top = 150  # offset from top of the frame/window
+x_offset = 150  # offset from top of the frame/window
 
 
 SG_input_conditon = tk.IntVar(value=0)
@@ -441,50 +454,50 @@ motor_decouple_cb = tk.Checkbutton(
 motor_decouple_cb.place(x=34+150+150, y=110)
 
 
-canvas3.create_text(34.0, offset_top + 0*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 0*40, anchor="nw",
     text="DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry_1 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry_1.place(x=180.0, y=offset_top + 0*40, width=95.0, height=20.0)
+tab3_entry_1.place(x=180.0, y=x_offset + 0*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 1*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 1*40, anchor="nw",
     text="Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry2 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry2.place(x=180.0, y=offset_top + 1*40, width=95.0, height=20.0)
+tab3_entry2.place(x=180.0, y=x_offset + 1*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 2*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 2*40, anchor="nw",
     text="Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry3 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry3.place(x=180.0, y=offset_top + 2*40, width=95.0, height=20.0)
+tab3_entry3.place(x=180.0, y=x_offset + 2*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 3*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 3*40, anchor="nw",
     text="Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry4 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry4.place(x=180.0, y=offset_top + 3*40, width=95.0, height=20.0)
+tab3_entry4.place(x=180.0, y=x_offset + 3*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 4*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 4*40, anchor="nw",
     text="Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry5 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry5.place(x=180.0, y=offset_top + 4*40, width=95.0, height=20.0)
+tab3_entry5.place(x=180.0, y=x_offset + 4*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 5*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 5*40, anchor="nw",
     text="Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry6 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry6.place(x=180.0, y=offset_top + 5*40, width=95.0, height=20.0)
+tab3_entry6.place(x=180.0, y=x_offset + 5*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 6*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 6*40, anchor="nw",
     text="Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry7 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry7.place(x=180.0, y=offset_top + 6*40, width=95.0, height=20.0)
+tab3_entry7.place(x=180.0, y=x_offset + 6*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 7*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 7*40, anchor="nw",
     text="Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry8 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry8.place(x=180.0, y=offset_top + 7*40, width=95.0, height=20.0)
+tab3_entry8.place(x=180.0, y=x_offset + 7*40, width=95.0, height=20.0)
 
-canvas3.create_text(34.0, offset_top + 8*40, anchor="nw",
+canvas3.create_text(34.0, x_offset + 8*40, anchor="nw",
     text="Sg2Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
+tab3_entry9.place(x=180.0, y=x_offset + 8*40, width=95.0, height=20.0)
 
 
 sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg1Dac", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp", "TestFw_Sg2Dac"]
@@ -940,6 +953,14 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== TAB 8 (Settings) =======================================================================================
 
+#element placement manager
+x_offset = 100
+x_interelement_spacing = 40
+
+y_offset = 60
+y_text_widget_spacing = 200
+
+#function definations
 def preset_realwithdebinfo(selected_preset):
     if selected_preset.get() == 1:
         selected_preset.set(1)
@@ -955,7 +976,7 @@ def preset_minsizerel(selected_preset):
         selected_preset.set(0)
 
 
-
+#GUI start
 tab8 = ttk.Frame(notebook)
 notebook.add(tab8, text="Settings")
 
@@ -973,46 +994,42 @@ canvas8 = tk.Canvas(
 )
 canvas8.place(x=0, y=0)
 
-# ===================================================================================================================
-# ========== Tile-1 =================================================================================================
 
 
-
-
-canvas8.create_text(61.0, 144.0, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 207.0, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 263.0, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 319.0, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 375.0, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 431.0, anchor="nw", text="Select BMW Repository:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(61.0, 600.0, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 1, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 2, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 3, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 4, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 5, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 6, anchor="nw", text="Select BMW Repository:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 7, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
 
 
 images["tab8_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
-connect_to_Psupply.place(x=261, y=144, width=33, height=33)
+connect_to_Psupply.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 1, width=33, height=33)
 
 
 images["tab8_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 pwr_sup_on = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOn, bd = 0)
-pwr_sup_on.place(x=261, y=207, width=33, height=33)
+pwr_sup_on.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 2, width=33, height=33)
 
 images["tab8_tile1_run_test2"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 pwr_sup_off = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOff, bd = 0)
-pwr_sup_off.place(x=261, y=263, width=33, height=33)
+pwr_sup_off.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 3, width=33, height=33)
 
 images["tab8_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd = 0)
-connect_trace32.place(x=261, y=319, width=33, height=33)
+connect_trace32.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 4, width=33, height=33)
 
 images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=DoNothing, bd = 0)
-disconnect_trace32.place(x=261, y=375, width=33, height=33)
+disconnect_trace32.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 5, width=33, height=33)
 
 repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
-repo_path_entry.place(x=261.0, y=431.0, width=400.0, height=20.0)
+repo_path_entry.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 6, width=400.0, height=20.0)
 repo_browse_button = ttk.Button(tab8, text="Browse", command=browse_repo_path) #browse button to get repo path
-repo_browse_button.place(x=680, y=428, width=70, height=32)
+repo_browse_button.place(x=680, y=x_offset + x_interelement_spacing * 6, width=70, height=32)
 
 selected_preset = tk.IntVar(value=0)
 
@@ -1024,7 +1041,7 @@ selected_preset_relwithdeb = tk.Checkbutton(
     offvalue=0,
     command=lambda: preset_realwithdebinfo(selected_preset)
 )
-selected_preset_relwithdeb.place(x=61, y=487)
+selected_preset_relwithdeb.place(x=y_offset, y=487)
 
 
 
@@ -1048,6 +1065,8 @@ else:
     pwr_sup_on.config(state="normal")
     pwr_sup_off.config(state="normal")
 
+
+#GUI End
 window.after(1000, lambda: poll_target_state(running_status, window))
 
 # ==================================================================================================================
