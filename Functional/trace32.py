@@ -416,7 +416,7 @@ def led_on(led_input_condition):
     else:
         led_input_condition.set(0)
 
-    dbg.cmd(f'Var.set LedTest_LedCanRequest = 1')
+    dbg.cmd(f'Var.set LedTest_LedCanLinRequest = 1')
 
 def led_off(led_input_condition):
     if led_input_condition.get() == 2:
@@ -424,21 +424,21 @@ def led_off(led_input_condition):
     else:
         led_input_condition.set(0)
 
-    dbg.cmd(f'Var.set LedTest_LedCanRequest = 0')
+    dbg.cmd(f'Var.set LedTest_LedCanLinRequest = 0')
 
-def Can_Disable(can_input_condition):
-    if can_input_condition.get() == 1:
-        can_input_condition.set(1)
+def CANoe_Disable(canoe_input_condition):
+    if canoe_input_condition.get() == 1:
+        canoe_input_condition.set(1)
     else:
-        can_input_condition.set(0)
+        canoe_input_condition.set(0)
 
     dbg.cmd(f'Var.set TestFw_GuiCanDependencyDisable = 1')
 
-def Can_Enable(can_input_condition):
-    if can_input_condition.get() == 2:
-        can_input_condition.set(2)
+def CANoe_Enable(canoe_input_condition):
+    if canoe_input_condition.get() == 2:
+        canoe_input_condition.set(2)
     else:
-        can_input_condition.set(0)
+        canoe_input_condition.set(0)
 
     dbg.cmd(f'Var.set TestFw_GuiCanDependencyDisable = 0')
 

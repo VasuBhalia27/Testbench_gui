@@ -334,13 +334,13 @@ images["tile1_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2"))
 canvas2.create_image(245, 265, image=images["tile1_tab2"])
 
 # Checkboxes
-can_input_condition = tk.IntVar (value=0)
+canoe_input_condition = tk.IntVar (value=0)
 
-can_disable_cb = tk.Checkbutton(tab2, text="Can_Disable", variable=can_input_condition, onvalue=1, offvalue=0, command=lambda: Can_Disable(can_input_condition))
-can_disable_cb.place(x=350, y=150)
+canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: CANoe_Disable(canoe_input_condition))
+canoe_disable_cb.place(x=350, y=150)
 
-can_enable_cb = tk.Checkbutton(tab2, text="Can_Enable", variable=can_input_condition, onvalue=2, offvalue=0, command=lambda: Can_Enable(can_input_condition))
-can_enable_cb.place(x=510, y=150)
+canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: CANoe_Enable(canoe_input_condition))
+canoe_enable_cb.place(x=510, y=150)
 canvas2.create_text(61.0, 150.0, anchor="nw", text="Connect to Power Supply -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas2.create_text(61.0, 213.0, anchor="nw", text="Power ON -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas2.create_text(61.0, 269.0, anchor="nw", text="Power OFF -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
