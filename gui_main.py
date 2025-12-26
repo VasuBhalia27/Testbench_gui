@@ -333,6 +333,14 @@ canvas2.create_image(145.0, 37.0, image=images["minibea_logo_2"])
 images["tile1_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 canvas2.create_image(245, 265, image=images["tile1_tab2"])
 
+# Checkboxes
+can_input_condition = tk.IntVar (value=0)
+
+can_disable_cb = tk.Checkbutton(tab2, text="Can_Disable", variable=can_input_condition, onvalue=1, offvalue=0, command=lambda: Can_Disable(can_input_condition))
+can_disable_cb.place(x=350, y=150)
+
+can_enable_cb = tk.Checkbutton(tab2, text="Can_Enable", variable=can_input_condition, onvalue=2, offvalue=0, command=lambda: Can_Enable(can_input_condition))
+can_enable_cb.place(x=510, y=150)
 canvas2.create_text(61.0, 150.0, anchor="nw", text="Connect to Power Supply -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas2.create_text(61.0, 213.0, anchor="nw", text="Power ON -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas2.create_text(61.0, 269.0, anchor="nw", text="Power OFF -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
@@ -437,12 +445,21 @@ canvas3.create_image(145.0, 37.0, image=images["minibea_logo_3"])
 images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3")) 
 canvas3.create_image(tablet1_X, tablet1_Y, image=images["tile_tab3"])
 
+# Checkboxes
+led_input_condition = tk.IntVar (value=0)
+
+led_on_cb = tk.Checkbutton(tab3, text="Led_On", variable=led_input_condition, onvalue=1, offvalue=0, command=lambda: led_on(led_input_condition))
+led_on_cb.place(x=73, y=150)
+
+led_off_cb = tk.Checkbutton(tab3, text="Led_Off", variable=led_input_condition, onvalue=2, offvalue=0, command=lambda: led_off(led_input_condition))
+led_off_cb.place(x=306, y=150)
+
 # Entries
 canvas3.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
-canvas3.create_text(73.0, 168.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas3.create_text(73.0, 200.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
-tab3_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+tab3_entry_1.place(x=306.0, y=200.0, width=95.0, height=20.0)
 
 # Execution
 led_output_variables = ["TestFw_LedVoltage"]

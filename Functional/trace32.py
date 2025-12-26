@@ -410,6 +410,37 @@ def reset_cb(SG_input_1, SG_input_2, SG_input_3):
     SG_input_2.set(0)
     SG_input_3.set(0)
 
+def led_on(led_input_condition):
+    if led_input_condition.get() == 1:
+        led_input_condition.set(1)
+    else:
+        led_input_condition.set(0)
+
+    dbg.cmd(f'Var.set LedTest_LedCanRequest = 1')
+
+def led_off(led_input_condition):
+    if led_input_condition.get() == 2:
+        led_input_condition.set(2)
+    else:
+        led_input_condition.set(0)
+
+    dbg.cmd(f'Var.set LedTest_LedCanRequest = 0')
+
+def Can_Disable(can_input_condition):
+    if can_input_condition.get() == 1:
+        can_input_condition.set(1)
+    else:
+        can_input_condition.set(0)
+
+    dbg.cmd(f'Var.set TestFw_GuiCanDependencyDisable = 1')
+
+def Can_Enable(can_input_condition):
+    if can_input_condition.get() == 2:
+        can_input_condition.set(2)
+    else:
+        can_input_condition.set(0)
+
+    dbg.cmd(f'Var.set TestFw_GuiCanDependencyDisable = 0')
 
 def poll_target_state(label, window):
 
