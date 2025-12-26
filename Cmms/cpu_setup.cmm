@@ -1,0 +1,23 @@
+; initialize and start the debugger
+RESet
+SYStem.RESet
+; SYStem.CPU CY8C4149AZI-S575
+SYStem.CPU CY8C4149AZI-S575
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option ResBreak OFF
+SYStem.Option DUALPORT ON
+SYSTEM.CPUACCESS ENABLE
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+
+;* ************************************************************************ */
+
+ENDDO
+

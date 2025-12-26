@@ -1,0 +1,257 @@
+;@Title: Script for Cypress PSOC4 series internal flash.
+;@Description:
+;  Flash declaration of Cypress PSOC4 internal flash.
+;
+;   Script arguments:
+;
+;    DO psoc4 [PREPAREONLY] [CPU=<cpu>]
+;
+;       PREPAREONLY only declares flash but does not execute flash programming
+;
+;       CPU=<cpu> selects CPU derivative <cpu>. <cpu> can be CPU name out of the
+;               table listed below. For these derivatives the flash declaration
+;               is done by the script.
+;
+;   For example:
+;
+;     DO ~~/demo/arm/flash/psoc6 PREPAREONLY CPU=CY8C4127LQI-BL473
+;
+;   List of PSOC4 derivatives and their configuration:
+;
+;     CPU-Type          Program Flash SectorSize RowsPerMacro   SRAM  
+;                          [KByte]      [Byte]                [KByte]
+;    CY8C40?4*               16           64         256         2
+;    CY8C40?4????S           16          128         128         2
+;    CY8C40?5???S            32          128         256         4
+;    CY8C41?5????S           32          128         256         4
+;    CY8C41?6????S           64          128         256         8
+;    CY8C42?4*               16          128         256         4
+;    CY8C42?5????M           32          128         512         4
+;    CY8C42?5????DM          32          128         512         4
+;    CY8C42??5*              32          128         256         4
+;    CY8C42?6????L           64          256         512         8
+;    CY8C42?6????M           64          128         512         8
+;    CY8C42?6????DM          64          128         512         8
+;    CY8C42?7????L          128          256         512        16
+;    CY8C42?7????M          128          128         512        16
+;    CY8C4??7*              128          128         512        16
+;    CY8C42?8????L          256          256         512        32
+;    CY8C4??8*              256          256         512        32
+;    CY8C41?9????S          384          256         512        32
+;
+;    SectorSize = ProgramFlash / RowSize
+;  Note:
+;       This script disables the WATCHDOG. Please perform a RESET or POWER-CYCLE
+;       to reenable it.
+;
+; @Author: MAM
+; @Chip: CY8C4*
+; @Copyright: (C) 1989-2022 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc4.cmm 12981 2024-01-25 13:26:46Z nzouari $
+
+LOCAL &parameters &param_prepareonly &param_cpu
+ENTRY %LINE &parameters
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(CY8C4*)
+    SYStem.CPU CY8C4*
+  &param_cpu=SYStem.CPU()
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+//IF (CPUIS(CY8C4??????-BLD*)||CPUIS(CY8C6??????-D*))&&(CORENAME()!="CORTEXM0+")
+//(
+//  ; dual core and we are not connected to M0+
+//  PRINT %ERROR "Please select the CortexM0+ MASTER core for flash programming!"
+//  ENDDO
+//)
+
+GOSUB WatchdogDisable
+//IF (CPUIS(CY8C6??????-BLD*)||CPUIS(CY8C6??????-D*))
+//(
+//  ; for dual core CPUs disable the M4
+//  GOSUB DisableM4
+//)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration
+
+;Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+  SYStem.Up
+)
+ENDDO
+
+; ------------------------------------------------------------------------------
+; Subroutines
+
+WatchdogDisable: ;()
+(
+  IF (CPUIS(CY8C40?4*)||CPUIS(CY8C40?4????S)||CPUIS(CY8C41?5????S*))||CPUIS(CY8C41?9????S*)
+  (
+    ;WDT_DISABLE_KEY = 0xACED8865 
+    Data.Set A:0x40030038 %Long 0xACED8865
+  )	
+  ELSE
+  (
+    PRIVATE &WdtControlReg &ClkSelectReg
+    ; Unlock and disable WDT in PSOC4
+    ; CLK_SELECT |= WDT_LOCK_BIT0;
+    ; CLK_SELECT |= WDT_LOCK_BIT1;
+    ; WDT_CONTROL &= (~ (uint32_t) WDT_CTL_EN_Msk);
+
+    Data.Set A:0x400B0100 %Long (Data.Long(A:0x400B0100)|0x0004000)
+    Data.Set A:0x400B0100 %Long (Data.Long(A:0x400B0100)|0x0008000)
+    Data.Set A:0x400B0210 %Long (Data.Long(A:0x400B0210)&~0x00010101)
+  )
+  RETURN
+)
+ 
+FlashDeclaration: 
+(
+  PRIVATE &FlashSize &FlashDriver &SectorSize &RowSize &RowsPerMacro &BufferSize
+  &BufferSize=0x300
+  
+  IF CPUIS(CY8C40?4????S*)
+  (
+    &FlashDriver="psoc40x4s.bin"
+    &FlashSize=0x4000
+    &SectorSize=0x80
+  )
+  ELSE IF CPUIS(CY8C41?5????S*)
+  (
+  &FlashSize=0x8000
+  &FlashDriver="psoc41x5s.bin"
+  &SectorSize=0x80
+  )
+  ELSE IF CPUIS(CY8C41?6????S*)
+  (
+  &FlashSize=0x10000 
+  &FlashDriver="psoc41x6s.bin"
+  &SectorSize=0x80
+  )
+  ELSE IF CPUIS(CY8C40?4*)
+  (
+    &FlashDriver="psoc40x4.bin"
+    &FlashSize=0x4000
+    &SectorSize=0x40
+    &BufferSize=0x180
+  )  
+  ELSE IF CPUIS(CY8C40?5???S*)
+  (
+     &FlashDriver="psoc40x5s.bin"
+     &FlashSize=0x8000
+     &SectorSize=0x80
+  )  
+  ELSE IF CPUIS(CY8C42?4*)	
+  (
+     &FlashDriver="psoc42x4.bin"
+     &FlashSize=0x4000
+     &SectorSize=0x80
+     &BufferSize=0x200
+  )  
+  ELSE IF (CPUIS(CY8C42?5????M*)||CPUIS(CY8C42?5????DM*))
+  (
+     &FlashDriver="psoc42x5m.bin"
+     &FlashSize=0x8000
+     &SectorSize=0x80
+  )  
+  ELSE IF CPUIS(CY8C42?5*)
+  (
+     &FlashDriver="psoc42x5.bin"
+     &FlashSize=0x8000
+     &SectorSize=0x80
+  )   
+  ELSE IF CPUIS(CY8C42?6????L*)
+  (
+     &FlashDriver="psoc42x6l.bin"
+     &FlashSize=0x10000
+     &SectorSize=0x100
+  )  
+  ELSE IF (CPUIS(CY8C42?6????M*)||CPUIS(CY8C42?6????DM*))
+  (
+     &FlashDriver="psoc42x6m.bin"
+     &FlashSize=0x10000
+     &SectorSize=0x80
+  )  
+  ELSE IF CPUIS(CY8C42?7????L*)
+  (
+     &FlashDriver="psoc42x7l.bin"
+     &FlashSize=0x20000
+     &SectorSize=0x100
+  )  
+  ELSE IF CPUIS(CY8C42?7????M*)
+  (
+     &FlashDriver="psoc42x7m.bin"
+     &FlashSize=0x20000
+     &SectorSize=0x80
+  )  
+  ELSE IF CPUIS(CY8C42?8????L*)
+  (
+     &FlashDriver="psoc42x8l.bin"
+     &FlashSize=0x40000
+     &SectorSize=0x100
+  )  
+  ELSE IF CPUIS(CY8C4??7????BL*) 
+  (
+     &FlashDriver="psoc4xx7.bin"
+     &FlashSize=0x20000
+     &SectorSize=0x80
+  )
+  ELSE IF CPUIS(CY8C4??8????BL*) 
+  (
+     &FlashDriver="psoc4xx8bl.bin"
+     &FlashSize=0x40000
+     &SectorSize=0x100
+  )
+  ELSE IF CPUIS(CY8C41?9????S*)
+  (
+    &FlashDriver="psoc41x9s.bin"
+    &FlashSize=0x60000
+    &SectorSize=0x100
+  )
+  ELSE
+  (	
+    PRINT " CPU &param_cpu is not supported by this script!"
+    ENDDO
+  )
+  
+  FLASH.Create 1. 0x00000000++(&FlashSize-1.) &SectorSize TARGET Byte
+  FLASH.TARGET 0x20000000 0x20000800  &BufferSize ~~/demo/arm/flash/long/&FlashDriver /STACKSIZE ((&SectorSize*4)+0xD0) 
+  ;FLASH.TARGET 0x20000000 0x20000490  &BufferSize ~~/demo/arm/flash/long/&FlashDriver /STACKSIZE ((&SectorSize*4)+0xD0)
+  RETURN
+)
+
+ 

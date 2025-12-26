@@ -1,11 +1,9 @@
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
-import ctypes
 from Functional.power_supply import *
 from Functional.trace32 import *
 from tkinter import filedialog
-from tkinter import messagebox
 
 
 # try:
@@ -16,6 +14,37 @@ from tkinter import messagebox
 
 # ===================================================================================================================
 # ========== function/classes definations ===========================================================================
+
+class PlacementManager():
+
+    def __init__(self):
+        self.x_offset = 0
+        self.y_offset = 0
+        self.x_interelement_spacing = 0
+        self.y_interelement_spacing = 0
+
+        
+
+    def y_interelement_spacing_ret(self, number_of_element = 1, adjustment = 0):
+
+        if number_of_element != 0:
+            
+            if number_of_element == 1:
+                self.number_of_element = number_of_element
+                self.adjustment = adjustment
+
+                return self.adjustment + self.y_offset
+            
+            else: 
+                self.number_of_element = number_of_element - 1
+                self.adjustment = adjustment
+
+                return self.y_interelement_spacing * self.number_of_element + self.adjustment + self.y_offset
+        
+        else:
+            raise ValueError("value of number_of_element cannot be zero")
+
+
 
 class FooterBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, set_voltage_callback, get_voltage_callback):
@@ -87,67 +116,31 @@ class FooterBar:
         footer_instance.additional_entry.delete(0, tk.END)
         footer_instance.additional_entry.insert(0, new_value)
         
-class  ToolBar:
-    def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
-        
-        self.parent = parent
+class ToolBar:
+    def __init__(self, tab, tab_frame, canvas, images, relative_to_assets):
+
         self.tab = tab
         self.tab_frame = tab_frame
         self.canvas = canvas
         self.images = images
         self.relative_to_assets = relative_to_assets
-        self.run_code_callback = run_code_callback
-        self.pause_code_callback = pause_code_callback
+
         
         self.gui_for_toolbar()
         
     def gui_for_toolbar(self):
         
-        self.code_exec_stat_lab = tk.Label(self.tab, text="Code Execution status: Not running")
-        self.code_exec_stat_lab.config(bg = "#DFDFDF")
-        self.code_exec_stat_lab.place(x=750, y=10)
         
         self.images[f"{self.tab}tab6_toptoolbar"] = PhotoImage(file=self.relative_to_assets("top_toolbar.png", "tab6")) #tool bar
         self.canvas.create_image(179, 19, image=self.images[f"{self.tab}tab6_toptoolbar"]) 
-        
-        self.canvas.create_text(
-        168.0,
-        28.0,
-        anchor="nw",
-        text=" Run code",
-        fill="#6E6E6E",
-        font=("Inter SemiBold", 11 * -1)
-        )
-        
-        self.canvas.create_text(
-            80.0,
-            28.0,
-            anchor="nw",
-            text="Pause code",
-            fill="#6E6E6E",
-            font=("Inter SemiBold", 11 * -1)
-        )
-        self.images[f"{self.tab}tab6_toolbar_pausebutton1"] = PhotoImage(file=self.relative_to_assets("toolbar_pausebutton.png", "tab6"))
-        self.toolbar_pausebutton = Button(self.tab, image=self.images[f"{self.tab}tab6_toolbar_pausebutton1"], command=lambda: self.pause_code_callback(self.code_exec_stat_lab),  bd = 0)
-        self.toolbar_pausebutton.place(x=100, y=5, width=22.99, height=22.99)
-        
-                
-        self.images[f"{self.tab}toolbar_playbutton1"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
-        self.toolbar_playbutton = Button(self.tab, image=images[f"{self.tab}toolbar_playbutton1"], command=lambda: self.run_code_callback(self.code_exec_stat_lab), bd = 0)
-        self.toolbar_playbutton.place(x=182, y=5, width=26, height=26)
-        
-        self.images[f"{self.tab}toolbar_exitbutton1"] = PhotoImage(file=self.relative_to_assets("toolbar_exitbutton.png", "tab2"))
-        self.toolbar_exitbutton = Button(self.tab, image=self.images[f"{self.tab}toolbar_exitbutton1"], command=lambda: print("Exit ... "), bd = 0)
-        self.toolbar_exitbutton.place(x=261, y=8, width=15, height=15)
 
-        self.canvas.create_text(
-            260.0,
-            28.0,
-            anchor="nw",
-            text="Exit",
-            fill="#FF0202",
-            font=("Inter SemiBold", 11 * -1)
-        )
+        self.images[f"{self.tab}minebea_logo"] = PhotoImage(file=self.relative_to_assets("minebea_logo.png", "tab1")) #minebea logo
+        self.canvas.create_image(135, 37, image=self.images[f"{self.tab}minebea_logo"])
+
+        self.canvas.create_text(800.0,23.0,anchor="nw",text="U-shin India",fill="#0066B3",font=("Inter BoldItalic", 24 * -1)
+)
+        
+
 
 def browse_repo_path():
     folder_path = filedialog.askdirectory(mustexist=False)
@@ -269,11 +262,11 @@ x_interelement_spacing = 0
 y_text_widget_spacing = 70
 
 images["connect_to_trace"] = PhotoImage(file=relative_to_assets("connect_to_trace.png", "tab1"))
-btn1_tab1 = Button(tab1, image=images["connect_to_trace"], command=lambda: print("version1"), bd=0)
+btn1_tab1 = Button(tab1, image=images["connect_to_trace"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd=0)
 btn1_tab1.place(x=x_offset_tab1_btns, y=y_offset_tab1_btns + y_text_widget_spacing*0, width=355.32, height=37)
 trace_connection_status = tk.Label(tab1, text="Not Connected")
 trace_connection_status.config(bg="#797979", fg = "red")
-trace_connection_status.place(x=x_offset_tab1_btns + 262, y = y_offset_tab1_btns + 8)  
+trace_connection_status.place(x=x_offset_tab1_btns + 262, y = y_offset_tab1_btns + 8)
 
 
 images["add_elf_path"] = PhotoImage(file=relative_to_assets("add_elf_path.png", "tab1"))
@@ -305,6 +298,16 @@ canvas1.create_text(
 # ===================================================================================================================
 # ========== TAB 2 ==================================================================================================
 
+pm_tab2 = PlacementManager()
+pm_tab2.x_offset = 73
+pm_tab2.y_offset = 150
+pm_tab2.x_interelement_spacing = 277
+pm_tab2.y_interelement_spacing = 60
+
+
+# ===================================================================================================================
+# ========== Page Constructors ======================================================================================
+
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Capa Sensor Tests")
 
@@ -330,47 +333,36 @@ canvas2.place(x=0, y=0)
 
 
 
-canvas2.create_text(73.0, 113.0, anchor="nw", text="Capa Test Outputs", fill="#000000", font=("Inter SemiBold", 20 * -1))
-canvas2.create_text(73.0, 168.0, anchor="nw", text="TestFw_CapaApproach", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(pm_tab2.x_offset, pm_tab2.y_interelement_spacing_ret(number_of_element = 1), anchor="nw", text="Capa Test Outputs", fill="#000000", font=("Inter SemiBold", 20 * -1))#heading
+
+canvas2.create_text(pm_tab2.x_offset,  pm_tab2.y_interelement_spacing_ret(number_of_element = 2), anchor="nw", text="TestFw_CapaApproach", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
-tab2_entry_1.place(x=350.0, y=168.0, width=95.0, height=20.0)
+tab2_entry_1.place(x=350.0, y = pm_tab2.y_interelement_spacing_ret(number_of_element = 2), width=95.0, height=20.0)
 
 
-canvas2.create_text(73.0, 214.0, anchor="nw", text="TestFw_CapaLock", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(pm_tab2.x_offset, pm_tab2.y_interelement_spacing_ret(number_of_element = 3), anchor="nw", text="TestFw_CapaLock", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry_2 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry_2.place(x=350.0, y=214.0, width=95.0, height=20.0)
+tab2_entry_2.place(x=350.0, y = pm_tab2.y_interelement_spacing_ret(number_of_element = 3), width=95.0, height=20.0)
 
 
-# ===================================================================================================================
-# ========== Tile-2 =================================================================================================
-
-# images["tile2_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-# canvas2.create_image((tablet1_X + 475), (tablet1_Y + 0), image=images["tile2_tab2"])
-
-canvas2.create_text(73.0, 260.0, anchor="nw", text="CapaUnlock", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(pm_tab2.x_offset, pm_tab2.y_interelement_spacing_ret(number_of_element = 4), anchor="nw", text="CapaUnlock", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry3 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry3.place(x=350.0, y=260.0, width=95.0, height=20.0)
+tab2_entry3.place(x=350.0, y=pm_tab2.y_interelement_spacing_ret(number_of_element = 4), width=95.0, height=20.0)
 
 
-canvas2.create_text(73.0, 306.0, anchor="nw", text="CapaApproachSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(pm_tab2.x_offset, pm_tab2.y_interelement_spacing_ret(number_of_element = 5), anchor="nw", text="CapaApproachSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry4 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry4.place(x=350.0, y=306.0, width=95.0, height=20.0)
+tab2_entry4.place(x=350.0, y=pm_tab2.y_interelement_spacing_ret(number_of_element = 5), width=95.0, height=20.0)
 
 
-# ===================================================================================================================
-# ========== Tile-3 =================================================================================================
-
-# images["tile3_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
-# canvas2.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab2"])
-
-canvas2.create_text(73.0, 352.0, anchor="nw", text="CapaLockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(pm_tab2.x_offset, pm_tab2.y_interelement_spacing_ret(number_of_element = 6), anchor="nw", text="CapaLockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry5 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry5.place(x=350.0, y=352.0, width=95.0, height=20.0)
+tab2_entry5.place(x=350.0, y=pm_tab2.y_interelement_spacing_ret(number_of_element = 6), width=95.0, height=20.0)
 
 
-canvas2.create_text(73.0, 398.0, anchor="nw", text="CapaUnlockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(pm_tab2.x_offset, pm_tab2.y_interelement_spacing_ret(number_of_element = 7), anchor="nw", text="CapaUnlockSensorValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab2_entry6 = ttk.Entry(tab2_frame, style = 'Background_grey.TEntry')
-tab2_entry6.place(x=350.0, y=398.0, width=95.0, height=20.0)
+tab2_entry6.place(x=350.0, y= pm_tab2.y_interelement_spacing_ret(number_of_element = 7), width=95.0, height=20.0)
 
 entry_list = [tab2_entry_1,tab2_entry_2, tab2_entry3, tab2_entry4, tab2_entry5, tab2_entry6]
 capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
@@ -390,13 +382,21 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ========== Toolbar ================================================================================================
 
 
-
+ToolBar(tab2, tab2_frame, canvas2 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 3 (SG tests) =======================================================================================
 
+pm_tab3 = PlacementManager()
+pm_tab3.x_offset = 73
+pm_tab3.y_offset = 150
+pm_tab3.x_interelement_spacing = 277
+pm_tab3.y_interelement_spacing = 40
 
+
+# ===================================================================================================================
+# ========== Page Constructors ======================================================================================
 
 tab3 = ttk.Frame(notebook)
 notebook.add(tab3, text="SG Sensor Tests")
@@ -454,50 +454,58 @@ motor_decouple_cb = tk.Checkbutton(
 motor_decouple_cb.place(x=34+150+150, y=110)
 
 
-canvas3.create_text(34.0, x_offset + 0*40, anchor="nw",
+canvas3.create_text(pm_tab3.x_offset, pm_tab3.y_interelement_spacing_ret(number_of_element = 1), anchor="nw",
     text="DoPwrSg", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry_1 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry_1.place(x=180.0, y=x_offset + 0*40, width=95.0, height=20.0)
+tab3_entry_1.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 1), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 1*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset, pm_tab3.y_interelement_spacing_ret(number_of_element = 2), anchor="nw",
     text="Sg1PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry2 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry2.place(x=180.0, y=x_offset + 1*40, width=95.0, height=20.0)
+tab3_entry2.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 2), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 2*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset, pm_tab3.y_interelement_spacing_ret(number_of_element = 3), anchor="nw",
     text="Sg1MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry3 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry3.place(x=180.0, y=x_offset + 2*40, width=95.0, height=20.0)
+tab3_entry3.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 3), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 3*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset, pm_tab3.y_interelement_spacing_ret(number_of_element = 4), anchor="nw",
     text="Sg1Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry4 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry4.place(x=180.0, y=x_offset + 3*40, width=95.0, height=20.0)
+tab3_entry4.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 4), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 4*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset,pm_tab3.y_interelement_spacing_ret(number_of_element = 5), anchor="nw",
     text="Sg1Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry5 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry5.place(x=180.0, y=x_offset + 4*40, width=95.0, height=20.0)
+tab3_entry5.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 5), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 5*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset,pm_tab3.y_interelement_spacing_ret(number_of_element = 6), anchor="nw",
     text="Sg2PlusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry6 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry6.place(x=180.0, y=x_offset + 5*40, width=95.0, height=20.0)
+tab3_entry6.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 6), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 6*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset, pm_tab3.y_interelement_spacing_ret(number_of_element = 7), anchor="nw",
     text="Sg2MinusOpamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry7 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry7.place(x=180.0, y=x_offset + 6*40, width=95.0, height=20.0)
+tab3_entry7.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 7), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 7*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset,pm_tab3.y_interelement_spacing_ret(number_of_element = 8), anchor="nw",
     text="Sg2Opamp", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry8 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry8.place(x=180.0, y=x_offset + 7*40, width=95.0, height=20.0)
+tab3_entry8.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 8), width=95.0, height=20.0)
 
-canvas3.create_text(34.0, x_offset + 8*40, anchor="nw",
+
+canvas3.create_text(pm_tab3.x_offset, pm_tab3.y_interelement_spacing_ret(number_of_element = 9), anchor="nw",
     text="Sg2Dac", fill="#000000", font=("Inter SemiBold", 12 * -1))
 tab3_entry9 = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
-tab3_entry9.place(x=180.0, y=x_offset + 8*40, width=95.0, height=20.0)
+tab3_entry9.place(x=180.0, y= pm_tab3.y_interelement_spacing_ret(number_of_element = 9), width=95.0, height=20.0)
 
 
 sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg1Dac", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp", "TestFw_Sg2Dac"]
@@ -522,13 +530,21 @@ running_status.place(x = 20, y = 610)
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-
+ToolBar(tab3, tab3_frame, canvas3 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 4 (Motor) ==========================================================================================
 
+pm_tab4 = PlacementManager()
+pm_tab4.x_offset = 73
+pm_tab4.y_offset = 150
+pm_tab4.x_interelement_spacing = 277
+pm_tab4.y_interelement_spacing = 40
 
+
+# ===================================================================================================================
+# ========== Page Constructors ======================================================================================
 
 tab4 = ttk.Frame(notebook)
 notebook.add(tab4, text="Motor")
@@ -549,11 +565,6 @@ canvas4.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-2 =================================================================================================
-
-placement_y_coord = 168
-
-
-canvas4.create_text(73.0 + 475.0, 113.0, anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
 
 
 selected_motor_state = tk.IntVar(value=0)
@@ -580,47 +591,47 @@ motor_decouple_cb = tk.Checkbutton(
 )
 motor_decouple_cb.place(x=73.0 + 475.0 + 120, y=150)
 
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 1), anchor="nw", text="Motor Test Results (DID 102)", fill="#000000", font=("Inter SemiBold", 20 * -1))
 
-
-canvas4.create_text(73.0 + 475.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 2), anchor="nw", text="MotorCoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry3 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry3.place(x=306+475, y=placement_y_coord+35, width=95.0, height=20.0)
+tab4_entry3.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 2), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475.0, placement_y_coord + 35*2, anchor="nw", text="MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 3), anchor="nw", text="MotorDecoupledVoltage", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry4 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry4.place(x=306+475, y=placement_y_coord + 35*2, width=95.0, height=20.0)
+tab4_entry4.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 3), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*3, anchor="nw", text="MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 4), anchor="nw", text="MotorCurrentValue", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry7 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry7.place(x=306+475, y=placement_y_coord + 35*3, width=95.0, height=20.0)
+tab4_entry7.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 4), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*4, anchor="nw", text="MotorPwmOut", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 5), anchor="nw", text="MotorPwmOut", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry8 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry8.place(x=306+475, y=placement_y_coord + 35*4, width=95.0, height=20.0)
+tab4_entry8.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 5), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*5, anchor="nw", text="PwmMotorDriverIn1", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 6), anchor="nw", text="PwmMotorDriverIn1", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry9 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry9.place(x=306+475, y=placement_y_coord + 35*5, width=95.0, height=20.0)
+tab4_entry9.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 6), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*6, anchor="nw", text="PwmMotorDriverIn2", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 7), anchor="nw", text="PwmMotorDriverIn2", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry10 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry10.place(x=306+475, y=placement_y_coord + 35*6, width=95.0, height=20.0)
+tab4_entry10.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 7), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*7, anchor="nw", text="DoMotorNsleep", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 8), anchor="nw", text="DoMotorNsleep", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry11 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry11.place(x=306+475, y=placement_y_coord + 35*7, width=95.0, height=20.0)
+tab4_entry11.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 8), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*8, anchor="nw", text="DoMotorDiagEnable", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 9), anchor="nw", text="DoMotorDiagEnable", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry12 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry12.place(x=306+475, y=placement_y_coord + 35*8, width=95.0, height=20.0)
+tab4_entry12.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 9), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*9, anchor="nw", text="DiMotorNfault", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 10), anchor="nw", text="DiMotorNfault", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry13 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry13.place(x=306+475, y=placement_y_coord + 35*9, width=95.0, height=20.0)
+tab4_entry13.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 10), width=95.0, height=20.0)
 
-canvas4.create_text(73.0 + 475, placement_y_coord + 35*10, anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
+canvas4.create_text(pm_tab4.x_offset, pm_tab4.y_interelement_spacing_ret(number_of_element = 11), anchor="nw", text="MotorLoadError", fill="#000000", font=("Inter SemiBold", 15 * -1))
 tab4_entry14 = ttk.Entry(tab4_frame, style = 'Background_grey.TEntry')
-tab4_entry14.place(x=306+475, y=placement_y_coord + 35*10, width=95.0, height=20.0)
+tab4_entry14.place(x=306+475, y=pm_tab4.y_interelement_spacing_ret(number_of_element = 11), width=95.0, height=20.0)
 
 motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorPwmOut", "TestFw_PwmMotorDriverIn1", "TestFw_PwmMotorDriverIn2", "TestFw_DoMotorNsleep", "TestFw_DoMotorDiagEnable", "TestFw_DiMotorNfault", "TestFw_MotorLoadError"]
 motor_entries = [tab4_entry3, tab4_entry4, tab4_entry7, tab4_entry8, tab4_entry9, tab4_entry10, tab4_entry11 , tab4_entry12, tab4_entry13, tab4_entry14]
@@ -641,6 +652,7 @@ tab4_run_test_tile4.place(x=368+475, y=113, width=34, height=34)
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
+ToolBar(tab4, tab4_frame, canvas4 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -654,7 +666,7 @@ notebook.add(tab4a, text="V-BATT")
 tab4a_frame = tk.Frame(tab4a, bg="#DFDFDF")
 tab4a_frame.pack(fill="both", expand=True)
 
-canvas4 = tk.Canvas(
+canvas4a = tk.Canvas(
     tab4a_frame,
     bg="#DFDFDF",
     height=651,
@@ -663,17 +675,17 @@ canvas4 = tk.Canvas(
     highlightthickness=0,
     relief="ridge"
 )
-canvas4.place(x=0, y=0)
+canvas4a.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
 
 images["tile_tab4a"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4a")) 
-canvas4.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4a"])
+canvas4a.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4a"])
 
-canvas4.create_text(73.0, 113.0, anchor="nw", text="VBatt Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 168.0, anchor="nw", text="TestFw_BatRefStatus", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 214.0, anchor="nw", text="TestFw_AiBatRef", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4a.create_text(73.0, 113.0, anchor="nw", text="VBatt Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas4a.create_text(73.0, 168.0, anchor="nw", text="TestFw_BatRefStatus", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4a.create_text(73.0, 214.0, anchor="nw", text="TestFw_AiBatRef", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 tab4a_entry_1 = ttk.Entry(tab4a_frame, style ='Background_grey.TEntry')
 tab4a_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
@@ -699,6 +711,8 @@ tab4a_run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ========== Toolbar ================================================================================================
 
 
+ToolBar(tab4a, tab4a_frame, canvas4a , images, relative_to_assets)
+
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 4B (EOS) ===========================================================================================
@@ -711,7 +725,7 @@ notebook.add(tab4b, text="EOS")
 tab4b_frame = tk.Frame(tab4b, bg="#DFDFDF")
 tab4b_frame.pack(fill="both", expand=True)
 
-canvas4 = tk.Canvas(
+canvas4b = tk.Canvas(
     tab4b_frame,
     bg="#DFDFDF",
     height=651,
@@ -720,18 +734,18 @@ canvas4 = tk.Canvas(
     highlightthickness=0,
     relief="ridge"
 )
-canvas4.place(x=0, y=0)
+canvas4b.place(x=0, y=0)
 
 # ===================================================================================================================
 # ========== Tile-3 =================================================================================================
 
 images["tile3_tab4b"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4b")) 
-canvas4.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4b"])
+canvas4b.create_image((tablet1_X + 0), (tablet1_Y + 235), image=images["tile3_tab4b"])
 
-canvas4.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas4.create_text(73.0, 403.0, anchor="nw", text="TestFw_EosPinState", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 449.0, anchor="nw", text="TestFw_EosErrorsWithLow", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas4.create_text(73.0, 495.0, anchor="nw", text="TestFw_EosErrorsWithHigh", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4b.create_text(73.0, 348.0, anchor="nw", text="EOS Test (DID 105)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas4b.create_text(73.0, 403.0, anchor="nw", text="TestFw_EosPinState", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4b.create_text(73.0, 449.0, anchor="nw", text="TestFw_EosErrorsWithLow", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas4b.create_text(73.0, 495.0, anchor="nw", text="TestFw_EosErrorsWithHigh", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 
 tab4b_entry5 = ttk.Entry(tab4b_frame, style = 'Background_grey.TEntry')
@@ -759,7 +773,7 @@ tab4b_run_test_tile3.place(x=368, y=341, width=34, height=34)
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-
+ToolBar(tab4b, tab4b_frame, canvas4b , images, relative_to_assets)
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -813,7 +827,7 @@ tab5_run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-
+ToolBar(tab5, tab5_frame, canvas5 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -893,7 +907,7 @@ tab6_run_test_tile2.place(x=878 , y=325, width=33, height=33)
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-
+ToolBar(tab6, tab6_frame, canvas6 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== TAB 7 ==================================================================================================
@@ -947,7 +961,7 @@ run_test_tile1.place(x=368, y=106, width=34, height=34)
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
 
-
+ToolBar(tab7, tab7_frame, canvas7 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ===================================================================================================================
