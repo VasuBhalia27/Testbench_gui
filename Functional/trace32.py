@@ -280,20 +280,6 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, fetch_r
             entry_list[i].delete(0, tk.END)
             entry_list[i].insert(0, str(fetched_var_value))
 
-        # if fetch_run_status == True and running_status_label:
-        #     running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
-        #     running_status = int(running_status)
-            
-        #     if running_status == 1:
-        #         running_status_label.config(text= "Running Status: Sleep")
-
-        #     elif running_status == 0:
-        #         running_status_label.config(text= "Running Status: Running")
-
-        #     else:
-        #         running_status_label.config(text= "Running Status: Error")
-
-        # reset_cb()
         
         
         # logs.add_log(DID, fetched_var_value)
