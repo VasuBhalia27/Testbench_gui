@@ -719,37 +719,18 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-SG_input_conditon = tk.IntVar(value=0)
+SG1_enable_conditon = tk.IntVar(value=0)
+SG2_enable_conditon = tk.IntVar(value=0)
+SG_no_input_conditon = tk.IntVar(value=0)
 
-motor_couple_cb = tk.Checkbutton(
-    tab7,
-    text="TestFw_Sg1ToggleGui",
-    variable=SG_input_conditon,
-    onvalue=1,
-    offvalue=0,
-    command=lambda: SG_input_1(selected_motor_state)
-)
-motor_couple_cb.place(x=34, y=110)
+sg1_enable_cb = tk.Checkbutton(tab7, text="SG1_Enable", variable=SG1_enable_conditon, onvalue=1, offvalue=0, command=lambda: SG1_Enable(SG1_enable_conditon))
+sg1_enable_cb.place(x=34, y=110)
 
-motor_decouple_cb = tk.Checkbutton(
-    tab7,
-    text="TestFw_Sg2ToggleGui",
-    variable=SG_input_conditon,
-    onvalue=2,
-    offvalue=0,
-    command=lambda: SG_input_2(selected_motor_state)
-)
-motor_decouple_cb.place(x=34+150, y=110)
+sg2_enable_cb = tk.Checkbutton(tab7, text="SG2_Enable", variable=SG2_enable_conditon, onvalue=2, offvalue=0, command=lambda: SG2_Enable(SG2_enable_conditon))
+sg2_enable_cb.place(x=34+150, y=110)
 
-motor_decouple_cb = tk.Checkbutton(
-    tab7,
-    text="SG no input",
-    variable=SG_input_conditon,
-    onvalue=3,
-    offvalue=0,
-    command=lambda: SG_no_input(selected_motor_state)
-)
-motor_decouple_cb.place(x=34+150+150, y=110)
+sg_no_input_cb = tk.Checkbutton(tab7, text="SG_No_Input", variable=SG_no_input_conditon, onvalue=3, offvalue=0,command=lambda: SG_No_Input(SG_no_input_conditon))
+sg_no_input_cb.place(x=34+150+150, y=110)
 
 # Entries
 canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test Outputs (DID 106)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
