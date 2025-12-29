@@ -584,6 +584,9 @@ motor_couple_cb.place(x=73.0, y=150)
 motor_decouple_cb = tk.Checkbutton(tab5, text="Motor Decouple", variable=selected_motor_state, onvalue=2, offvalue=0, command=lambda: motor_decouple(selected_motor_state))
 motor_decouple_cb.place(x=73.0 + 120, y=150)
 
+motor_freewheel_cb = tk.Checkbutton(tab5, text="Motor Freewheel", variable=selected_motor_state, onvalue=3, offvalue=0, command=lambda: motor_freewheel(selected_motor_state))
+motor_freewheel_cb.place(x=73.0 + 250, y=150)
+
 # Entries
 canvas5.create_text(73.0, 113.0, anchor="nw", text="Motor Test Results (DID 103)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas5.create_text(73.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))

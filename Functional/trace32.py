@@ -368,6 +368,15 @@ def motor_decouple(selected_motor_state):
 
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
 
+def motor_freewheel(selected_motor_state):
+    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
+    if selected_motor_state.get() == 3:
+        selected_motor_state.set(3)
+    else:
+        selected_motor_state.set(0)
+
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 1')
+
 
 def SG1_Enable(SG1_enable_conditon):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
