@@ -139,6 +139,10 @@ def edit_flash_cmm(filepath, selected_preset, repo_path_entry) -> None:
     with `new_line` (exactly). Other lines stay the _same.
     """
     new_line = get_select_preset(selected_preset, repo_path_entry)
+    #messagebox.showinfo(
+        #"Repository Path",
+        #f"new_line:\n{new_line}"
+    #)
     dirn = os.path.dirname(filepath) or "."
     fd, tmpname = tempfile.mkstemp(dir=dirn)
     try:
@@ -191,7 +195,7 @@ def get_select_preset(selected_preset, repo_path_entry):
         return rf"{repo_path_XNF_cleaned}\build\xnf-handle-driver-c2-gcc-arm-relwithdebinfo\XNF-Handle_Driver_C2_App.elf"
     
     if selected_preset.get() == 2:#Minsizerel
-        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-driver-c2-gcc-arm-minsizerel\XNF-Handle_Driver_C2_App.elf"
+        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-nondriver-c2-gcc-arm-minsizerel\XNF-Handle_NonDriver_C2_App.elf"
 
     else:
         print("Select correct preset")
