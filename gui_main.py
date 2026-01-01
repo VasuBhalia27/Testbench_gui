@@ -578,14 +578,18 @@ placement_y_coord = 168
 
 # Checkboxes
 selected_motor_state = tk.IntVar(value=0)
-motor_couple_cb = tk.Checkbutton(tab5, text="Motor Couple", variable=selected_motor_state, onvalue=1, offvalue=0, command=lambda: motor_couple(selected_motor_state))
-motor_couple_cb.place(x=73.0, y=150)
+selected_motor_freewheel = tk.IntVar(value=0)
+motor_no_req_cb = tk.Checkbutton(tab5, text="Motor no req", variable=selected_motor_state, onvalue=1, offvalue=0, command=lambda: motor_no_req(selected_motor_state))
+motor_no_req_cb.place(x=73.0 + 120, y=150)
 
-motor_decouple_cb = tk.Checkbutton(tab5, text="Motor Decouple", variable=selected_motor_state, onvalue=2, offvalue=0, command=lambda: motor_decouple(selected_motor_state))
-motor_decouple_cb.place(x=73.0 + 120, y=150)
+motor_couple_cb = tk.Checkbutton(tab5, text="Motor Couple", variable=selected_motor_state, onvalue=2, offvalue=0, command=lambda: motor_couple(selected_motor_state))
+motor_couple_cb.place(x=73.0 + 250, y=150)
 
-motor_freewheel_cb = tk.Checkbutton(tab5, text="Motor Freewheel", variable=selected_motor_state, onvalue=3, offvalue=0, command=lambda: motor_freewheel(selected_motor_state))
-motor_freewheel_cb.place(x=73.0 + 250, y=150)
+motor_decouple_cb = tk.Checkbutton(tab5, text="Motor Decouple", variable=selected_motor_state, onvalue=3, offvalue=0, command=lambda: motor_decouple(selected_motor_state))
+motor_decouple_cb.place(x=73.0, y=150)
+
+motor_freewheel_cb = tk.Checkbutton(tab5, text="Motor Freewheel", variable=selected_motor_freewheel, onvalue=1, offvalue=0, command=lambda: motor_freewheel(selected_motor_freewheel))
+motor_freewheel_cb.place(x=73.0 + 380, y=150)
 
 # Entries
 canvas5.create_text(73.0, 113.0, anchor="nw", text="Motor Test Results (DID 103)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
@@ -654,19 +658,19 @@ canvas6.create_image((tablet1_X + 0), (tablet1_Y + 10), image=images["tile_tab6"
 
 # Entries
 canvas6.create_text(73.0, 113.0, anchor="nw", text="EOS Test (DID 104)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas6.create_text(73.0, placement_y_coord+35*0, anchor="nw", text="TestFw_EosDiagVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(73.0, placement_y_coord+35*0, anchor="nw", text="EosDiagVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab6_entry1 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry1.place(x=306, y=placement_y_coord+35*0, width=95.0, height=20.0)
 
-canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="TestFw_EosPinState", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EosPinState", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab6_entry2 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry2.place(x=306, y=placement_y_coord+35*1, width=95.0, height=20.0)
 
-canvas6.create_text(73.0, placement_y_coord+35*2, anchor="nw", text="TestFw_EosErrorsWithLow", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(73.0, placement_y_coord+35*2, anchor="nw", text="EosErrorsWithLow", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab6_entry3 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry3.place(x=306, y=placement_y_coord+35*2, width=95.0, height=20.0)
 
-canvas6.create_text(73.0, placement_y_coord+35*3, anchor="nw", text="TestFw_EosErrorsWithHigh", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(73.0, placement_y_coord+35*3, anchor="nw", text="EosErrorsWithHigh", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab6_entry4 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry4.place(x=306, y=placement_y_coord+35*3, width=95.0, height=20.0)
 

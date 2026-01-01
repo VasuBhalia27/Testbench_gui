@@ -192,7 +192,7 @@ def get_select_preset(selected_preset, repo_path_entry):
     repo_path_XNF = repo_path_entry.get()
     repo_path_XNF_cleaned = repo_path_XNF.replace('/', '\\')
     if selected_preset.get() == 1:#Realwithdeb
-        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-driver-c2-gcc-arm-relwithdebinfo\XNF-Handle_Driver_C2_App.elf"
+        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-nondriver-c2-gcc-arm-relwithdebinfo\XNF-Handle_NonDriver_C2_App.elf"
     
     if selected_preset.get() == 2:#Minsizerel
         return rf"{repo_path_XNF_cleaned}\build\xnf-handle-nondriver-c2-gcc-arm-minsizerel\XNF-Handle_NonDriver_C2_App.elf"
@@ -353,33 +353,46 @@ def Trace32ConnectApp(repo_path_entry, selected_preset):
     ConnectToTraceUDP()
     time.sleep(2)
 
-def motor_couple(selected_motor_state):
+def motor_no_req(selected_motor_state):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if selected_motor_state.get() == 1:
         selected_motor_state.set(1)
     else:
         selected_motor_state.set(0)
 
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 2')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 0')
 
-
-def motor_decouple(selected_motor_state):
-    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
+def motor_couple(selected_motor_state):
+    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if selected_motor_state.get() == 2:
         selected_motor_state.set(2)
     else:
         selected_motor_state.set(0)
 
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 2')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 0')
 
-def motor_freewheel(selected_motor_state):
+
+def motor_decouple(selected_motor_state):
     # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
     if selected_motor_state.get() == 3:
         selected_motor_state.set(3)
     else:
         selected_motor_state.set(0)
 
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 0')
+
+def motor_freewheel(selected_motor_freewheel):
+    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
+    if selected_motor_freewheel.get() == 1:
+        selected_motor_freewheel.set(1)
+    else:
+        selected_motor_freewheel.set(0)
+
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 1')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
 
 
 def SG1_Enable(SG1_enable_conditon):
