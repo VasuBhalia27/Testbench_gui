@@ -17,7 +17,7 @@ DO ~~~~/psoc4 PREPAREONLY
 ; ReProgram Flash
 FLASH.ReProgram ALL
 &ExeFile=OS.ENV("TARGET_EXECUTABLE")
-Data.LOAD.Elf &ExeFile
+Data.LOAD.Elf D:/BMW_Repos/S05HBM690_Munich_8.0.7/build/rr4x-handle-nondriver-b4-gcc-arm-relwithdebinfo/RR4X-Handle_NonDriver_B4_App.elf
 FLASH.ReProgram OFF
 
 
