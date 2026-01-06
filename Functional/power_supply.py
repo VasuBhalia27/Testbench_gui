@@ -11,12 +11,12 @@ def DoNothing():
     return
 
 
-def ConnectToPwrSup(usb_address):
-    global power_sup_inst1
-    power_sup_inst1 = rm.open_resource(usb_address)
-    power_sup_inst1.timeout = 5000
-    power_sup_inst1.write_termination = '\n'
-    power_sup_inst1.read_termination = '\n'
+#def ConnectToPwrSup(usb_address):
+    #global power_sup_inst1
+    #power_sup_inst1 = rm.open_resource(usb_address)
+    #power_sup_inst1.timeout = 5000
+    #power_sup_inst1.write_termination = '\n'
+    #power_sup_inst1.read_termination = '\n'
 
 
 
@@ -37,11 +37,11 @@ def GetVoltage(entry_widget):
 def SetCurrent(requested_volt):
        power_sup_inst1.write(f"CURR {requested_volt}")
 
-def PowerSupOn():
-    power_sup_inst1.write("OUTP ON")
+#def PowerSupOn():
+    #power_sup_inst1.write("OUTP ON")
 
-def PowerSupOff():
-    power_sup_inst1.write("OUTP OFF")
+#def PowerSupOff():
+    #power_sup_inst1.write("OUTP OFF")
 
 
 def MultiPowerSupHandler(resource_list_raw: str):

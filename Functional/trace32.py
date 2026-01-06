@@ -353,6 +353,16 @@ def Trace32ConnectApp(repo_path_entry, selected_preset):
     ConnectToTraceUDP()
     time.sleep(2)
 
+def ResetTarget():
+    """ Sends the system reset command to the debugger """
+    global dbg
+    try:
+        # 'SYStem.Up' or 'SYStem.RESET' are common for resetting the target
+        # Using 'SYStem.Mode.Up' ensures the debugger resets and attaches
+        dbg.cmd("SYStem.Up") 
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to reset target: {str(e)}")
+
 def motor_no_req(selected_motor_state):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if selected_motor_state.get() == 1:
@@ -395,32 +405,32 @@ def motor_freewheel(selected_motor_freewheel):
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
 
 
-def SG1_Enable(SG1_enable_conditon):
+def SG1_Enable(SG1_results):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
-    if SG1_enable_conditon.get() == 1:
-        SG1_enable_conditon.set(1)
+    if SG1_results.get() == 1:
+        SG1_results.set(1)
     else:
-        SG1_enable_conditon.set(0)
+        SG1_results.set(0)
 
     dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 1')
     dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 0')
 
-def SG2_Enable(SG2_enable_conditon):
+def SG2_Enable(SG2_results):
     # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
-    if SG2_enable_conditon.get() == 2:
-        SG2_enable_conditon.set(2)
+    if SG2_results.get() == 2:
+        SG2_results.set(2)
     else:
-        SG2_enable_conditon.set(0)
+        SG2_results.set(0)
 
     dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 0')
     dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 1')
 
-def SG_No_Input(SG_no_input_conditon):
+def SG_No_Input(SG_no_results):
     # If cb2 is turned ON, set shared var to 3; if OFF, reset to 0
-    if SG_no_input_conditon.get() == 3:
-        SG_no_input_conditon.set(3)
+    if SG_no_results.get() == 3:
+        SG_no_results.set(3)
     else:
-        SG_no_input_conditon.set(0)
+        SG_no_results.set(0)
 
     dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 0')
     dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 0')
@@ -430,11 +440,11 @@ def clear_entries(entries_list):
         
         entries_list[i].delete(0, tk.END)
 
-def reset_cb(SG1_enable_conditon, SG2_enable_conditon, SG_no_input_conditon):
+def reset_cb(SG1_results, SG2_results, SG_no_results):
     
-    SG1_enable_conditon.set(0)
-    SG2_enable_conditon.set(0)
-    SG_no_input_conditon.set(0)
+    SG1_results.set(0)
+    SG2_results.set(0)
+    SG_no_results.set(0)
 
 def led_on(led_input_condition):
     if led_input_condition.get() == 1:
