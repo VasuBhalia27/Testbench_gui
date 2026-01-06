@@ -333,6 +333,10 @@ canvas2.create_image(145.0, 37.0, image=images["minibea_logo_2"])
 images["tile1_tab2"] = PhotoImage(file=relative_to_assets("Tile.png", "tab2")) 
 canvas2.create_image(245, 265, image=images["tile1_tab2"])
 
+# --- Group 1: Path Selection ---
+canvas2.create_rectangle(55.0, 65.0, 750.0, 135.0, outline="#F39C12", width=1) 
+canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Selection ", fill="#F39C12", font=("Inter SemiBold", 8))
+
 canvas2.create_text(61.0, 100.0, anchor="nw", text="Select ELF path:  ", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 repo_path_entry = ttk.Entry(tab2, style ='Background_grey.TEntry')
 repo_path_entry.place(x=200.0, y=95.0, width=400.0, height=30.0)
@@ -340,41 +344,56 @@ repo_path_entry.place(x=200.0, y=95.0, width=400.0, height=30.0)
 repo_browse_button = ttk.Button(tab2, text="Browse", command=browse_repo_path) #browse button to get repo path
 repo_browse_button.place(x=650, y=95, width=80, height=30)
 
+# --- Group 2: Version Control ---
+canvas2.create_rectangle(55.0, 150.0, 550.0, 230.0, outline="#F39C12", width=1)
+canvas2.create_text(60.0, 155.0, anchor="nw", text=" Variant Selection ", fill="#F39C12", font=("Inter SemiBold", 8))
+
 #Non-Nfc version selection
 selected_preset = tk.IntVar(value=0)
 selected_preset_relwithdeb = tk.Checkbutton(tab2, text="Non-Nfc Version", variable=selected_preset, onvalue=1, offvalue=0, command=lambda: preset_realwithdebinfo(selected_preset))
-selected_preset_relwithdeb.place(x=61, y=150)
+selected_preset_relwithdeb.place(x=61, y=180)
 #Nfc version selection
 selected_preset_minsizerel = tk.Checkbutton(tab2, text="Nfc Version", variable=selected_preset, onvalue=2, offvalue=0, command=lambda: preset_minsizerel(selected_preset))
-selected_preset_minsizerel.place(x=350, y=150)
+selected_preset_minsizerel.place(x=450, y=180)
 
+# --- Group 3: Debugger ---
+canvas2.create_rectangle(55.0, 240.0, 550.0, 325.0, outline="#F39C12", width=1)
+canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger ", fill="#F39C12", font=("Inter SemiBold", 8))
 #Trace32 connect Selection
-canvas2.create_text(61.0, 225.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(61.0, 275.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd = 0)
-connect_trace32.place(x=200, y=220, width=34, height=34)
+connect_trace32.place(x=200, y=270, width=34, height=34)
 
 #Trace32 disconnect Selection
-canvas2.create_text(350, 225.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(350, 275.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], command=DoNothing, bd = 0)
-disconnect_trace32.place(x=500, y=220, width=34, height=34)
+disconnect_trace32.place(x=500, y=270, width=34, height=34)
+
+# --- Group 4: CANoe ---
+canvas2.create_rectangle(55.0, 340.0, 550.0, 420.0, outline="#F39C12", width=1)
+canvas2.create_text(60.0, 340.0, anchor="nw", text=" CANoe ", fill="#F39C12", font=("Inter SemiBold", 8))
 
 # CANoe disable selection
 canoe_input_condition = tk.IntVar (value=0)
 
 canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: CANoe_Disable(canoe_input_condition))
-canoe_disable_cb.place(x=61, y=300)
+canoe_disable_cb.place(x=61, y=370)
 # CANoe enable selection
 canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: CANoe_Enable(canoe_input_condition))
-canoe_enable_cb.place(x=350, y=300)
+canoe_enable_cb.place(x=440, y=370)
+
+# --- Group 5: CPU Reset ---
+canvas2.create_rectangle(55.0, 430.0, 550.0, 495.0, outline="#F39C12", width=1)
+canvas2.create_text(60.0, 430.0, anchor="nw", text=" CPU Reset ", fill="#F39C12", font=("Inter SemiBold", 8))
 
 # Reset Target
-canvas2.create_text(61.0, 380.0, anchor="nw", text="Reset Target", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_text(61.0, 460.0, anchor="nw", text="Reset Target", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 # Button Image and Placement
 images["tab2_reset_target"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 reset_target_btn = Button(tab2, image=images["tab2_reset_target"], command=ResetTarget, bd=0)
-reset_target_btn.place(x=200, y=370, width=34, height=34)
+reset_target_btn.place(x=200, y=450, width=34, height=34)
 
 canvas2.create_text(61.0, 556.0, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
 
