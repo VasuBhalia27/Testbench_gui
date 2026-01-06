@@ -325,6 +325,20 @@ canvas2 = tk.Canvas(
 )
 canvas2.place(x=0, y=0)
 
+def update_tab_visibility():
+    # value 1 = Non-Nfc, value 2 = Nfc
+    selection = selected_preset.get()
+    
+    if selection == 1:
+        # Hide NFC (Tab 9) and CAN (Tab 10)
+        notebook.hide(tab9)
+        notebook.hide(tab10)
+    elif selection == 2:
+        # Show NFC and CAN
+        # We use add() to bring them back if they were hidden
+        notebook.add(tab9, text="NFC")
+        notebook.add(tab10, text="CAN")
+
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
 images["minibea_logo_2"] = PhotoImage(file=relative_to_assets("minebea_logo_2.png", "tab2"))
@@ -350,10 +364,17 @@ canvas2.create_text(60.0, 155.0, anchor="nw", text=" Variant Selection ", fill="
 
 #Non-Nfc version selection
 selected_preset = tk.IntVar(value=0)
-selected_preset_relwithdeb = tk.Checkbutton(tab2, text="Non-Nfc Version", variable=selected_preset, onvalue=1, offvalue=0, command=lambda: preset_realwithdebinfo(selected_preset))
+selected_preset_relwithdeb = tk.Checkbutton(tab2, text="Non-Nfc Version", variable=selected_preset, onvalue=1, offvalue=0, command=lambda: [preset_realwithdebinfo(selected_preset), update_tab_visibility()])
 selected_preset_relwithdeb.place(x=61, y=180)
 #Nfc version selection
-selected_preset_minsizerel = tk.Checkbutton(tab2, text="Nfc Version", variable=selected_preset, onvalue=2, offvalue=0, command=lambda: preset_minsizerel(selected_preset))
+selected_preset_minsizerel = tk.Checkbutton(
+    tab2, 
+    text="Nfc Version", 
+    variable=selected_preset, 
+    onvalue=2, 
+    offvalue=0, 
+    command=lambda: [preset_minsizerel(selected_preset), update_tab_visibility()]
+)
 selected_preset_minsizerel.place(x=450, y=180)
 
 # --- Group 3: Debugger ---
@@ -1060,6 +1081,8 @@ canvas11.create_text(
     font=("Inter BoldItalic", 24 * -1)
 )
 
+# Initialize visibility based on default selection (0)
+update_tab_visibility()
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 window.resizable(True, True)
