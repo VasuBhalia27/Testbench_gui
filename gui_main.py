@@ -236,11 +236,10 @@ tablet1_Y = 192
 # ========== TAB 1 ==================================================================================================
 
 tab1 = ttk.Frame(notebook)
-notebook.add(tab1, text="Versions")
+notebook.add(tab1, text="Welcome")
 
 canvas1 = tk.Canvas(tab1, bg="#DFDFDF", height=651, width=973, bd=0, highlightthickness=0, relief="ridge")
 canvas1.place(x=0, y=0)
-
 
 canvas1.create_rectangle(
     0.0,
@@ -250,39 +249,14 @@ canvas1.create_rectangle(
     fill="#E8E8E8",
     outline="")
 
-
 images["Welcome_text"] = PhotoImage(file=relative_to_assets("welcome_text.png","tab1"))
 image_1 = canvas1.create_image(155.0,165.0,image=images["Welcome_text"])
-
 
 images["minibea_logo"] = PhotoImage(file=relative_to_assets("minebea_logo.png", "tab1"))
 canvas1.create_image(145.0, 37.0, image=images["minibea_logo"])
 
-images["version_tile"] = PhotoImage(file=relative_to_assets("tile.png", "tab1"))
-canvas1.create_image(196.0, 427.0, image=images["version_tile"])
-
-canvas1.create_text(112.0, 280.0, anchor="nw", text="Select Version",
-                   fill="#FFFFFF", font=("Inter", -24))
-
 images["photo_with_hand"] = PhotoImage(file=relative_to_assets("image.png", "tab1"))
 canvas1.create_image(746.0, 349.0, image=images["photo_with_hand"])
-
-# Buttons in Tab 1
-images["version1"] = PhotoImage(file=relative_to_assets("version1.png", "tab1"))
-btn1_tab1 = Button(tab1, image=images["version1"], command=lambda: print("version1"), bd=0)
-btn1_tab1.place(x=89, y=329, width=218, height=44)
-
-images["version2"] = PhotoImage(file=relative_to_assets("version2.png", "tab1"))
-btn2_tab1 = Button(tab1, image=images["version2"], command=lambda: print("version2"), bd=0)
-btn2_tab1.place(x=89, y=390, width=219, height=45)
-
-images["version3"] = PhotoImage(file=relative_to_assets("version3.png", "tab1"))
-btn3_tab1 = Button(tab1, image=images["version3"], command=lambda: print("version3"), bd=0)
-btn3_tab1.place(x=89, y=451, width=220, height=45)
-
-images["version4"] = PhotoImage(file=relative_to_assets("version4.png", "tab1"))
-btn4_tab1 = Button(tab1, image=images["version4"], command=lambda: print("version4"), bd=0)
-btn4_tab1.place(x=89, y=512, width=220, height=45)
 
 canvas1.create_text(
     260.0,
@@ -310,6 +284,9 @@ def preset_minsizerel(selected_preset):
 
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
+
+# Select the second tab (Settings) by default on startup
+notebook.select(tab2)
 
 tab2_frame = tk.Frame(tab2, bg="#DFDFDF")
 tab2_frame.pack(fill="both", expand=True)
@@ -463,7 +440,7 @@ canvas2.create_text(
 # ========== TAB 3 (LED Test) =======================================================================================
 
 tab3 = ttk.Frame(notebook)
-notebook.add(tab3, text="LED Test")
+notebook.add(tab3, text="LED ")
 
 tab3_frame = tk.Frame(tab3, bg="#DFDFDF")
 tab3_frame.pack(fill="both", expand=True)
@@ -593,7 +570,7 @@ canvas4.create_text(
 # ===================================================================================================================
 # ========== TAB 5 (Motor Test) ================================================================================
 tab5 = ttk.Frame(notebook)
-notebook.add(tab5, text="Motor Test")
+notebook.add(tab5, text="Motor ")
 
 tab5_frame = tk.Frame(tab5, bg="#DFDFDF")
 tab5_frame.pack(fill="both", expand=True)
@@ -676,7 +653,7 @@ canvas5.create_text(
 # ===================================================================================================================
 # ========== TAB 6 (EOS Tests) ============================================================================
 tab6 = ttk.Frame(notebook)
-notebook.add(tab6, text="EOS Tests")
+notebook.add(tab6, text="EOS ")
 
 tab6_frame = tk.Frame(tab6, bg="#DFDFDF")
 tab6_frame.pack(fill="both", expand=True)
@@ -743,7 +720,7 @@ canvas6.create_text(
 # ========== TAB 7 (SG tests) =======================================================================================
 
 tab7 = ttk.Frame(notebook)
-notebook.add(tab7, text="SG Sensor Tests")
+notebook.add(tab7, text="Strain Gauge")
 
 tab7_frame = tk.Frame(tab7, bg="#DFDFDF")
 tab7_frame.pack(fill="both", expand=True)
@@ -849,7 +826,7 @@ canvas7.create_text(
 # ========== TAB 8 (Capa Test) ======================================================================================
 
 tab8 = ttk.Frame(notebook)
-notebook.add(tab8, text="Capa Sensor Tests")
+notebook.add(tab8, text="Capa Sensor")
 
 tab8_frame = tk.Frame(tab8, bg="#DFDFDF")
 tab8_frame.pack(fill="both", expand=True)
