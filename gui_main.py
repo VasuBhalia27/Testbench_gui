@@ -326,7 +326,7 @@ canvas2.create_image(245, 265, image=images["tile1_tab2"])
 
 # --- Group 1: Path Selection ---
 canvas2.create_rectangle(55.0, 65.0, 750.0, 135.0, outline="#F39C12", width=1) 
-canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Selection ", fill="#F39C12", font=("Inter SemiBold", 8))
+canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
 
 canvas2.create_text(61.0, 100.0, anchor="nw", text="Select ELF path:  ", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 repo_path_entry = ttk.Entry(tab2, style ='Background_grey.TEntry')
@@ -337,7 +337,7 @@ repo_browse_button.place(x=650, y=95, width=80, height=30)
 
 # --- Group 2: Version Control ---
 canvas2.create_rectangle(55.0, 150.0, 550.0, 230.0, outline="#F39C12", width=1)
-canvas2.create_text(60.0, 155.0, anchor="nw", text=" Variant Selection ", fill="#F39C12", font=("Inter SemiBold", 8))
+canvas2.create_text(60.0, 155.0, anchor="nw", text=" Variant Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
 
 #Non-Nfc version selection
 selected_preset = tk.IntVar(value=0)
@@ -355,76 +355,49 @@ selected_preset_minsizerel = tk.Checkbutton(
 selected_preset_minsizerel.place(x=450, y=180)
 
 # --- Group 3: Debugger ---
-canvas2.create_rectangle(55.0, 240.0, 550.0, 325.0, outline="#F39C12", width=1)
-canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger ", fill="#F39C12", font=("Inter SemiBold", 8))
-#Trace32 connect Selection
-canvas2.create_text(61.0, 275.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas2.create_rectangle(55.0, 240.0, 550.0, 380.0, outline="#F39C12", width=1)
+canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
+#Connect Trace32 Button
+canvas2.create_text(61.0, 270.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd = 0)
-connect_trace32.place(x=200, y=270, width=34, height=34)
+connect_trace32.place(x=200, y=260, width=34, height=34)
 
-#Trace32 disconnect Selection
-canvas2.create_text(350, 275.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+# Start Code (Go) Button
+canvas2.create_text(61.0, 315.0, anchor="nw", text="Start Code (Go)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+images["tab2_go_button"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
+go_button = Button(tab2, image=images["tab2_go_button"], command=lambda: RunCode(code_status_label), bd=0)
+go_button.place(x=200, y=305, width=34, height=34)
+
+#Disconnect Trace32 Button
+canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-# Find this line in TAB 2 (Settings) section of gui_main.py
 disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], command=QuitTrace32, bd = 0)
-disconnect_trace32.place(x=500, y=270, width=34, height=34)
+disconnect_trace32.place(x=500, y=260, width=34, height=34)
 
-# --- Group 4: CANoe ---
-canvas2.create_rectangle(55.0, 340.0, 550.0, 420.0, outline="#F39C12", width=1)
-canvas2.create_text(60.0, 340.0, anchor="nw", text=" CANoe ", fill="#F39C12", font=("Inter SemiBold", 8))
-
-# CANoe disable selection
-canoe_input_condition = tk.IntVar (value=0)
-
-canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: CANoe_Disable(canoe_input_condition))
-canoe_disable_cb.place(x=61, y=370)
-# CANoe enable selection
-canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: CANoe_Enable(canoe_input_condition))
-canoe_enable_cb.place(x=440, y=370)
-
-# --- Group 5: CPU Reset ---
-canvas2.create_rectangle(55.0, 430.0, 550.0, 495.0, outline="#F39C12", width=1)
-canvas2.create_text(60.0, 430.0, anchor="nw", text=" CPU Reset ", fill="#F39C12", font=("Inter SemiBold", 8))
-
-# Reset Target
-canvas2.create_text(61.0, 460.0, anchor="nw", text="Reset Target", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+# Reset Target Button
+canvas2.create_text(350.0, 315.0, anchor="nw", text="Reset Target", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 # Button Image and Placement
 images["tab2_reset_target"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 reset_target_btn = Button(tab2, image=images["tab2_reset_target"], command=ResetTarget, bd=0)
-reset_target_btn.place(x=200, y=450, width=34, height=34)
+reset_target_btn.place(x=500, y=305, width=34, height=34)
 
-canvas2.create_text(61.0, 556.0, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
+# Label to show status
+code_status_label = tk.Label(tab2, text="Status: Ready", bg="#DFDFDF", font=("Inter", 10))
+code_status_label.place(x=250, y=350)
 
+# --- Group 4: CANoe ---
+canvas2.create_rectangle(55.0, 390.0, 550.0, 480.0, outline="#F39C12", width=1)
+canvas2.create_text(60.0, 395.0, anchor="nw", text=" CANoe Setting", fill="#F39C12", font=("Inter SemiBold", 10))
 
+# CANoe disable option
+canoe_input_condition = tk.IntVar (value=0)
 
-#canvas2.create_text(61.0, 150.0, anchor="nw", text="Connect to Power Supply -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-#images["tab2_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-#connect_to_Psupply = Button(tab2, image=images["tab2_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
-#connect_to_Psupply.place(x=261, y=144, width=33, height=33)
-
-#canvas2.create_text(61.0, 213.0, anchor="nw", text="Power ON -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-#images["tab2_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-#pwr_sup_on = Button(tab2, image=images["tab2_tile1_run_test"], command=PowerSupOn, bd = 0)
-#pwr_sup_on.place(x=261, y=207, width=33, height=33)
-
-#canvas2.create_text(61.0, 269.0, anchor="nw", text="Power OFF -->", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-#images["tab2_tile1_run_test2"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-#pwr_sup_off = Button(tab2, image=images["tab2_tile1_run_test"], command=PowerSupOff, bd = 0)
-#pwr_sup_off.place(x=261, y=263, width=33, height=33)
-
-
-
-
-
-#if (usb_addr == None):
-    #connect_to_Psupply.config(state="disabled")
-    #pwr_sup_on.config(state="disabled")
-    #pwr_sup_off.config(state="disabled")
-#else:
-    #connect_to_Psupply.config(state="normal")
-    #pwr_sup_on.config(state="normal")
-    #pwr_sup_off.config(state="normal")
+canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: CANoe_Disable(canoe_input_condition))
+canoe_disable_cb.place(x=61, y=420)
+#CANoe enable option
+canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: CANoe_Enable(canoe_input_condition))
+canoe_enable_cb.place(x=440, y=420)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
 

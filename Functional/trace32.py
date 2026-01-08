@@ -383,6 +383,26 @@ def ResetTarget():
     except Exception as e:
         messagebox.showerror("Error", f"Failed to reset target: {str(e)}")
 
+def RunCode(exec_label):
+    global dbg
+    try:
+        # Check if debugger object is initialized
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd("Go")
+            # Update the label to show the code is running
+            if exec_label:
+                exec_label.config(text="Code Execution status: Running", fg="green")
+        else:
+            messagebox.showwarning("Warning", "Trace32 not connected!")
+            
+    except Exception as err:
+        # Handle cases where target is already running
+        if "target running" in str(err).lower():
+            if exec_label:
+                exec_label.config(text="Code Execution status: Running", fg="green")
+        else:
+            messagebox.showerror("Error", f"Failed to start code: {str(err)}")
+
 def motor_no_req(selected_motor_state):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if selected_motor_state.get() == 1:
