@@ -251,7 +251,7 @@ x_interelement_spacing = 0
 y_text_widget_spacing = 70
 
 images["connect_to_trace"] = PhotoImage(file=relative_to_assets("connect_to_trace.png", "tab1"))
-btn1_tab1 = Button(tab1, image=images["connect_to_trace"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset, trace_connection_status), bd=0)
+btn1_tab1 = Button(tab1, image=images["connect_to_trace"], command=lambda: Trace32ConnectApp(trace_connection_status), bd=0)
 btn1_tab1.place(x=x_offset_tab1_btns, y=y_offset_tab1_btns + y_text_widget_spacing*0, width=355.32, height=37)
 trace_connection_status = tk.Label(tab1, text="Not Connected")
 trace_connection_status.config(bg="#797979", fg = "red")
@@ -978,125 +978,10 @@ run_test_tile1.place(x=368, y=pm_tab9.y_interelement_spacing_ret(number_of_eleme
 
 ToolBar(tab7, tab7_frame, canvas7 , images, relative_to_assets)
 
-# ===================================================================================================================
-# ===================================================================================================================
-# ========== TAB 8 (Settings) =======================================================================================
-
-#element placement manager
-x_offset = 100
-x_interelement_spacing = 40
-
-y_offset = 60
-y_text_widget_spacing = 200
-
-#function definations
-def preset_realwithdebinfo(selected_preset):
-    if selected_preset.get() == 1:
-        selected_preset.set(1)
-    else:
-        selected_preset.set(0)
-
-
-
-def preset_minsizerel(selected_preset):
-    if selected_preset.get() == 2:
-        selected_preset.set(2)
-    else:
-        selected_preset.set(0)
-
-
-#GUI start
-tab8 = ttk.Frame(notebook)
-notebook.add(tab8, text="Settings")
-
-tab8_frame = tk.Frame(tab8, bg="#DFDFDF")
-tab8_frame.pack(fill="both", expand=True)
-
-canvas8 = tk.Canvas(
-    tab8_frame,
-    bg="#DFDFDF",
-    height=651,
-    width=973,
-    bd=0,
-    highlightthickness=0,
-    relief="ridge"
-)
-canvas8.place(x=0, y=0)
-
-
-
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 1, anchor="nw", text="Connect to Power Supply -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 2, anchor="nw", text="Power ON -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 3, anchor="nw", text="Power OFF -->", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 4, anchor="nw", text="Connect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 5, anchor="nw", text="Disconnect to Trace32 --> ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 6, anchor="nw", text="Select BMW Repository:  ", fill="#000000", font=("Inter SemiBold", 15 * -1))
-canvas8.create_text(y_offset, x_offset + x_interelement_spacing * 7, anchor="nw", text="Note: Make sure ELF for the selected preset is generated  ", fill="#FF0000", font=("Inter SemiBold", 11 * -1))
-
-
-images["tab8_tile1_run_test"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-connect_to_Psupply = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: ConnectToPwrSup(usb_addr), bd = 0)
-connect_to_Psupply.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 1, width=33, height=33)
-
-
-images["tab8_tile1_run_test1"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-pwr_sup_on = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOn, bd = 0)
-pwr_sup_on.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 2, width=33, height=33)
-
-images["tab8_tile1_run_test2"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-pwr_sup_off = Button(tab8, image=images["tab8_tile1_run_test"], command=PowerSupOff, bd = 0)
-pwr_sup_off.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 3, width=33, height=33)
-
-images["tab8_tile1_run_test3"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-connect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset, trace_connection_status), bd = 0)
-connect_trace32.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 4, width=33, height=33)
-
-images["tab8_tile1_run_test4"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-disconnect_trace32 = Button(tab8, image=images["tab8_tile1_run_test"], command=DoNothing, bd = 0)
-disconnect_trace32.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 5, width=33, height=33)
-
-repo_path_entry = ttk.Entry(tab8, style ='Background_grey.TEntry')
-repo_path_entry.place(x=y_offset + y_text_widget_spacing, y=x_offset + x_interelement_spacing * 6, width=400.0, height=20.0)
-repo_browse_button = ttk.Button(tab8, text="Browse", command=browse_elf_path) #browse button to get repo path
-repo_browse_button.place(x=680, y=x_offset + x_interelement_spacing * 6, width=70, height=32)
-
-selected_preset = tk.IntVar(value=0)
-
-selected_preset_relwithdeb = tk.Checkbutton(
-    tab8,
-    text="Realwithdebinfo",
-    variable=selected_preset,
-    onvalue=1,
-    offvalue=0,
-    command=lambda: preset_realwithdebinfo(selected_preset)
-)
-selected_preset_relwithdeb.place(x=y_offset, y=487)
-
-
-
-selected_preset_minsizerel = tk.Checkbutton(
-    tab8,
-    text="Minsizerel",
-    variable=selected_preset,
-    onvalue=2,
-    offvalue=0,
-    command=lambda: preset_minsizerel(selected_preset)
-)
-selected_preset_minsizerel.place(x=61 + 120, y=487)
-
-
-if (usb_addr == None):
-    connect_to_Psupply.config(state="disabled")
-    pwr_sup_on.config(state="disabled")
-    pwr_sup_off.config(state="disabled")
-else:
-    connect_to_Psupply.config(state="normal")
-    pwr_sup_on.config(state="normal")
-    pwr_sup_off.config(state="normal")
 
 
 #GUI End
-window.after(1000, lambda: poll_target_state(running_status, window))
+# window.after(1000, lambda: poll_target_state(running_status, window))
 
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================

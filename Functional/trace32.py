@@ -6,16 +6,14 @@ from tkinter import messagebox
 from enum import IntEnum
 from Functional.logging import *
 import os
-import shutil
 import tempfile
 import re
-import io
 from tkinter import filedialog
 
 # logs = LogApp()
 
 class TestFunctionCmd(IntEnum):
-    TESTFW_GUI_CMD_VOLTAGE_CHECK_e       = 100  
+    TESTFW_GUI_CMD_VOLTAGE_CHECK_e       = 100
     TESTFW_GUI_CMD_LED_TEST_e            = 101  
     TESTFW_GUI_CMD_BATT_MONITOR_e        = 102  
     TESTFW_GUI_CMD_MOTOR_TEST_e          = 103 
@@ -37,7 +35,7 @@ def browse_elf_path():
     if ELF_path:
         return ELF_path
 
-def LaunchTrace32(repo_path_entry, selected_preset):
+def LaunchTrace32():
     ELF_path = browse_elf_path()
 
     if ELF_path:
@@ -81,7 +79,7 @@ def autoexec_cmm_handler(ELF_path):
 
 
 
-def edit_flash_cmm(filepath, ELF_path) -> None:
+def edit_flash_cmm(filepath, ELF_path):
     """
     Replace the line starting with Data.LOAD.Elf in the file at filepath
     with `new_line` (exactly). Other lines stay the _same.
@@ -144,7 +142,7 @@ def ConnectToTraceUDP(trace_connection_status):
     try:
         dbg = t32.connect(node='localhost', port=20006,protocol='UDP', packlen=1024, timeout=5.0)
         dbg.print("Hello")
-        trace_connection_status.config(bg="#797979", fg = "green", text = "Connected")
+        trace_connection_status.config(bg="#797979", fg = "Green", text = "Connected")
 
 
     except Exception as e:
@@ -238,9 +236,9 @@ def PauseCode(exec_label):
 def QuitTrace32():
     dbg.exit()
 
-def Trace32ConnectApp(repo_path_entry, selected_preset, trace_connection_status):
+def Trace32ConnectApp(trace_connection_status):
 
-    LaunchTrace32(repo_path_entry, selected_preset)
+    LaunchTrace32()
     ConnectToTraceUDP(trace_connection_status)
     time.sleep(2)
 
