@@ -47,74 +47,31 @@ class PlacementManager():
 
 
 class FooterBar:
-    def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, set_voltage_callback, get_voltage_callback):
-        self.parent = parent
+    def __init__(self, tab, tab_frame, canvas, images, relative_to_assets):
         self.tab = tab
         self.tab_frame = tab_frame
         self.canvas = canvas
         self.images = images
         self.relative_to_assets = relative_to_assets
-        self.set_voltage_callback = set_voltage_callback
-        self.get_voltage_callback = get_voltage_callback
+ 
         
         self.setup_ui()
     
     def setup_ui(self):
         # Footer bar image
         self.images[f"{self.tab}_footerbar"] = PhotoImage(file=self.relative_to_assets("footer_bar.png", "tab2"))
-        self.canvas.create_image(500, 606, image=self.images[f"{self.tab}_footerbar"])
+        self.canvas.create_image(500, 640, image=self.images[f"{self.tab}_footerbar"])
 
-        # Set voltage controls
-        self.canvas.create_text(
-            22.0,
-            580.0,
-            anchor="nw",
-            text="Set power supply voltage",
-            fill="#282828",
-            font=("Inter Bold", 16 * -1)
-        )
+        reset_target = ttk.Button(self.tab, text="In target reset", command= in_target_reset) #browse button to get repo path
+        reset_target.place(x=850, y=604, width=95, height=35)
 
-        self.voltage_set_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
-        self.voltage_set_entry.place(x=306.0, y=580.0, width=95.0, height=20.0)
+        running_status = tk.Label(self.tab_frame, text="Running Status: None")
+        running_status.config(bg = "#F0F0F0")
+        running_status.place(x = 20, y = 610)
 
-        self.images[f"{self.tab}set_voltage_button"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
-        self.set_voltage_btn = Button(
-            self.tab,
-            image=self.images[f"{self.tab}set_voltage_button"],
-            command=lambda: self.set_voltage_callback(self.voltage_set_entry),
-            bd=0
-        )
-        self.set_voltage_btn.place(x=413, y=576, width=25, height=26)
 
-        # Get voltage controls
-        self.canvas.create_text(
-            22.0,
-            613.0,
-            anchor="nw",
-            text="Get power supply voltage",
-            fill="#282828",
-            font=("Inter SemiBold", 16 * -1)
-        )
+    
 
-        self.voltage_get_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
-        self.voltage_get_entry.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-        self.images[f"{self.tab}get_voltage_button"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
-        self.get_voltage_btn = Button(
-            self.tab,
-            image=self.images[f"{self.tab}get_voltage_button"],
-            command=lambda: self.get_voltage_callback(self.voltage_get_entry),
-            bd=0
-        )
-        self.get_voltage_btn.place(x=413, y=610, width=25, height=26)
-
-        # Additional entry (tab2_entry9 from original code)
-        self.additional_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
-        self.additional_entry.place(x=800.0, y=575.0, width=150.0, height=60.0)
-        
-    def update_additional_entry(footer_instance, new_value):
-        footer_instance.additional_entry.delete(0, tk.END)
-        footer_instance.additional_entry.insert(0, new_value)
         
 class ToolBar:
     def __init__(self, tab, tab_frame, canvas, images, relative_to_assets):
@@ -369,7 +326,7 @@ run_test_tile1.place(x=368, y=pm_tab2.y_interelement_spacing_ret(number_of_eleme
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab2, tab2_frame, canvas2 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -511,14 +468,13 @@ tab3_run_test_tile3.place(x=450, y=110, width=31.073986053466797, height=31.8457
 reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
 reset_entries.place(x=500, y=110, width=85, height=32)
 
-running_status = tk.Label(tab3_frame, text="Running Status: None")
-running_status.config(bg = "#DFDFDF")
-running_status.place(x = 20, y = 610)
+
+
 
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab3, tab3_frame, canvas3 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -640,7 +596,7 @@ tab4_run_test_tile4.place(x=pm_tab4.x_offset + pm_tab4.x_interelement_spacing, y
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab4, tab4_frame, canvas4 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -704,7 +660,7 @@ tab4a_run_test_tile1.place(x=368, y=pm_tab5.y_interelement_spacing_ret(number_of
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab4a, tab4a_frame, canvas4a , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -774,7 +730,7 @@ tab4b_run_test_tile3.place(x=368, y=pm_tab6.y_interelement_spacing_ret(number_of
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab4b, tab4b_frame, canvas4b , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -835,8 +791,7 @@ tab5_run_test_tile1.place(x=368, y=pm_tab6.y_interelement_spacing_ret(number_of_
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
-
+FooterBar(tab5, tab5_frame, canvas5 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================
@@ -912,7 +867,7 @@ tab6_run_test_tile2.place(x=368 , y=pm_tab8.y_interelement_spacing_ret(number_of
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab6, tab6_frame, canvas6 , images, relative_to_assets)
 
 
 # ===================================================================================================================
@@ -971,7 +926,7 @@ run_test_tile1.place(x=368, y=pm_tab9.y_interelement_spacing_ret(number_of_eleme
 # ===================================================================================================================
 # ========== Footerbar ==============================================================================================
 
-
+FooterBar(tab7, tab7_frame, canvas7 , images, relative_to_assets)
 
 # ===================================================================================================================
 # ========== Toolbar ================================================================================================

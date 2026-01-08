@@ -325,3 +325,9 @@ def poll_target_state(label, window):
     except Exception as e:
         window.after(1000, lambda: poll_target_state(label, window))
 
+def in_target_reset():
+
+    dbg.cmd("SYStem.RESetTarget")
+    
+    dbg.cmd("Go")
+
