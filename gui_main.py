@@ -389,7 +389,7 @@ reset_target_btn = Button(tab2, image=images["tab2_reset_target"],
 reset_target_btn.place(x=500, y=305, width=34, height=34)
 
 # Label to show status
-code_status_label = tk.Label(tab2, text="Status: Ready", bg="#DFDFDF", font=("Inter", 10))
+code_status_label = tk.Label(tab2, text="Status: none", bg="#DFDFDF", font=("Inter", 10))
 code_status_label.place(x=250, y=350)
 
 # --- Group 4: CANoe ---
