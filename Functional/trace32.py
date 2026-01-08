@@ -191,11 +191,11 @@ def edit_autoexec_cmm(filepath: str) -> None:
 def get_select_preset(selected_preset, repo_path_entry):
     repo_path_XNF = repo_path_entry.get()
     repo_path_XNF_cleaned = repo_path_XNF.replace('/', '\\')
-    if selected_preset.get() == 1:#Realwithdeb
-        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-nondriver-c2-gcc-arm-relwithdebinfo\XNF-Handle_NonDriver_C2_App.elf"
+    if selected_preset.get() == 1:#Non_Nfc_Test
+        return rf"{repo_path_XNF_cleaned}\Non_Nfc_Test\XNF-Handle_NonDriver_C2_App.elf"
     
-    if selected_preset.get() == 2:#Minsizerel
-        return rf"{repo_path_XNF_cleaned}\build\xnf-handle-nondriver-c2-gcc-arm-minsizerel\XNF-Handle_NonDriver_C2_App.elf"
+    if selected_preset.get() == 2:#Nfc_Test
+        return rf"{repo_path_XNF_cleaned}\Nfc_Test\XNF-Handle_Driver_C2_App.elf"
 
     else:
         print("Select correct preset")
