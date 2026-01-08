@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: 
+; @Description:
+; @Keywords:
+; @Author:
+; @Board:
+; @Chip:
+; @Copyright:
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~~~/psoc4 PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+&ExeFile=OS.ENV("TARGET_EXECUTABLE")
+Data.LOAD.Elf D:/BMW_Repos/S05HBM690_Munich_8.0.7/build/xnf-handle-nondriver-c2-gcc-arm-relwithdebinfo/XNF-Handle_NonDriver_C2_App.elf
+FLASH.ReProgram OFF
+
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+GLOBAL &lowAddr &highAddr &magicPattern
+&lowAddr=ADDRESS.OFFSET(__StackLimit)   // assign here the upper border of the addressrange occupied by your stack 
+&highAddr=ADDRESS.OFFSET(__stack)-1  // assign here the lower border of the addressrange occupied by your stack 
+; &highAddr=(0x20008000-1)
+; &lowAddr=0x20006000
+&magicPattern=0xCCCCCCCC   // any 32-bit you like which appears unlikely on the used part of the stack 
+Data.Set &lowAddr--&highAddr %Long &magicPattern   // initialize the stack
+
+
+ENDDO
