@@ -32,14 +32,19 @@ execution_status =''
 
 
 def LaunchTrace32(repo_path_entry, selected_preset):
-
-    # --- ADD THIS: Kill old instances to prevent "Device already used" error ---
+    # --- STEP 1: Aggressive Cleanup ---
     try:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        time.sleep(1) # Wait for driver release
+        # Critical wait time for the USB driver to physically reset
+        time.sleep(3) 
     except:
         pass
-
+    # --- STEP 2: Path Validation ---
+    repo_path_XNF = repo_path_entry.get() 
+    if not repo_path_XNF or not os.path.exists(repo_path_XNF):
+        messagebox.showerror("Error", "BMW repository not found")
+        return 
+    # --- STEP 3: Config & Launch ---
     repo_path_XNF = repo_path_entry.get() 
     if repo_path_XNF and os.path.exists(repo_path_XNF):
         autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
@@ -76,8 +81,8 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     subprocess.Popen(command)
-    # Wait until the TRACE32 instance is started
-    time.sleep(5) 
+    # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
+    time.sleep(8) 
 
 def autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry):
     autoexec_cmm = "autoexec.cmm"
@@ -494,25 +499,32 @@ def CANoe_Enable(canoe_input_condition):
     dbg.cmd(f'Var.set TestFw_GuiCanDependencyDisable = 0')
 
 def poll_target_state(label, window):
-
+    global poll_id, dbg
+    
+    # Stop polling if the connection object isn't valid
+    if not dbg or isinstance(dbg, str):
+        label.config(text="SmartBU Status: Disconnected")
+        return
+    
     try:
-
+        # Check running status from TRACE32
         running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
         running_status = int(running_status)
         
         if running_status == 1:
-            label.config(text= "SmartBU Status: running (sleeping)")
-
+            label.config(text="SmartBU Status: running (sleeping)")
         elif running_status == 0:
-            label.config(text= "SmartBU Status: running")
-
+            label.config(text="SmartBU Status: running")
         else:
-            label.config(text= "SmartBU Status: Error")
-        window.after(1000, lambda: poll_target_state(label, window))
+            label.config(text="SmartBU Status: Error")
+            
+        # Schedule the next poll only if successful
+        poll_id = window.after(1000, lambda: poll_target_state(label, window))
 
-        
-    except Exception as e:
-        window.after(1000, lambda: poll_target_state(label, window))
+    except Exception:
+        # Stop polling loop on error to prevent ghosting/crashes
+        dbg = '' 
+        label.config(text="SmartBU Status: Disconnected")
 
 
 def QuitTrace32():

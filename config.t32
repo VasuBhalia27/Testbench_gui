@@ -1,9 +1,9 @@
 ; Environment variables
 OS=
 ID=T32
-SYS=C:\Users\genericece\.conan2\p\tracee4f08930e322b\p
+SYS=C:\Users\charan.singh\.conan2\p\tracee4f08930e322b\p
 
-; USB information 
+; USB information - Corrected format
 PBI=
 USB
 
@@ -14,6 +14,3 @@ PRINTER=WINDOWS
 RCL=NETASSIST
 PACKLEN=1024
 PORT=20006
-
-;T32 TCF Access
-TCF=
