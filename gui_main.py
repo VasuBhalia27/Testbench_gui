@@ -360,7 +360,9 @@ canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#
 #Connect Trace32 Button
 canvas2.create_text(61.0, 270.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset), bd = 0)
+connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], 
+                         command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label), 
+                         bd = 0)
 connect_trace32.place(x=200, y=260, width=34, height=34)
 
 # Start Code (Go) Button
@@ -372,14 +374,18 @@ go_button.place(x=200, y=305, width=34, height=34)
 #Disconnect Trace32 Button
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], command=QuitTrace32, bd = 0)
+disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], 
+                            command=lambda: QuitTrace32(code_status_label), 
+                            bd = 0)
 disconnect_trace32.place(x=500, y=260, width=34, height=34)
 
 # Reset Target Button
 canvas2.create_text(350.0, 315.0, anchor="nw", text="Reset Target", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 # Button Image and Placement
 images["tab2_reset_target"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-reset_target_btn = Button(tab2, image=images["tab2_reset_target"], command=ResetTarget, bd=0)
+reset_target_btn = Button(tab2, image=images["tab2_reset_target"], 
+                          command=lambda: ResetTarget(code_status_label), 
+                          bd=0)
 reset_target_btn.place(x=500, y=305, width=34, height=34)
 
 # Label to show status

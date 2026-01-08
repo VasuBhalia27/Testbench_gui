@@ -367,41 +367,55 @@ def PauseCode(exec_label):
 def QuitTrace32():
     dbg.exit()
 
-def Trace32ConnectApp(repo_path_entry, selected_preset):
-
+def Trace32ConnectApp(repo_path_entry, selected_preset, status_label):
     LaunchTrace32(repo_path_entry, selected_preset)
     ConnectToTraceUDP()
     time.sleep(2)
+    # Update status after successful connection and loading
+    if status_label:
+        status_label.config(text="Status: stopped at breakpoint", fg="#D35400") # Orange color
 
-def ResetTarget():
-    """ Sends the system reset command to the debugger """
+def ResetTarget(status_label):
     global dbg
     try:
-        # 'SYStem.Up' or 'SYStem.RESET' are common for resetting the target
-        # Using 'SYStem.Mode.Up' ensures the debugger resets and attaches
-        dbg.cmd("SYStem.Up") 
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd("SYStem.Up") 
+            if status_label:
+                status_label.config(text="Status: system ready", fg="blue")
+        else:
+            messagebox.showwarning("Warning", "Trace32 not connected!")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to reset target: {str(e)}")
 
 def RunCode(exec_label):
     global dbg
     try:
-        # Check if debugger object is initialized
         if dbg and hasattr(dbg, 'cmd'):
             dbg.cmd("Go")
-            # Update the label to show the code is running
             if exec_label:
-                exec_label.config(text="Code Execution status: Running", fg="green")
+                exec_label.config(text="Status: running", fg="green")
         else:
             messagebox.showwarning("Warning", "Trace32 not connected!")
-            
     except Exception as err:
-        # Handle cases where target is already running
         if "target running" in str(err).lower():
             if exec_label:
-                exec_label.config(text="Code Execution status: Running", fg="green")
+                exec_label.config(text="Status: running", fg="green")
         else:
             messagebox.showerror("Error", f"Failed to start code: {str(err)}")
+
+def QuitTrace32(status_label=None):
+    global dbg
+    try:
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd("QUIT") 
+            dbg.exit()
+    except:
+        pass
+    finally:
+        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        dbg = ''
+        if status_label:
+            status_label.config(text="Status: Disconnected", fg="red")
 
 def motor_no_req(selected_motor_state):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
@@ -545,17 +559,3 @@ def poll_target_state(label, window):
         # Stop polling loop on error to prevent ghosting/crashes
         dbg = '' 
         label.config(text="SmartBU Status: Disconnected")
-
-
-def QuitTrace32():
-    global dbg
-    try:
-        if dbg and hasattr(dbg, 'cmd'):
-            dbg.cmd("QUIT") 
-            dbg.exit()
-    except:
-        pass
-    finally:
-        # Force kill ensures the PBI driver is released so you don't unplug the cable
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        dbg = ''
