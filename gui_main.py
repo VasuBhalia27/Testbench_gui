@@ -1062,5 +1062,41 @@ canvas11.create_text(
 update_tab_visibility()
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
+
+# Create a global variable to hold the ID
+poll_id = None
+
+def poll_target_state(label, window):
+    global poll_id
+    try:
+        running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+        # ... your existing logic ...
+        
+        # Save the ID returned by .after()
+        poll_id = window.after(1000, lambda: poll_target_state(label, window))
+
+    except Exception as e:
+        poll_id = window.after(1000, lambda: poll_target_state(label, window))
+
+def on_closing():
+    if messagebox.askokcancel("Quit", "Do you want to quit and disconnect Trace32?"):
+        # Stop the polling loop if it exists
+        try:
+            window.after_cancel(poll_id)
+        except:
+            pass
+        QuitTrace32() # Ensure this function kills the process (see step 3)
+        window.destroy()
+
+window = tk.Tk()
+window.protocol("WM_DELETE_WINDOW", on_closing) # This line catches the 'X' button click
+
+# Update the poll call to capture the ID
+def start_polling():
+    global poll_id
+    poll_id = window.after(1000, lambda: poll_target_state(running_status, window))
+
+start_polling()
+
 window.resizable(True, True)
 window.mainloop()

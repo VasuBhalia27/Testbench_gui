@@ -32,6 +32,21 @@ execution_status =''
 
 
 def LaunchTrace32(repo_path_entry, selected_preset):
+
+    # --- ADD THIS: Kill old instances to prevent "Device already used" error ---
+    try:
+        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        time.sleep(1) # Wait for driver release
+    except:
+        pass
+
+    repo_path_XNF = repo_path_entry.get() 
+    if repo_path_XNF and os.path.exists(repo_path_XNF):
+        autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
+    else:
+        messagebox.showerror("Error", "BMW repository not found")
+        return # Stop execution if path is invalid
+
     repo_path_XNF = repo_path_entry.get() #to get the path of XNF directory.
     if repo_path_XNF:
         if os.path.exists(repo_path_XNF):
@@ -499,3 +514,16 @@ def poll_target_state(label, window):
     except Exception as e:
         window.after(1000, lambda: poll_target_state(label, window))
 
+
+def QuitTrace32():
+    global dbg
+    try:
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd("QUIT") 
+            dbg.exit()
+    except:
+        pass
+    finally:
+        # Force kill to ensure driver release
+        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        dbg = ''
