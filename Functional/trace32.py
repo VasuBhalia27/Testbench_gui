@@ -524,6 +524,6 @@ def QuitTrace32():
     except:
         pass
     finally:
-        # Force kill to ensure driver release
+        # Force kill ensures the PBI driver is released so you don't unplug the cable
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
         dbg = ''

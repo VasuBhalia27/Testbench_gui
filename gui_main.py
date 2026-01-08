@@ -366,7 +366,8 @@ connect_trace32.place(x=200, y=270, width=34, height=34)
 #Trace32 disconnect Selection
 canvas2.create_text(350, 275.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], command=DoNothing, bd = 0)
+# Find this line in TAB 2 (Settings) section of gui_main.py
+disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], command=QuitTrace32, bd = 0)
 disconnect_trace32.place(x=500, y=270, width=34, height=34)
 
 # --- Group 4: CANoe ---
@@ -1088,7 +1089,7 @@ def on_closing():
         QuitTrace32() # Ensure this function kills the process (see step 3)
         window.destroy()
 
-window = tk.Tk()
+#window = tk.Tk()
 window.protocol("WM_DELETE_WINDOW", on_closing) # This line catches the 'X' button click
 
 # Update the poll call to capture the ID
