@@ -24,11 +24,76 @@ class TestFunctionCmd(IntEnum):
     TEST_GUI_CMD_NFC_TEST_e              = 107  
     TEST_GUI_CMD_CAN_TEST_e              = 108  
     TEST_GUI_CMD_LIN_e                   = 109  
-    TESTFW_GUI_CMD_INVALID_e             = 110  
+    TESTFW_GUI_CMD_INVALID_e             = 110
+
+# Mapping of variable names to their units
+VARIABLE_UNITS_MAP = {
+    # LED Test
+    "TestFw_LedVoltage": "mV",
+    
+    # Battery Monitor
+    "TestFw_BatRefStatus": "status",
+    "TestFw_AiBatRef": "mA",
+    
+    # Motor Test
+    "TestFw_MotorCoupledVoltage": "V",
+    "TestFw_MotorDecoupledVoltage": "V",
+    "TestFw_MotorCurrentValue": "mA",
+    "TestFw_MotorLoadError": "",
+    
+    # EOS Test
+    "TestFw_EosDiagVoltage": "V",
+    "TestFw_EosPinState": "status",
+    "TestFw_EosErrorsWithLow": "count",
+    "TestFw_EosErrorsWithHigh": "count",
+    
+    # Strain Gauge Test
+    "TestFw_DoPwrSg": "status",
+    "TestFw_Sg1PlusOpamp": "mV",
+    "TestFw_Sg1MinusOpamp": "mV",
+    "TestFw_Sg1Opamp": "mV",
+    "TestFw_Sg1Dac": "mV",
+    "TestFw_Sg2PlusOpamp": "mV",
+    "TestFw_Sg2MinusOpamp": "mV",
+    "TestFw_Sg2Opamp": "mV",
+    "TestFw_Sg2Dac": "mV",
+    
+    # Capa Test
+    "TestFw_CapaApproach": "status",
+    "TestFw_CapaLock": "status",
+    "TestFw_CapaUnlock": "status",
+    "TestFw_CapaApproachSensorValue": "counts",
+    "TestFw_CapaLockSensorValue": "counts",
+    "TestFw_CapaUnlockSensorValue": "counts",
+    
+    # NFC Test
+    "TestFw_IsNfcDetectedCard": "bool",
+    
+    # CAN Test
+    "DummyBytes": "bytes",
+}
 
 
 dbg = ''
 execution_status =''
+
+def format_value_with_unit(variable_name, value):
+    """
+    Format a value with its corresponding unit.
+    
+    Args:
+        variable_name: Name of the variable (key in VARIABLE_UNITS_MAP)
+        value: The numeric or string value to format
+    
+    Returns:
+        Formatted string with value and unit, e.g., "12.5 mV"
+    """
+    unit = VARIABLE_UNITS_MAP.get(variable_name, "")
+    
+    if unit:
+        return f"{value} {unit}"
+    else:
+        return str(value)
 
 
 def LaunchTrace32(repo_path_entry, selected_preset):
@@ -278,8 +343,12 @@ def SendDIDGetVal(entry_widget, DID, get_val_var):
         dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
         time.sleep(0.5)
         val_master = dbg.fnc(f"Var.VALUE({get_val_var})")
+        
+        # Format value with unit
+        formatted_value = format_value_with_unit(get_val_var, val_master)
+        
         entry_widget.delete(0, tk.END)
-        entry_widget.insert(0, str(val_master))
+        entry_widget.insert(0, formatted_value)
         
         # logs.add_log(DID, val_master)
 
@@ -301,8 +370,12 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, fetch_r
         for i in range(len(capa_output_variables)):
             fetched_var_value = dbg.fnc(f"Var.VALUE({capa_output_variables[i]})")
             fetched_var_value = int(fetched_var_value)
+            
+            # Format value with unit
+            formatted_value = format_value_with_unit(capa_output_variables[i], fetched_var_value)
+            
             entry_list[i].delete(0, tk.END)
-            entry_list[i].insert(0, str(fetched_var_value))
+            entry_list[i].insert(0, formatted_value)
 
         # if fetch_run_status == True and running_status_label:
         #     running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
