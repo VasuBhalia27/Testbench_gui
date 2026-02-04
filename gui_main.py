@@ -297,17 +297,11 @@ def without_handle_selection(handle_selected):
     else:
         handle_selected.set(0)
 
-#def auto_start(auto_selected):
-    #if auto_selected.get() == 1:
-        #auto_selected.set(1)
-    #else:
-        #auto_selected.set(0)
-
-#def auto_stop(auto_selected):
-    #if auto_selected.get() == 2:
-        #auto_selected.set(2)
-    #else:
-        #auto_selected.set(0)
+def auto_select(auto_selection):
+    if auto_selection.get() == 1:
+        auto_selection.set(1)
+    else:
+        auto_selection.set(0)
 
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
@@ -361,9 +355,9 @@ def update_tab_visibility():
 #
 def auto_tab_visibility():
 
-    auto_selection = auto_selected.get()
+    auto = auto_selection.get()
 
-    if auto_selection == 1:
+    if auto == 1:
         notebook.hide(tab3)
         notebook.hide(tab4)
         notebook.hide(tab5)
@@ -374,7 +368,14 @@ def auto_tab_visibility():
         notebook.hide(tab10)
         notebook.hide(tab11)
         notebook.add(tab12, text="AUTO")
-    elif auto_selection == 2:
+    else:
+        notebook.add(tab3, text="LED")
+        notebook.add(tab4, text="BAT")
+        notebook.add(tab5, text="MOT")
+        notebook.add(tab6, text="EOS")
+        notebook.add(tab7, text="SG")
+        notebook.add(tab8, text="CAP")
+        notebook.add(tab11, text="LIN")
         notebook.add(tab12, text="AUTO")
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
@@ -480,15 +481,19 @@ with_handle_cb.place(x=600, y=180)
 without_handle_cb = tk.Checkbutton(tab2, text="Without_Handle", variable=handle_selected, onvalue=2, offvalue=0, command=lambda: Without_Handle(handle_selected))
 without_handle_cb.place(x=600, y=250)
 
+auto_selection = tk.IntVar (value=0)
+auto_selection_cb = tk.Checkbutton(tab2, text="Auto_Selection", variable=auto_selection, onvalue=1, offvalue=0, command=lambda: [auto_select(auto_selection), auto_tab_visibility()])
+auto_selection_cb.place(x=600, y=300)
+
 #Auto Start/Stop
 auto_selected = tk.IntVar (value=0)
 
 #auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start    ", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: Auto_Start(auto_selected))
 
-auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: [Auto_Start(auto_selected), auto_tab_visibility()])
+auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: Auto_Start(auto_selected))
 auto_start_cb.place(x=600, y=350)
 
-auto_stop_cb = tk.Checkbutton(tab2, text="Auto_Stop", variable=auto_selected, onvalue=2, offvalue=0, command=lambda: [Auto_Stop(auto_selected), auto_tab_visibility()])
+auto_stop_cb = tk.Checkbutton(tab2, text="Auto_Stop", variable=auto_selected, onvalue=2, offvalue=0, command=lambda: Auto_Stop(auto_selected))
 auto_stop_cb.place(x=600, y=420)
 
 canvas2.create_text(
