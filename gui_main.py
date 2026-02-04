@@ -179,6 +179,7 @@ ASSETS_PATH_TAB8 = OUTPUT_PATH / Path(r"assets_GC\Page_8(Capa)\assets\frame0")
 ASSETS_PATH_TAB9 = OUTPUT_PATH / Path(r"assets_GC\Page_9(Nfc)\assets\frame0")
 ASSETS_PATH_TAB10 = OUTPUT_PATH / Path(r"assets_GC\Page_10(CAN)\assets\frame0")
 ASSETS_PATH_TAB11 = OUTPUT_PATH / Path(r"assets_GC\Page_11(Lin)\assets\frame0")
+ASSETS_PATH_TAB12 = OUTPUT_PATH / Path(r"assets_GC\Page_12(Auto)\assets\frame0")
 
 def relative_to_assets(path: str, tab: str) -> Path:
     if tab == "tab1":
@@ -203,6 +204,8 @@ def relative_to_assets(path: str, tab: str) -> Path:
         return ASSETS_PATH_TAB10 / Path(path)
     elif tab == "tab11":
         return ASSETS_PATH_TAB11 / Path(path)
+    elif tab == "tab12":
+        return ASSETS_PATH_TAB12 / Path(path)
     else:
         raise Exception
 
@@ -282,6 +285,30 @@ def preset_minsizerel(selected_preset):
     else:
         selected_preset.set(0)
 
+def with_handle_selection(handle_selected):
+    if handle_selected.get() == 1:
+        handle_selected.set(1)
+    else:
+        handle_selected.set(0)
+
+def without_handle_selection(handle_selected):
+    if handle_selected.get() == 2:
+        handle_selected.set(2)
+    else:
+        handle_selected.set(0)
+
+def auto_start(auto_selected):
+    if auto_selected.get() == 1:
+        auto_selected.set(1)
+    else:
+        auto_selected.set(0)
+
+def auto_stop(auto_selected):
+    if auto_selected.get() == 2:
+        auto_selected.set(2)
+    else:
+        auto_selected.set(0)
+
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
 
@@ -307,15 +334,48 @@ def update_tab_visibility():
     selection = selected_preset.get()
     
     if selection == 1:
+        notebook.add(tab3, text="LED")
+        notebook.add(tab4, text="BAT")
+        notebook.add(tab5, text="MOT")
+        notebook.add(tab6, text="EOS")
+        notebook.add(tab7, text="SG")
+        notebook.add(tab8, text="CAP")
+        notebook.add(tab11, text="LIN")
         # Hide NFC (Tab 9) and CAN (Tab 10)
         notebook.hide(tab9)
         notebook.hide(tab10)
+        notebook.hide(tab12)
     elif selection == 2:
         # Show NFC and CAN
+        notebook.add(tab3, text="LED")
+        notebook.add(tab4, text="BAT")
+        notebook.add(tab5, text="MOT")
+        notebook.add(tab6, text="EOS")
+        notebook.add(tab7, text="SG")
+        notebook.add(tab8, text="CAP")
         # We use add() to bring them back if they were hidden
         notebook.add(tab9, text="NFC")
         notebook.add(tab10, text="CAN")
+        notebook.add(tab11, text="LIN")
+        notebook.hide(tab12)
+#
+def auto_tab_visibility():
 
+    auto_selection = auto_selected.get()
+
+    if auto_selection == 1:
+        notebook.hide(tab3)
+        notebook.hide(tab4)
+        notebook.hide(tab5)
+        notebook.hide(tab6)
+        notebook.hide(tab7)
+        notebook.hide(tab8)
+        notebook.hide(tab9)
+        notebook.hide(tab10)
+        notebook.hide(tab11)
+        notebook.add(tab12, text="AUTO")
+    elif auto_selection == 2:
+        notebook.add(tab12, text="AUTO")
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
 images["minibea_logo_2"] = PhotoImage(file=relative_to_assets("minebea_logo_2.png", "tab2"))
@@ -406,6 +466,30 @@ canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input
 canoe_enable_cb.place(x=440, y=420)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
+
+# --- Group 5: Handle Selection ---
+canvas2.create_rectangle(560.0, 150.0, 750.0, 480.0, outline="#F39C12", width=1)
+canvas2.create_text(560.0, 155.0, anchor="nw", text=" Handle Selection", fill="#F39C12", font=("Inter SemiBold", 10))
+
+# WithHandle / WithoutHandle selection
+handle_selected = tk.IntVar (value=0)
+
+with_handle_cb = tk.Checkbutton(tab2, text="With_Handle   ", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: With_Handle(handle_selected))
+with_handle_cb.place(x=600, y=180)
+
+without_handle_cb = tk.Checkbutton(tab2, text="Without_Handle", variable=handle_selected, onvalue=2, offvalue=0, command=lambda: Without_Handle(handle_selected))
+without_handle_cb.place(x=600, y=250)
+
+#Auto Start/Stop
+auto_selected = tk.IntVar (value=0)
+
+#auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start    ", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: Auto_Start(auto_selected))
+
+auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: [auto_start(auto_selected), auto_tab_visibility()])
+auto_start_cb.place(x=600, y=350)
+
+auto_stop_cb = tk.Checkbutton(tab2, text="Auto_Stop     ", variable=auto_selected, onvalue=2, offvalue=0, command=lambda: Auto_Stop(auto_selected))
+auto_stop_cb.place(x=600, y=420)
 
 canvas2.create_text(
     260.0,
@@ -1037,9 +1121,52 @@ canvas11.create_text(
     fill="#FFFFFF",
     font=("Inter BoldItalic", 24 * -1)
 )
+# ===================================================================================================================
+# ===================================================================================================================
+# ========== TAB 12 (AUTO) =======================================================================================
+
+tab12 = ttk.Frame(notebook)
+notebook.add(tab12, text="Automatic Results")
+
+tab12_frame = tk.Frame(tab12, bg="#DFDFDF")
+tab12_frame.pack(fill="both", expand=True)
+
+canvas12 = tk.Canvas(
+    tab12_frame,
+    bg="#DFDFDF",
+    height=651,
+    width=973,
+    bd=0,
+    highlightthickness=0,
+    relief="ridge"
+)
+canvas12.place(x=0, y=0)
+# ===================================================================================================================
+# ========== Tile-12 ================================================================================================
+images["minibea_logo_12"] = PhotoImage(file=relative_to_assets("minebea_logo_12.png", "tab12"))
+canvas12.create_image(145.0, 37.0, image=images["minibea_logo_12"])
+
+images["tile1_tab12"] = PhotoImage(file=relative_to_assets("Tile.png", "tab12")) 
+canvas12.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab12"])
+
+
+
+
+canvas12.create_text(
+    260.0,
+    20.0,
+    anchor="nw",
+    text="U-Shin India",
+    fill="#FFFFFF",
+    font=("Inter BoldItalic", 24 * -1)
+)
+
+
+
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()
+auto_tab_visibility()
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 

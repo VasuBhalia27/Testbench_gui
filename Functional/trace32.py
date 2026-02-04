@@ -632,3 +632,36 @@ def poll_target_state(label, window):
         # Stop polling loop on error to prevent ghosting/crashes
         dbg = '' 
         label.config(text="SmartBU Status: Disconnected")
+
+def With_Handle(handle_selected):
+    if handle_selected.get() == 1:
+        handle_selected.set(1)
+    else:
+        handle_selected.set(0)
+
+    dbg.cmd(f'Var.set TestFw_SetGuiHandleSelection = 1')
+    dbg.cmd(f'Var.set TestFw_SetGuiStartAuto = 0')
+
+def Without_Handle(handle_selected):
+    if handle_selected.get() == 2:
+        handle_selected.set(2)
+    else:
+        handle_selected.set(0)
+
+    dbg.cmd(f'Var.set TestFw_SetGuiHandleSelection = 0')
+
+def Auto_Start(auto_selected):
+    if auto_selected.get() == 1:
+        auto_selected.set(1)
+    else:
+        auto_selected.set(0)
+
+    dbg.cmd(f'Var.set TestFw_SetGuiStartAuto = 1')
+
+def Auto_Stop(auto_selected):
+    if auto_selected.get() == 2:
+        auto_selected.set(2)
+    else:
+        auto_selected.set(0)
+
+    dbg.cmd(f'Var.set TestFw_SetGuiStartAuto = 0')
