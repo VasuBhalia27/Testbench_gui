@@ -1154,7 +1154,34 @@ canvas12.create_image(145.0, 37.0, image=images["minibea_logo_12"])
 #images["tile1_tab12"] = PhotoImage(file=relative_to_assets("Tile.png", "tab12")) 
 #canvas12.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab12"])
 
+tab12_input_condition = tk.IntVar (value=0)
 
+tab12_led_on_cb = tk.Checkbutton(tab12, text="Led_On", variable=tab12_input_condition, onvalue=1, offvalue=0, command=lambda: led_on(tab12_input_condition))
+tab12_led_on_cb.place(x=73, y=150)
+
+led_off_cb = tk.Checkbutton(tab12, text="Led_Off", variable=tab12_input_condition, onvalue=2, offvalue=0, command=lambda: led_off(tab12_input_condition))
+led_off_cb.place(x=306, y=150)
+
+# Entries
+canvas12.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+
+canvas12.create_text(73.0, 200.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab12_entry_1 = ttk.Entry(tab12_frame, style ='Background_grey.TEntry')
+tab12_entry_1.place(x=306.0, y=200.0, width=95.0, height=20.0)
+
+# Execution
+led_output_variables = ["TestFw_LedVoltage"]
+led_entries = [tab12_entry_1]
+
+images["tab12_led_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab12"))
+# Note: Ensure GetValueVbatt or equivalent is linked if intended
+tab12_run_btn = Button(tab12, image=images["tab12_led_run"],
+                        command=lambda: SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e),
+                        bd = 0)
+tab12_run_btn.place(x=325, y=106, width=34, height=34)
+
+reset_entries = ttk.Button(tab12, text="Reset Results", command=lambda: clear_entries(led_entries))
+reset_entries.place(x=500, y=110, width=85, height=32)
 
 
 canvas12.create_text(
