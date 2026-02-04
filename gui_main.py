@@ -297,17 +297,17 @@ def without_handle_selection(handle_selected):
     else:
         handle_selected.set(0)
 
-def auto_start(auto_selected):
-    if auto_selected.get() == 1:
-        auto_selected.set(1)
-    else:
-        auto_selected.set(0)
+#def auto_start(auto_selected):
+    #if auto_selected.get() == 1:
+        #auto_selected.set(1)
+    #else:
+        #auto_selected.set(0)
 
-def auto_stop(auto_selected):
-    if auto_selected.get() == 2:
-        auto_selected.set(2)
-    else:
-        auto_selected.set(0)
+#def auto_stop(auto_selected):
+    #if auto_selected.get() == 2:
+        #auto_selected.set(2)
+    #else:
+        #auto_selected.set(0)
 
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
@@ -485,10 +485,10 @@ auto_selected = tk.IntVar (value=0)
 
 #auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start    ", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: Auto_Start(auto_selected))
 
-auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: [auto_start(auto_selected), auto_tab_visibility()])
+auto_start_cb = tk.Checkbutton(tab2, text="Auto_Start", variable=auto_selected, onvalue=1, offvalue=0, command=lambda: [Auto_Start(auto_selected), auto_tab_visibility()])
 auto_start_cb.place(x=600, y=350)
 
-auto_stop_cb = tk.Checkbutton(tab2, text="Auto_Stop     ", variable=auto_selected, onvalue=2, offvalue=0, command=lambda: Auto_Stop(auto_selected))
+auto_stop_cb = tk.Checkbutton(tab2, text="Auto_Stop", variable=auto_selected, onvalue=2, offvalue=0, command=lambda: [Auto_Stop(auto_selected), auto_tab_visibility()])
 auto_stop_cb.place(x=600, y=420)
 
 canvas2.create_text(
@@ -1146,8 +1146,8 @@ canvas12.place(x=0, y=0)
 images["minibea_logo_12"] = PhotoImage(file=relative_to_assets("minebea_logo_12.png", "tab12"))
 canvas12.create_image(145.0, 37.0, image=images["minibea_logo_12"])
 
-images["tile1_tab12"] = PhotoImage(file=relative_to_assets("Tile.png", "tab12")) 
-canvas12.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab12"])
+#images["tile1_tab12"] = PhotoImage(file=relative_to_assets("Tile.png", "tab12")) 
+#canvas12.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab12"])
 
 
 
@@ -1157,7 +1157,7 @@ canvas12.create_text(
     20.0,
     anchor="nw",
     text="U-Shin India",
-    fill="#FFFFFF",
+    fill="#FFAFAF",
     font=("Inter BoldItalic", 24 * -1)
 )
 
