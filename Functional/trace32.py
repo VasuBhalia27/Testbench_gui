@@ -640,7 +640,6 @@ def With_Handle(handle_selected):
         handle_selected.set(0)
 
     dbg.cmd(f'Var.set TestFw_SetGuiHandleSelection = 1')
-    dbg.cmd(f'Var.set TestFw_SetGuiStartAuto = 0')
 
 def Without_Handle(handle_selected):
     if handle_selected.get() == 2:
