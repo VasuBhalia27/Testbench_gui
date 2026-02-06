@@ -648,19 +648,3 @@ def Without_Handle(handle_selected):
         handle_selected.set(0)
 
     dbg.cmd(f'Var.set TestFw_SetGuiHandleSelection = 0')
-
-def Auto_Start(auto_selected):
-    if auto_selected.get() == 1:
-        auto_selected.set(1)
-    else:
-        auto_selected.set(0)
-
-    dbg.cmd(f'Var.set TestFw_SetGuiStartAuto = 1')
-
-def Auto_Stop(auto_selected):
-    if auto_selected.get() == 2:
-        auto_selected.set(2)
-    else:
-        auto_selected.set(0)
-
-    dbg.cmd(f'Var.set TestFw_SetGuiStartAuto = 0')
