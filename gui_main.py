@@ -432,27 +432,36 @@ canvas2.create_text(60.0, 395.0, anchor="nw", text=" CANoe Setting", fill="#F39C
 # CANoe disable option
 canoe_input_condition = tk.IntVar (value=1)
 
-canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: CANoe_Disable(canoe_input_condition))
+canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: [CANoe_Disable(canoe_input_condition),update_canoe_entry_text()])
 canoe_disable_cb.place(x=61, y=420)
 #CANoe enable option
-canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: CANoe_Enable(canoe_input_condition))
+canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: [CANoe_Enable(canoe_input_condition), update_canoe_entry_text()])
 canoe_enable_cb.place(x=440, y=420)
 
 canvas2.create_text(180.0, 422.0, anchor="nw", text="IsCanoeDisable", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
-tab2_entry_1.insert(0, "1(Yes)")
+# Check the default variable value (if 1, set "1(Yes)", else "0(No)")
+initial_text = "1(Yes)" if canoe_input_condition.get() == 1 else "0(No)"
+tab2_entry_1.insert(0, initial_text)
 tab2_entry_1.place(x=290.0, y=422.0, width=45.0, height=20.0)
 
 # Execution
 canoe_output_variables = ["TestFw_GuiCanDependencyDisable"]
 canoe_entries = [tab2_entry_1]
 
-images["tab2_canoe_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
+#images["tab2_canoe_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 
-tab2_run_btn = Button(tab2, image=images["tab2_canoe_run"],
-                        command=lambda: SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0),
-                        bd = 0)
-tab2_run_btn.place(x=360, y=415, width=34, height=34)
+#tab2_run_btn = Button(tab2, image=images["tab2_canoe_run"],
+                        #command=lambda: SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0),
+                        #bd = 0)
+#tab2_run_btn.place(x=360, y=415, width=34, height=34)
+
+def update_canoe_entry_text():
+    tab2_entry_1.delete(0, tk.END)
+    if canoe_input_condition.get() == 1:
+        tab2_entry_1.insert(0, "1(Yes)")
+    else:
+        tab2_entry_1.insert(0, "0(No)")
 
 window.after(1000, lambda: poll_target_state(running_status, window))
 
