@@ -436,6 +436,21 @@ canoe_disable_cb.place(x=61, y=420)
 canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: CANoe_Enable(canoe_input_condition))
 canoe_enable_cb.place(x=440, y=420)
 
+canvas2.create_text(180.0, 422.0, anchor="nw", text="IsCanoeDisable", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
+tab2_entry_1.place(x=290.0, y=422.0, width=30.0, height=20.0)
+
+# Execution
+canoe_output_variables = ["TestFw_GuiCanDependencyDisable"]
+canoe_entries = [tab2_entry_1]
+
+images["tab2_canoe_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
+
+tab2_run_btn = Button(tab2, image=images["tab2_canoe_run"],
+                        command=lambda: SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0),
+                        bd = 0)
+tab2_run_btn.place(x=360, y=415, width=34, height=34)
+
 window.after(1000, lambda: poll_target_state(running_status, window))
 
 # --- Group 5: Handle Selection ---
