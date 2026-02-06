@@ -273,6 +273,7 @@ canvas1.create_text(
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 2 (Settings) =======================================================================================
+
 def preset_realwithdebinfo(selected_preset):
     if selected_preset.get() == 1:
         selected_preset.set(1)
@@ -361,6 +362,7 @@ canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Setting ", fill="#F39C1
 
 canvas2.create_text(61.0, 100.0, anchor="nw", text="Select ELF path:  ", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 repo_path_entry = ttk.Entry(tab2, style ='Background_grey.TEntry')
+repo_path_entry.insert(0, r"C:/UShin/Testbench_gui_Charan/SmartBU")
 repo_path_entry.place(x=200.0, y=95.0, width=400.0, height=30.0)
 #Brouse button
 repo_browse_button = ttk.Button(tab2, text="Browse", command=browse_repo_path) #browse button to get repo path
@@ -371,7 +373,7 @@ canvas2.create_rectangle(55.0, 150.0, 550.0, 230.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 155.0, anchor="nw", text=" Variant Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
 
 #Non-Nfc version selection
-selected_preset = tk.IntVar(value=0)
+selected_preset = tk.IntVar(value=1)
 selected_preset_relwithdeb = tk.Checkbutton(tab2, text="Non-Nfc Version", variable=selected_preset, onvalue=1, offvalue=0, command=lambda: [preset_realwithdebinfo(selected_preset), update_tab_visibility()])
 selected_preset_relwithdeb.place(x=61, y=180)
 #Nfc version selection
@@ -428,7 +430,7 @@ canvas2.create_rectangle(55.0, 390.0, 550.0, 480.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 395.0, anchor="nw", text=" CANoe Setting", fill="#F39C12", font=("Inter SemiBold", 10))
 
 # CANoe disable option
-canoe_input_condition = tk.IntVar (value=0)
+canoe_input_condition = tk.IntVar (value=1)
 
 canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: CANoe_Disable(canoe_input_condition))
 canoe_disable_cb.place(x=61, y=420)
@@ -438,7 +440,8 @@ canoe_enable_cb.place(x=440, y=420)
 
 canvas2.create_text(180.0, 422.0, anchor="nw", text="IsCanoeDisable", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
-tab2_entry_1.place(x=290.0, y=422.0, width=30.0, height=20.0)
+tab2_entry_1.insert(0, "1(Yes)")
+tab2_entry_1.place(x=290.0, y=422.0, width=45.0, height=20.0)
 
 # Execution
 canoe_output_variables = ["TestFw_GuiCanDependencyDisable"]
@@ -458,7 +461,7 @@ canvas2.create_rectangle(560.0, 150.0, 750.0, 480.0, outline="#F39C12", width=1)
 canvas2.create_text(560.0, 155.0, anchor="nw", text=" Handle Selection", fill="#F39C12", font=("Inter SemiBold", 10))
 
 # WithHandle / WithoutHandle selection
-handle_selected = tk.IntVar (value=0)
+handle_selected = tk.IntVar (value=2)
 
 with_handle_cb = tk.Checkbutton(tab2, text="With_Handle   ", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: With_Handle(handle_selected))
 with_handle_cb.place(x=600, y=180)
