@@ -320,34 +320,40 @@ canvas2.place(x=0, y=0)
 
 def update_tab_visibility():
     # Get current selections
-    variant = selected_preset.get()
-    handle = handle_selected.get()
-    # Define all functional tabs for easy management
-    functional_tabs = [tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11]
-    # Logic: If Without_Handle is selected, hide almost everything
+    variant = selected_preset.get()  # 1: Non-Nfc, 2: Nfc
+    handle = handle_selected.get()   # 1: With_Handle, 2: Without_Handle
+    
     if handle == 2:
-        for t in functional_tabs:
-            notebook.hide(t)
-        # Ensure only Welcome, Settings, and Auto are visible
-        notebook.add(tab1, text="Welcome")
-        notebook.add(tab2, text="Settings")
-        notebook.add(tab12, text="Automatic Results")
-        
-    else:
-        # Standard logic when "With_Handle" is selected
-        notebook.hide(tab12) # Hide Auto tab as per your requirement for other modes
-        
-        # Add basic tabs
-        for t in [tab3, tab4, tab5, tab6, tab7, tab8, tab11]:
-            notebook.add(t)
-            
-        if variant == 1: # Non-Nfc
+        notebook.add(tab12, text="Without_Handle")
+        notebook.hide(tab3)
+        notebook.hide(tab4)
+        notebook.hide(tab5)
+        notebook.hide(tab6)
+        notebook.hide(tab7)
+        notebook.hide(tab8)
+        notebook.hide(tab9)
+        notebook.hide(tab10)
+        notebook.hide(tab11)
+
+    elif handle == 1:
+        # Tab 12 is always hidden in With_Handle mode
+        notebook.hide(tab12)
+        # Tabs 3, 4, 5, 6, 7, 8, and 11 are always visible in With_Handle mode
+        notebook.add(tab3, text="LED")
+        notebook.add(tab4, text="BAT")
+        notebook.add(tab5, text="MOT")
+        notebook.add(tab6, text="EOS")
+        notebook.add(tab7, text="SG")
+        notebook.add(tab8, text="CAP")
+        notebook.add(tab11, text="LIN")
+
+        if variant == 1: # Condition 1: Non-Nfc
             notebook.hide(tab9)
             notebook.hide(tab10)
-        elif variant == 2: # Nfc
+        
+        elif variant == 2: # Condition 2: Nfc Version
             notebook.add(tab9, text="NFC")
             notebook.add(tab10, text="CAN")
-    
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
@@ -433,12 +439,6 @@ canvas2.create_text(60.0, 395.0, anchor="nw", text=" CANoe Setting", fill="#F39C
 # CANoe disable option
 canoe_input_condition = tk.IntVar (value=1)
 
-canoe_disable_cb = tk.Checkbutton(tab2, text="CANoe_Disable", variable=canoe_input_condition, onvalue=1, offvalue=0, command=lambda: [CANoe_Disable(canoe_input_condition),update_canoe_entry_text()])
-canoe_disable_cb.place(x=61, y=420)
-#CANoe enable option
-canoe_enable_cb = tk.Checkbutton(tab2, text="CANoe_Enable", variable=canoe_input_condition, onvalue=2, offvalue=0, command=lambda: [CANoe_Enable(canoe_input_condition), update_canoe_entry_text()])
-canoe_enable_cb.place(x=440, y=420)
-
 canvas2.create_text(180.0, 422.0, anchor="nw", text="IsCanoeDisable", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
 # Check the default variable value (if 1, set "1(Yes)", else "0(No)")
@@ -446,16 +446,35 @@ initial_text = "1(Yes)" if canoe_input_condition.get() == 1 else "0(No)"
 tab2_entry_1.insert(0, initial_text)
 tab2_entry_1.place(x=290.0, y=422.0, width=45.0, height=20.0)
 
-# Execution
 canoe_output_variables = ["TestFw_GuiCanDependencyDisable"]
 canoe_entries = [tab2_entry_1]
 
 def update_canoe_entry_text():
     tab2_entry_1.delete(0, tk.END)
     if canoe_input_condition.get() == 1:
-        tab2_entry_1.insert(0, "1(Yes)")
+        tab2_entry_1.insert(1, "1(Yes)")
     else:
         tab2_entry_1.insert(0, "0(No)")
+
+canoe_disable_cb = tk.Checkbutton(
+    tab2, 
+    text="CANoe_Disable", 
+    variable=canoe_input_condition, 
+    onvalue=1, 
+    offvalue=0, 
+    command=lambda: [CANoe_Disable(canoe_input_condition),
+                     SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0) ,update_canoe_entry_text()])
+canoe_disable_cb.place(x=61, y=420)
+#CANoe enable option
+canoe_enable_cb = tk.Checkbutton(
+    tab2, 
+    text="CANoe_Enable", 
+    variable=canoe_input_condition, 
+    onvalue=2, 
+    offvalue=0, 
+    command=lambda: [CANoe_Enable(canoe_input_condition), 
+                    SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0), update_canoe_entry_text()])
+canoe_enable_cb.place(x=440, y=420)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
 
@@ -466,7 +485,7 @@ canvas2.create_text(560.0, 155.0, anchor="nw", text=" Handle Selection", fill="#
 # WithHandle / WithoutHandle selection
 handle_selected = tk.IntVar (value=2)
 
-with_handle_cb = tk.Checkbutton(tab2, text="With_Handle   ", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: [With_Handle(handle_selected), update_tab_visibility()])
+with_handle_cb = tk.Checkbutton(tab2, text="With_Handle", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: [With_Handle(handle_selected), update_tab_visibility()])
 with_handle_cb.place(x=600, y=180)
 
 without_handle_cb = tk.Checkbutton(tab2, text="Without_Handle", variable=handle_selected, onvalue=2, offvalue=0, command=lambda: [Without_Handle(handle_selected), update_tab_visibility()])
@@ -1126,35 +1145,41 @@ canvas12.place(x=0, y=0)
 images["minibea_logo_12"] = PhotoImage(file=relative_to_assets("minebea_logo_12.png", "tab12"))
 canvas12.create_image(145.0, 37.0, image=images["minibea_logo_12"])
 
-#images["tile1_tab12"] = PhotoImage(file=relative_to_assets("Tile.png", "tab12")) 
-#canvas12.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab12"])
-
-
-tab12_input_condition = tk.IntVar (value=0) 
-
-tab12_led_on_cb = tk.Checkbutton(tab12, text="Led_On", variable=tab12_input_condition, onvalue=1, offvalue=0, command=lambda: led_on(tab12_input_condition))
-tab12_led_on_cb.place(x=73, y=150)
-
-led_off_cb = tk.Checkbutton(tab12, text="Led_Off", variable=tab12_input_condition, onvalue=2, offvalue=0, command=lambda: led_off(tab12_input_condition))
-led_off_cb.place(x=306, y=150)
-
-# Entries
-canvas12.create_text(73.0, 113.0, anchor="nw", text="LED Test (DID 101)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-
-canvas12.create_text(73.0, 200.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas12.create_text(73.0, 200.0, anchor="nw", text="LedVoltage", fill="#16130E", font=("Inter SemiBold", 15 * -1))
 tab12_entry_1 = ttk.Entry(tab12_frame, style ='Background_grey.TEntry')
 tab12_entry_1.place(x=306.0, y=200.0, width=95.0, height=20.0)
-
-# Execution
-led_output_variables = ["TestFw_LedVoltage"]
 led_entries = [tab12_entry_1]
 
-images["tab12_led_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab12"))
-# Note: Ensure GetValueVbatt or equivalent is linked if intended
-tab12_run_btn = Button(tab12, image=images["tab12_led_run"],
-                        command=lambda: SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e),
-                        bd = 0)
-tab12_run_btn.place(x=325, y=106, width=34, height=34)
+tab12_input_condition = tk.IntVar (value=0) 
+led_output_variables = ["TestFw_LedVoltage"]
+
+tab12_led_on_cb = tk.Checkbutton(
+    tab12, 
+    text="Led_On", 
+    variable=tab12_input_condition, 
+    onvalue=1, 
+    offvalue=0, 
+    command=lambda: [
+        led_on(tab12_input_condition), 
+        # Add this line to fetch data immediately after turning LED ON
+        SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
+    ]
+)
+tab12_led_on_cb.place(x=73, y=150)
+
+tab12_led_off_cb = tk.Checkbutton(
+    tab12, 
+    text="Led_Off", 
+    variable=tab12_input_condition, 
+    onvalue=2, 
+    offvalue=0, 
+    command=lambda: [
+        led_off(tab12_input_condition), 
+        # Add this line to fetch data immediately after turning LED OFF
+        SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
+    ]
+)
+tab12_led_off_cb.place(x=306, y=150)
 
 reset_entries = ttk.Button(tab12, text="Reset Results", command=lambda: clear_entries(led_entries))
 reset_entries.place(x=500, y=110, width=85, height=32)
@@ -1168,9 +1193,6 @@ canvas12.create_text(
     fill="#FFAFAF",
     font=("Inter BoldItalic", 24 * -1)
 )
-
-
-
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()
