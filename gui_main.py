@@ -319,34 +319,35 @@ canvas2 = tk.Canvas(
 canvas2.place(x=0, y=0)
 
 def update_tab_visibility():
-    # value 1 = Non-Nfc, value 2 = Nfc
-    selection = selected_preset.get()
+    # Get current selections
+    variant = selected_preset.get()
+    handle = handle_selected.get()
+    # Define all functional tabs for easy management
+    functional_tabs = [tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11]
+    # Logic: If Without_Handle is selected, hide almost everything
+    if handle == 2:
+        for t in functional_tabs:
+            notebook.hide(t)
+        # Ensure only Welcome, Settings, and Auto are visible
+        notebook.add(tab1, text="Welcome")
+        notebook.add(tab2, text="Settings")
+        notebook.add(tab12, text="Automatic Results")
+        
+    else:
+        # Standard logic when "With_Handle" is selected
+        notebook.hide(tab12) # Hide Auto tab as per your requirement for other modes
+        
+        # Add basic tabs
+        for t in [tab3, tab4, tab5, tab6, tab7, tab8, tab11]:
+            notebook.add(t)
+            
+        if variant == 1: # Non-Nfc
+            notebook.hide(tab9)
+            notebook.hide(tab10)
+        elif variant == 2: # Nfc
+            notebook.add(tab9, text="NFC")
+            notebook.add(tab10, text="CAN")
     
-    if selection == 1:
-        notebook.add(tab3, text="LED")
-        notebook.add(tab4, text="BAT")
-        notebook.add(tab5, text="MOT")
-        notebook.add(tab6, text="EOS")
-        notebook.add(tab7, text="SG")
-        notebook.add(tab8, text="CAP")
-        notebook.add(tab11, text="LIN")
-        # Hide NFC (Tab 9) and CAN (Tab 10)
-        notebook.hide(tab9)
-        notebook.hide(tab10)
-        notebook.hide(tab12)
-    elif selection == 2:
-        # Show NFC and CAN
-        notebook.add(tab3, text="LED")
-        notebook.add(tab4, text="BAT")
-        notebook.add(tab5, text="MOT")
-        notebook.add(tab6, text="EOS")
-        notebook.add(tab7, text="SG")
-        notebook.add(tab8, text="CAP")
-        # We use add() to bring them back if they were hidden
-        notebook.add(tab9, text="NFC")
-        notebook.add(tab10, text="CAN")
-        notebook.add(tab11, text="LIN")
-        notebook.hide(tab12)
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
@@ -449,13 +450,6 @@ tab2_entry_1.place(x=290.0, y=422.0, width=45.0, height=20.0)
 canoe_output_variables = ["TestFw_GuiCanDependencyDisable"]
 canoe_entries = [tab2_entry_1]
 
-#images["tab2_canoe_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-
-#tab2_run_btn = Button(tab2, image=images["tab2_canoe_run"],
-                        #command=lambda: SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0),
-                        #bd = 0)
-#tab2_run_btn.place(x=360, y=415, width=34, height=34)
-
 def update_canoe_entry_text():
     tab2_entry_1.delete(0, tk.END)
     if canoe_input_condition.get() == 1:
@@ -472,10 +466,10 @@ canvas2.create_text(560.0, 155.0, anchor="nw", text=" Handle Selection", fill="#
 # WithHandle / WithoutHandle selection
 handle_selected = tk.IntVar (value=2)
 
-with_handle_cb = tk.Checkbutton(tab2, text="With_Handle   ", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: With_Handle(handle_selected))
+with_handle_cb = tk.Checkbutton(tab2, text="With_Handle   ", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: [With_Handle(handle_selected), update_tab_visibility()])
 with_handle_cb.place(x=600, y=180)
 
-without_handle_cb = tk.Checkbutton(tab2, text="Without_Handle", variable=handle_selected, onvalue=2, offvalue=0, command=lambda: Without_Handle(handle_selected))
+without_handle_cb = tk.Checkbutton(tab2, text="Without_Handle", variable=handle_selected, onvalue=2, offvalue=0, command=lambda: [Without_Handle(handle_selected), update_tab_visibility()])
 without_handle_cb.place(x=600, y=250)
 
 canvas2.create_text(
@@ -1113,7 +1107,6 @@ canvas11.create_text(
 # ========== TAB 12 (AUTO) =======================================================================================
 
 tab12 = ttk.Frame(notebook)
-notebook.add(tab12, text="Automatic Results")
 
 tab12_frame = tk.Frame(tab12, bg="#DFDFDF")
 tab12_frame.pack(fill="both", expand=True)
