@@ -776,18 +776,14 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-SG1_results = tk.IntVar(value=0)
-SG2_results = tk.IntVar(value=0)
-SG_no_results = tk.IntVar(value=0)
+dac1dac2value = tk.IntVar(value=0)
 
-sg1_enable_cb = tk.Checkbutton(tab7, text="SG1_Results", variable=SG1_results, onvalue=1, offvalue=0, command=lambda: SG1_Enable(SG1_results))
-sg1_enable_cb.place(x=34, y=110)
+dac1dac2_disable_cb = tk.Checkbutton(tab7, text="dac1dac2_disable", variable=dac1dac2value, onvalue=1, offvalue=0, command=lambda: dac1dac2_disable(dac1dac2value))
+dac1dac2_disable_cb.place(x=34, y=110)
 
-sg2_enable_cb = tk.Checkbutton(tab7, text="SG2_Results", variable=SG2_results, onvalue=2, offvalue=0, command=lambda: SG2_Enable(SG2_results))
-sg2_enable_cb.place(x=34+150, y=110)
+dac1dac2_enable = tk.Checkbutton(tab7, text="dac1dac2_enable", variable=dac1dac2value, onvalue=2, offvalue=0, command=lambda: dac1dac2_enable(dac1dac2value))
+dac1dac2_enable.place(x=34+150, y=110)
 
-sg_no_input_cb = tk.Checkbutton(tab7, text="SG_No_Results", variable=SG_no_results, onvalue=3, offvalue=0,command=lambda: SG_No_Input(SG_no_results))
-sg_no_input_cb.place(x=34+150+150, y=110)
 
 # Entries
 canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test Outputs (DID 106)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
@@ -808,10 +804,6 @@ canvas7.create_text(34.0, offset_top + 3*40, anchor="nw",text="Sg1Opamp", fill="
 tab7_entry4 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
 tab7_entry4.place(x=180.0, y=offset_top + 3*40, width=95.0, height=20.0)
 
-canvas7.create_text(34.0, offset_top + 4*40, anchor="nw",text="Sg1Dac", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-tab7_entry5 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry5.place(x=180.0, y=offset_top + 4*40, width=95.0, height=20.0)
-
 canvas7.create_text(34.0, offset_top + 5*40, anchor="nw",text="Sg2PlusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry6 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
 tab7_entry6.place(x=180.0, y=offset_top + 5*40, width=95.0, height=20.0)
@@ -824,17 +816,14 @@ canvas7.create_text(34.0, offset_top + 7*40, anchor="nw",text="Sg2Opamp", fill="
 tab7_entry8 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
 tab7_entry8.place(x=180.0, y=offset_top + 7*40, width=95.0, height=20.0)
 
-canvas7.create_text(34.0, offset_top + 8*40, anchor="nw",text="Sg2Dac", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-tab7_entry9 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry9.place(x=180.0, y=offset_top + 8*40, width=95.0, height=20.0)
 
 # Execution
-sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg1Dac", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp", "TestFw_Sg2Dac"]
-sg_entries = [tab7_entry_1, tab7_entry2, tab7_entry3, tab7_entry4, tab7_entry5, tab7_entry6, tab7_entry7, tab7_entry8, tab7_entry9]
+sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp"]
+sg_entries = [tab7_entry_1, tab7_entry2, tab7_entry3, tab7_entry4, tab7_entry6, tab7_entry7, tab7_entry8]
 
 images["tab7_sg_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
 tab7_run_btn = Button(tab7, image=images["tab7_sg_run"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e, True, running_status), bd = 0)
-tab7_run_btn.place(x=445, y=110, width=31.073986053466797, height=31.845783233642578)
+tab7_run_btn.place(x=445, y=110, width=34, height=34)
 
 reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
 reset_entries.place(x=500, y=110, width=85, height=32)

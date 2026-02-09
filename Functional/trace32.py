@@ -532,46 +532,34 @@ def motor_freewheel(selected_motor_freewheel):
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
 
 
-def SG1_Enable(SG1_results):
+def dac1dac2_disable(dac1dac2value):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
-    if SG1_results.get() == 1:
-        SG1_results.set(1)
+    if dac1dac2value.get() == 1:
+        dac1dac2value.set(1)
     else:
-        SG1_results.set(0)
+        dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 1')
-    dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 0')
+    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 1')
 
-def SG2_Enable(SG2_results):
+def dac1dac2_enable(dac1dac2value):
     # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
-    if SG2_results.get() == 2:
-        SG2_results.set(2)
+    if dac1dac2value.get() == 2:
+        dac1dac2value.set(2)
     else:
-        SG2_results.set(0)
+        dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 0')
-    dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 1')
+    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 0')
 
-def SG_No_Input(SG_no_results):
-    # If cb2 is turned ON, set shared var to 3; if OFF, reset to 0
-    if SG_no_results.get() == 3:
-        SG_no_results.set(3)
-    else:
-        SG_no_results.set(0)
 
-    dbg.cmd(f'Var.set TestFw_Sg1ToggleGui = 0')
-    dbg.cmd(f'Var.set TestFw_Sg2ToggleGui = 0')
 
 def clear_entries(entries_list):
     for i in range(len(entries_list)):
         
         entries_list[i].delete(0, tk.END)
 
-def reset_cb(SG1_results, SG2_results, SG_no_results):
+def reset_cb(dac1dac2value):
     
-    SG1_results.set(0)
-    SG2_results.set(0)
-    SG_no_results.set(0)
+    dac1dac2value.set(0)
 
 def led_on(led_input_condition):
     if led_input_condition.get() == 1:
