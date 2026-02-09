@@ -286,18 +286,6 @@ def preset_minsizerel(selected_preset):
     else:
         selected_preset.set(0)
 
-def with_handle_selection(handle_selected):
-    if handle_selected.get() == 1:
-        handle_selected.set(1)
-    else:
-        handle_selected.set(0)
-
-def without_handle_selection(handle_selected):
-    if handle_selected.get() == 2:
-        handle_selected.set(2)
-    else:
-        handle_selected.set(0)
-
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
 
@@ -319,26 +307,10 @@ canvas2 = tk.Canvas(
 canvas2.place(x=0, y=0)
 
 def update_tab_visibility():
-    # Get current selections
-    variant = selected_preset.get()  # 1: Non-Nfc, 2: Nfc
-    handle = handle_selected.get()   # 1: With_Handle, 2: Without_Handle
+    # value 1 = Non-Nfc, value 2 = Nfc
+    selection = selected_preset.get()
     
-    if handle == 2:
-        notebook.add(tab12, text="Without_Handle")
-        notebook.hide(tab3)
-        notebook.hide(tab4)
-        notebook.hide(tab5)
-        notebook.hide(tab6)
-        notebook.hide(tab7)
-        notebook.hide(tab8)
-        notebook.hide(tab9)
-        notebook.hide(tab10)
-        notebook.hide(tab11)
-
-    elif handle == 1:
-        # Tab 12 is always hidden in With_Handle mode
-        notebook.hide(tab12)
-        # Tabs 3, 4, 5, 6, 7, 8, and 11 are always visible in With_Handle mode
+    if selection == 1:
         notebook.add(tab3, text="LED")
         notebook.add(tab4, text="BAT")
         notebook.add(tab5, text="MOT")
@@ -346,14 +318,21 @@ def update_tab_visibility():
         notebook.add(tab7, text="SG")
         notebook.add(tab8, text="CAP")
         notebook.add(tab11, text="LIN")
-
-        if variant == 1: # Condition 1: Non-Nfc
-            notebook.hide(tab9)
-            notebook.hide(tab10)
-        
-        elif variant == 2: # Condition 2: Nfc Version
-            notebook.add(tab9, text="NFC")
-            notebook.add(tab10, text="CAN")
+        # Hide NFC (Tab 9) and CAN (Tab 10)
+        notebook.hide(tab9)
+        notebook.hide(tab10)
+    elif selection == 2:
+        # Show NFC and CAN
+        notebook.add(tab3, text="LED")
+        notebook.add(tab4, text="BAT")
+        notebook.add(tab5, text="MOT")
+        notebook.add(tab6, text="EOS")
+        notebook.add(tab7, text="SG")
+        notebook.add(tab8, text="CAP")
+        # We use add() to bring them back if they were hidden
+        notebook.add(tab9, text="NFC")
+        notebook.add(tab10, text="CAN")
+        notebook.add(tab11, text="LIN")
 
 # ===================================================================================================================
 # ========== Tile-1 =================================================================================================
@@ -477,19 +456,6 @@ canoe_enable_cb = tk.Checkbutton(
 canoe_enable_cb.place(x=440, y=420)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
-
-# --- Group 5: Handle Selection ---
-canvas2.create_rectangle(560.0, 150.0, 750.0, 480.0, outline="#F39C12", width=1)
-canvas2.create_text(560.0, 155.0, anchor="nw", text=" Handle Selection", fill="#F39C12", font=("Inter SemiBold", 10))
-
-# WithHandle / WithoutHandle selection
-handle_selected = tk.IntVar (value=2)
-
-with_handle_cb = tk.Checkbutton(tab2, text="With_Handle", variable=handle_selected, onvalue=1, offvalue=0, command=lambda: [With_Handle(handle_selected), update_tab_visibility()])
-with_handle_cb.place(x=600, y=180)
-
-without_handle_cb = tk.Checkbutton(tab2, text="Without_Handle", variable=handle_selected, onvalue=2, offvalue=0, command=lambda: [Without_Handle(handle_selected), update_tab_visibility()])
-without_handle_cb.place(x=600, y=250)
 
 canvas2.create_text(
     260.0,
@@ -1124,75 +1090,6 @@ canvas11.create_text(
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 12 (AUTO) =======================================================================================
-
-tab12 = ttk.Frame(notebook)
-
-tab12_frame = tk.Frame(tab12, bg="#DFDFDF")
-tab12_frame.pack(fill="both", expand=True)
-
-canvas12 = tk.Canvas(
-    tab12_frame,
-    bg="#DFDFDF",
-    height=651,
-    width=973,
-    bd=0,
-    highlightthickness=0,
-    relief="ridge"
-)
-canvas12.place(x=0, y=0)
-# ===================================================================================================================
-# ========== Tile-12 ================================================================================================
-images["minibea_logo_12"] = PhotoImage(file=relative_to_assets("minebea_logo_12.png", "tab12"))
-canvas12.create_image(145.0, 37.0, image=images["minibea_logo_12"])
-
-canvas12.create_text(73.0, 200.0, anchor="nw", text="LedVoltage", fill="#16130E", font=("Inter SemiBold", 15 * -1))
-tab12_entry_1 = ttk.Entry(tab12_frame, style ='Background_grey.TEntry')
-tab12_entry_1.place(x=306.0, y=200.0, width=95.0, height=20.0)
-led_entries = [tab12_entry_1]
-
-tab12_input_condition = tk.IntVar (value=0) 
-led_output_variables = ["TestFw_LedVoltage"]
-
-tab12_led_on_cb = tk.Checkbutton(
-    tab12, 
-    text="Led_On", 
-    variable=tab12_input_condition, 
-    onvalue=1, 
-    offvalue=0, 
-    command=lambda: [
-        led_on(tab12_input_condition), 
-        # Add this line to fetch data immediately after turning LED ON
-        SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
-    ]
-)
-tab12_led_on_cb.place(x=73, y=150)
-
-tab12_led_off_cb = tk.Checkbutton(
-    tab12, 
-    text="Led_Off", 
-    variable=tab12_input_condition, 
-    onvalue=2, 
-    offvalue=0, 
-    command=lambda: [
-        led_off(tab12_input_condition), 
-        # Add this line to fetch data immediately after turning LED OFF
-        SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
-    ]
-)
-tab12_led_off_cb.place(x=306, y=150)
-
-reset_entries = ttk.Button(tab12, text="Reset Results", command=lambda: clear_entries(led_entries))
-reset_entries.place(x=500, y=110, width=85, height=32)
-
-
-canvas12.create_text(
-    260.0,
-    20.0,
-    anchor="nw",
-    text="U-Shin India",
-    fill="#FFAFAF",
-    font=("Inter BoldItalic", 24 * -1)
-)
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()
