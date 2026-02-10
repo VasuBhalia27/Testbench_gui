@@ -719,18 +719,9 @@ canvas6.create_text(73.0, placement_y_coord+35*0, anchor="nw", text="EosDiagVolt
 tab6_entry1 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
 tab6_entry1.place(x=300, y=placement_y_coord+35*0, width=85, height=32)
 
-canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EosErrorsWithLow", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab6_entry2 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry2.place(x=300, y=placement_y_coord+35*1, width=85, height=32)
-
-canvas6.create_text(73.0, placement_y_coord+35*2, anchor="nw", text="EosErrorsWithHigh", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab6_entry3 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry3.place(x=300, y=placement_y_coord+35*2, width=85, height=32)
-
-
 # Execution
-eos_output_variables = ["TestFw_EosDiagVoltage", "TestFw_EosErrorsWithLow", "TestFw_EosErrorsWithHigh"]
-eos_entries = [tab6_entry1, tab6_entry2, tab6_entry3]
+eos_output_variables = ["TestFw_EosDiagVoltage"]
+eos_entries = [tab6_entry1]
 
 images["tab6_eos_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
 tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
@@ -876,37 +867,37 @@ canvas8.create_image(245, 230, image=images["tile1_tab8"])
 canvas8.create_text(73.0, 113.0, anchor="nw", text="Capa Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas8.create_text(73.0, 168.0, anchor="nw", text="CapaApproach", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry_1 = ttk.Entry(tab8_frame, style ='Background_grey.TEntry')
-tab8_entry_1.place(x=350.0, y=168.0, width=95.0, height=20.0)
+tab8_entry_1.place(x=350.0, y=168.0, width=115, height=32)
 
 canvas8.create_text(73.0, 214.0, anchor="nw", text="CapaLock", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry_2 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
-tab8_entry_2.place(x=350.0, y=214.0, width=95.0, height=20.0)
+tab8_entry_2.place(x=350.0, y=214.0, width=115, height=32)
 
 canvas8.create_text(73.0, 260.0, anchor="nw", text="CapaUnlock", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry3 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
-tab8_entry3.place(x=350.0, y=260.0, width=95.0, height=20.0)
+tab8_entry3.place(x=350.0, y=260.0, width=115, height=32)
 
-canvas8.create_text(73.0, 306.0, anchor="nw", text="CapaApproachSensorValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(73.0, 306.0, anchor="nw", text="CapaApproachRawValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry4 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
-tab8_entry4.place(x=350.0, y=306.0, width=95.0, height=20.0)
+tab8_entry4.place(x=350.0, y=306.0, width=115, height=32)
 
-canvas8.create_text(73.0, 352.0, anchor="nw", text="CapaLockSensorValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(73.0, 352.0, anchor="nw", text="CapaLockRawValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry5 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
-tab8_entry5.place(x=350.0, y=352.0, width=95.0, height=20.0)
+tab8_entry5.place(x=350.0, y=352.0, width=115, height=32)
 
-canvas8.create_text(73.0, 398.0, anchor="nw", text="CapaUnlockSensorValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas8.create_text(73.0, 398.0, anchor="nw", text="CapaUnlockRawValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry6 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
-tab8_entry6.place(x=350.0, y=398.0, width=95.0, height=20.0)
+tab8_entry6.place(x=350.0, y=398.0, width=115, height=32)
 
 entry_list = [tab8_entry_1,tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry5, tab8_entry6]
 capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
 
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 run_test_btn = Button(tab8, image=images["tile1_run_capa"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
-run_test_btn.place(x=368, y=106, width=34, height=34)
+run_test_btn.place(x=225, y=106, width=34, height=34)
 
 reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(entry_list))
-reset_entries.place(x=500, y=110, width=85, height=32)
+reset_entries.place(x=350, y=110, width=115, height=32)
 
 canvas8.create_text(
     260.0,
