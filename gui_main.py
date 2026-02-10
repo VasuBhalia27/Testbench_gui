@@ -623,46 +623,56 @@ placement_y_coord = 168
 
 
 # Checkboxes
-selected_motor_state = tk.IntVar(value=1)
-selected_motor_freewheel = tk.IntVar(value=0)
-
-motor_decouple_cb = tk.Checkbutton(tab5, text="Motor Decouple", variable=selected_motor_state, onvalue=3, offvalue=0, command=lambda: motor_decouple(selected_motor_state))
-motor_decouple_cb.place(x=73.0, y=150, width=110.0, height=32.0)
-
-motor_no_req_cb = tk.Checkbutton(tab5, text="Motor no req", variable=selected_motor_state, onvalue=1, offvalue=0, command=lambda: motor_no_req(selected_motor_state))
-motor_no_req_cb.place(x=73.0 + 122, y=150, width=110.0, height=32.0)
-
-motor_couple_cb = tk.Checkbutton(tab5, text="Motor Couple", variable=selected_motor_state, onvalue=2, offvalue=0, command=lambda: motor_couple(selected_motor_state))
-motor_couple_cb.place(x=73.0 + 250, y=150, width=110.0, height=32.0)
-
-motor_freewheel_cb = tk.Checkbutton(tab5, text="Motor Freewheel", variable=selected_motor_freewheel, onvalue=1, offvalue=0, command=lambda: motor_freewheel(selected_motor_freewheel))
-motor_freewheel_cb.place(x=73.0 + 380, y=150, width=110.0, height=32.0)
+selected_motor_state = tk.IntVar(value=2)
 
 # Entries
 canvas5.create_text(73.0, 85.0, anchor="nw", text="Motor Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas5.create_text(73.0, placement_y_coord+35, anchor="nw", text="MotorCoupledVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(73.0, placement_y_coord+35, anchor="nw", text="MotorVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab5_entry1 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
 tab5_entry1.place(x=306, y=placement_y_coord+35, width=85, height=32)
 
-canvas5.create_text(73.0, placement_y_coord + 35*2, anchor="nw", text="MotorDecoupledVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+canvas5.create_text(73.0, placement_y_coord + 35*2, anchor="nw", text="MotorCurrentValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab5_entry2 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
 tab5_entry2.place(x=306, y=placement_y_coord + 35*2, width=85, height=32)
 
-canvas5.create_text(73.0, placement_y_coord + 35*3, anchor="nw", text="MotorCurrentValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas5.create_text(73.0, placement_y_coord + 35*3, anchor="nw", text="MotorLoadError", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab5_entry3 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
 tab5_entry3.place(x=306, y=placement_y_coord + 35*3, width=85, height=32)
 
-canvas5.create_text(73.0, placement_y_coord + 35*4, anchor="nw", text="MotorLoadError", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab5_entry4 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
-tab5_entry4.place(x=306, y=placement_y_coord + 35*4, width=85, height=32)
-
 # Execution
-motor_output_variables = ["TestFw_MotorCoupledVoltage", "TestFw_MotorDecoupledVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorLoadError"]
-motor_entries = [tab5_entry1, tab5_entry2, tab5_entry3, tab5_entry4]
+motor_output_variables = ["TestFw_MotorVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorLoadError"]
+motor_entries = [tab5_entry1, tab5_entry2, tab5_entry3]
 
-images["tab5_motor_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
-tab5_run_btn = Button(tab5, image=images["tab5_motor_run"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
-tab5_run_btn.place(x=225, y=85, width=34, height=34)
+motor_decouple_couple_cb = tk.Checkbutton(
+    tab5, 
+    text="DecoupleCouple", 
+    variable=selected_motor_state, 
+    onvalue=1, 
+    offvalue=0, 
+    command=lambda: [
+    motor_decouple_couple(selected_motor_state),
+    SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+    ]
+)
+motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)
+
+motor_no_req_cb = tk.Checkbutton(
+    tab5, 
+    text="No Req", 
+    variable=selected_motor_state, 
+    onvalue=2, 
+    offvalue=0, 
+    command=lambda: [
+    motor_no_req(selected_motor_state),
+    SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+    ]
+)
+motor_no_req_cb.place(x=306, y=150, width=85, height=32)
+
+#images["tab5_motor_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
+#tab5_run_btn = Button(tab5, image=images["tab5_motor_run"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
+#tab5_run_btn.place(x=225, y=85, width=34, height=34)
 
 reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: clear_entries(motor_entries))
 reset_entries.place(x=300, y=85, width=85, height=32)

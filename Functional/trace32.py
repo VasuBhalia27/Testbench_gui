@@ -32,18 +32,15 @@ VARIABLE_UNITS_MAP = {
     "TestFw_LedVoltage": "mV",
     
     # Battery Monitor
-    "TestFw_BatRefStatus": "status",
     "TestFw_AiBatRef": "mA",
     
     # Motor Test
-    "TestFw_MotorCoupledVoltage": "V",
-    "TestFw_MotorDecoupledVoltage": "V",
+    "TestFw_MotorVoltage": "mV",
     "TestFw_MotorCurrentValue": "mA",
     "TestFw_MotorLoadError": "",
     
     # EOS Test
-    "TestFw_EosDiagVoltage": "V",
-    "TestFw_EosPinState": "status",
+    "TestFw_EosDiagVoltage": "mV",
     "TestFw_EosErrorsWithLow": "count",
     "TestFw_EosErrorsWithHigh": "count",
     
@@ -490,47 +487,23 @@ def QuitTrace32(status_label=None):
         if status_label:
             status_label.config(text="Status: Disconnected", fg="red")
 
-def motor_no_req(selected_motor_state):
-    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
+def motor_decouple_couple(selected_motor_state):
+    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
     if selected_motor_state.get() == 1:
         selected_motor_state.set(1)
     else:
         selected_motor_state.set(0)
 
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 0')
+    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
 
-def motor_couple(selected_motor_state):
+def motor_no_req(selected_motor_state):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if selected_motor_state.get() == 2:
         selected_motor_state.set(2)
     else:
         selected_motor_state.set(0)
 
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 2')
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 0')
-
-
-def motor_decouple(selected_motor_state):
-    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
-    if selected_motor_state.get() == 3:
-        selected_motor_state.set(3)
-    else:
-        selected_motor_state.set(0)
-
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 0')
-
-def motor_freewheel(selected_motor_freewheel):
-    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
-    if selected_motor_freewheel.get() == 1:
-        selected_motor_freewheel.set(1)
-    else:
-        selected_motor_freewheel.set(0)
-
-    dbg.cmd(f'Var.set MotorTest_SetGuiMotorFreeWheel = 1')
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
-
 
 def dac1dac2_disable(dac1dac2value):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
