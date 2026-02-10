@@ -502,7 +502,6 @@ def motor_no_req(selected_motor_state):
         selected_motor_state.set(2)
     else:
         selected_motor_state.set(0)
-
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
 
 def dac1dac2_disable(dac1dac2value):
