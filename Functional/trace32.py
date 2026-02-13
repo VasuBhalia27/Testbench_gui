@@ -45,7 +45,7 @@ VARIABLE_UNITS_MAP = {
     "TestFw_EosErrorsWithHigh": "count",
     
     # Strain Gauge Test
-    "TestFw_DoPwrSg": "status",
+    "TestFw_DoPwrSg": "(on)",
     "TestFw_Sg1PlusOpamp": "mV",
     "TestFw_Sg1MinusOpamp": "mV",
     "TestFw_Sg1Opamp": "mV",
@@ -511,7 +511,7 @@ def dac1dac2_disable(dac1dac2value):
     else:
         dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 1')
+    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 0')
 
 def dac1dac2_enable(dac1dac2value):
     # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
@@ -520,7 +520,7 @@ def dac1dac2_enable(dac1dac2value):
     else:
         dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 0')
+    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 1')
 
 
 
