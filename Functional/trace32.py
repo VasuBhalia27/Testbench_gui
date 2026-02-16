@@ -504,25 +504,23 @@ def motor_no_req(selected_motor_state):
         selected_motor_state.set(0)
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
 
-def dac1dac2_disable(dac1dac2value):
-    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
+def dac1dac2_enable(dac1dac2value):
+    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
     if dac1dac2value.get() == 1:
         dac1dac2value.set(1)
     else:
         dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 0')
+    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 1')
 
-def dac1dac2_enable(dac1dac2value):
-    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
+def dac1dac2_disable(dac1dac2value):
+    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if dac1dac2value.get() == 2:
         dac1dac2value.set(2)
     else:
         dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 1')
-
-
+    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 0')
 
 def clear_entries(entries_list):
     for i in range(len(entries_list)):

@@ -770,14 +770,13 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-dac1dac2value = tk.IntVar(value=1)
+dac1dac2value = tk.IntVar(value=2)
 
-dac1dac2_disable_cb = tk.Checkbutton(tab7, text="dac1dac2_disable", variable=dac1dac2value, onvalue=1, offvalue=0, command=lambda: dac1dac2_disable(dac1dac2value))
-dac1dac2_disable_cb.place(x=34, y=110, width=115, height=32)
+dac1dac2_enable = tk.Checkbutton(tab7, text="dac1dac2_enable", variable=dac1dac2value, onvalue=1, offvalue=0, command=lambda: dac1dac2_enable(dac1dac2value))
+dac1dac2_enable.place(x=34, y=110, width=115, height=32)
 
-dac1dac2_enable = tk.Checkbutton(tab7, text="dac1dac2_enable", variable=dac1dac2value, onvalue=2, offvalue=0, command=lambda: dac1dac2_enable(dac1dac2value))
-dac1dac2_enable.place(x=225, y=110, width=115, height=32)
-
+dac1dac2_disable_cb = tk.Checkbutton(tab7, text="dac1dac2_disable", variable=dac1dac2value, onvalue=2, offvalue=0, command=lambda: dac1dac2_disable(dac1dac2value))
+dac1dac2_disable_cb.place(x=225, y=110, width=115, height=32)
 
 # Entries
 canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
