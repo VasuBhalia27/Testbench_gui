@@ -511,16 +511,20 @@ def dac1dac2_enable(dac1dac2value):
     else:
         dac1dac2value.set(0)
 
-    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 1')
+    dbg.cmd(f'Var.set TestFw_SetGuiDac1Dac2 = 0')
+
+    
 
 def dac1dac2_disable(dac1dac2value):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if dac1dac2value.get() == 2:
         dac1dac2value.set(2)
+        dbg.cmd(f'Var.set TestFw_SetGuiDac1Dac2 = 1')
     else:
         dac1dac2value.set(0)
+        dbg.cmd(f'Var.set TestFw_SetGuiDac1Dac2 = 0')
 
-    dbg.cmd(f'Var.set SgTest_SetGuiDac1Dac2 = 0')
+   
 
 def clear_entries(entries_list):
     for i in range(len(entries_list)):

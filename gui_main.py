@@ -770,13 +770,7 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-dac1dac2value = tk.IntVar(value=2)
-
-dac1dac2_enable = tk.Checkbutton(tab7, text="dac1dac2_enable", variable=dac1dac2value, onvalue=1, offvalue=0, command=lambda: dac1dac2_enable(dac1dac2value))
-dac1dac2_enable.place(x=34, y=110, width=115, height=32)
-
-dac1dac2_disable_cb = tk.Checkbutton(tab7, text="dac1dac2_disable", variable=dac1dac2value, onvalue=2, offvalue=0, command=lambda: dac1dac2_disable(dac1dac2value))
-dac1dac2_disable_cb.place(x=225, y=110, width=115, height=32)
+dac1dac2value = tk.IntVar(value=0)
 
 # Entries
 canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
@@ -814,9 +808,35 @@ tab7_entry8.place(x=225.0, y=offset_top + 6*40, width=115, height=32)
 sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp"]
 sg_entries = [tab7_entry_1, tab7_entry2, tab7_entry3, tab7_entry4, tab7_entry6, tab7_entry7, tab7_entry8]
 
-images["tab7_sg_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-tab7_run_btn = Button(tab7, image=images["tab7_sg_run"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e, True, running_status), bd = 0)
-tab7_run_btn.place(x=160, y=70, width=34, height=34)
+dac1dac2_enable = tk.Checkbutton(
+    tab7, 
+    text="dac1dac2_enable", 
+    variable=dac1dac2value, 
+    onvalue=1, 
+    offvalue=0, 
+    command=lambda: [
+    dac1dac2_enable(dac1dac2value),
+    SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
+    ]
+)
+dac1dac2_enable.place(x=34, y=110, width=115, height=32)
+
+dac1dac2_disable_cb = tk.Checkbutton(
+    tab7, 
+    text="dac_enable_disable", 
+    variable=dac1dac2value, 
+    onvalue=2, 
+    offvalue=0, 
+    command=lambda: [
+    dac1dac2_disable(dac1dac2value),
+    SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
+    ]
+)
+dac1dac2_disable_cb.place(x=34, y=110, width=125, height=32)
+
+#images["tab7_sg_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
+#tab7_run_btn = Button(tab7, image=images["tab7_sg_run"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e, True, running_status), bd = 0)
+#tab7_run_btn.place(x=160, y=70, width=34, height=34)
 
 reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
 reset_entries.place(x=225, y=70, width=115, height=32)
