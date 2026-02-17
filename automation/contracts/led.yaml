@@ -1,0 +1,46 @@
+# LED Test Contracts (Stable)
+# These contracts define the stable interface between automation and backend
+# Do NOT change output variable names - they are confirmed stable with backend team
+
+led_tests:
+  - test_id: "TC_LED_01"
+    test_name: "LED Voltage Verification (LED Connected)"
+    description: "Verify LED voltage when Non-Driver PCB is connected"
+    did: 101
+    output_variables:
+      TestFw_LedVoltage:
+        description: "LED voltage measurement in volts"
+        type: "float"
+        unit: "V"
+    acceptance_criteria:
+      min_voltage: 2.76
+      max_voltage: 3.83
+      unit: "V"
+
+  - test_id: "TC_LED_03"
+    test_name: "LED Voltage Verification (LED Not Connected)"
+    description: "Verify LED voltage when Non-Driver PCB is not connected"
+    did: 101
+    output_variables:
+      TestFw_LedVoltage:
+        description: "LED voltage measurement in volts"
+        type: "float"
+        unit: "V"
+    acceptance_criteria:
+      min_voltage: 2.76
+      max_voltage: 3.83
+      unit: "V"
+
+  - test_id: "TC_LED_03_SHORTED"
+    test_name: "LED Voltage Verification (Connection Shorted)"
+    description: "Verify LED voltage when Led connection is shorted"
+    did: 101
+    output_variables:
+      TestFw_LedVoltage:
+        description: "LED voltage measurement in volts"
+        type: "float"
+        unit: "V"
+    acceptance_criteria:
+      min_voltage: 2.76
+      max_voltage: 3.83
+      unit: "V"
