@@ -652,7 +652,9 @@ motor_decouple_couple_cb = tk.Checkbutton(
     offvalue=0, 
     command=lambda: [
     motor_decouple_couple(selected_motor_state),
-    SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+    SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e),
+    # Schedule the reset after 1000ms (1 second)
+    window.after(1000, lambda: auto_reset_motor_checkbox(selected_motor_state))
     ]
 )
 motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)

@@ -32,7 +32,7 @@ VARIABLE_UNITS_MAP = {
     "TestFw_LedVoltage": "mV",
     
     # Battery Monitor
-    "TestFw_AiBatRef": "mA",
+    "TestFw_AiBatRef": "mV",
     
     # Motor Test
     "TestFw_MotorVoltage": "mV",
@@ -610,3 +610,16 @@ def TransmitLinRawCount(entry_widget):
             messagebox.showerror("Error", "Trace32 not connected!!!")
     except Exception as e:
         messagebox.showerror("Error", f"Failed to transmit: {str(e)}")
+
+
+def auto_reset_motor_checkbox(selected_motor_state):
+    """Resets the checkbox to 0 and updates the debugger variable."""
+    # 1. Uncheck the UI checkbox
+    selected_motor_state.set(0)
+    
+    # 2. Update the Trace32 variable back to 0 (No Request)
+    try:
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
+    except Exception as e:
+        print(f"Failed to auto-reset Trace32 variable: {e}")
