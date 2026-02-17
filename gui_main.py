@@ -577,18 +577,18 @@ motor_decouple_couple_cb = tk.Checkbutton(
 )
 motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)
 
-motor_no_req_cb = tk.Checkbutton(
-    tab5, 
-    text="No Req", 
-    variable=selected_motor_state, 
-    onvalue=2, 
-    offvalue=0, 
-    command=lambda: [
-    motor_no_req(selected_motor_state),
-    SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
-    ]
-)
-motor_no_req_cb.place(x=306, y=150, width=85, height=32)
+#motor_no_req_cb = tk.Checkbutton(
+    #tab5, 
+    #text="No Req", 
+    #variable=selected_motor_state, 
+    #onvalue=2, 
+    #offvalue=0, 
+    #command=lambda: [
+    #motor_no_req(selected_motor_state),
+    #SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+    #]
+#)
+#motor_no_req_cb.place(x=306, y=150, width=85, height=32)
 
 reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: clear_entries(motor_entries))
 reset_entries.place(x=300, y=85, width=85, height=32)
