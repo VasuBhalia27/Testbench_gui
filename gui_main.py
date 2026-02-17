@@ -1096,7 +1096,7 @@ tab11_run_btn = Button(
     tab11, 
     image=images["tab11_lin_run"], 
     command=lambda: [
-    TransmitLinRawCount(lin_entry_list),
+    TransmitLinRawCount(tab11_entry1),
     SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
     ], 
     bd = 0
@@ -1105,7 +1105,7 @@ tab11_run_btn.place(x=180, y=168.0, width=34, height=34)
 
 canvas11.create_text(220.0, 172.0, anchor="nw", text="Transmit", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(lin_entry_list))
+reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: clear_entries(lin_entry_list))
 reset_entries.place(x=350, y=110, width=115, height=32)
 
 
