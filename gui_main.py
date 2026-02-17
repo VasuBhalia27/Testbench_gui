@@ -2,91 +2,11 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
-from Functional.power_supply import *
+#from Functional.power_supply import *
 from Functional.trace32 import *
 from tkinter import filedialog
 from tkinter import messagebox
-
-
-# try:
-#     ctypes.windll.shcore.SetProcessDpiAwareness(1)
-# except Exception:
-#     ctypes.windll.user32.SetProcessDPIAware()
-
-
-# ===================================================================================================================
-# ========== function/classes definations ===========================================================================
-
-class FooterBar:
-    def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, set_voltage_callback, get_voltage_callback):
-        self.parent = parent
-        self.tab = tab
-        self.tab_frame = tab_frame
-        self.canvas = canvas
-        self.images = images
-        self.relative_to_assets = relative_to_assets
-        self.set_voltage_callback = set_voltage_callback
-        self.get_voltage_callback = get_voltage_callback
-        
-        self.setup_ui()
-    
-    def setup_ui(self):
-        # Footer bar image
-        self.images[f"{self.tab}_footerbar"] = PhotoImage(file=self.relative_to_assets("footer_bar.png", "tab2"))
-        self.canvas.create_image(500, 606, image=self.images[f"{self.tab}_footerbar"])
-
-        # Set voltage controls
-        self.canvas.create_text(
-            22.0,
-            580.0,
-            anchor="nw",
-            text="Set power supply voltage",
-            fill="#282828",
-            font=("Inter Bold", 16 * -1)
-        )
-
-        self.voltage_set_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
-        self.voltage_set_entry.place(x=306.0, y=580.0, width=95.0, height=20.0)
-
-        self.images[f"{self.tab}set_voltage_button"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
-        self.set_voltage_btn = Button(
-            self.tab,
-            image=self.images[f"{self.tab}set_voltage_button"],
-            command=lambda: self.set_voltage_callback(self.voltage_set_entry),
-            bd=0
-        )
-        self.set_voltage_btn.place(x=413, y=576, width=25, height=26)
-
-        # Get voltage controls
-        self.canvas.create_text(
-            22.0,
-            613.0,
-            anchor="nw",
-            text="Get power supply voltage",
-            fill="#282828",
-            font=("Inter SemiBold", 16 * -1)
-        )
-
-        self.voltage_get_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
-        self.voltage_get_entry.place(x=306.0, y=613.0, width=95.0, height=20.0)
-
-        self.images[f"{self.tab}get_voltage_button"] = PhotoImage(file=self.relative_to_assets("set_or_get_voltage.png", "tab2"))
-        self.get_voltage_btn = Button(
-            self.tab,
-            image=self.images[f"{self.tab}get_voltage_button"],
-            command=lambda: self.get_voltage_callback(self.voltage_get_entry),
-            bd=0
-        )
-        self.get_voltage_btn.place(x=413, y=610, width=25, height=26)
-
-        # Additional entry (tab2_entry9 from original code)
-        self.additional_entry = ttk.Entry(self.tab_frame, style='Background_grey.TEntry')
-        self.additional_entry.place(x=800.0, y=575.0, width=150.0, height=60.0)
-        
-    def update_additional_entry(footer_instance, new_value):
-        footer_instance.additional_entry.delete(0, tk.END)
-        footer_instance.additional_entry.insert(0, new_value)
-        
+     
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
         
@@ -160,8 +80,6 @@ def browse_repo_path():
 
 # ===================================================================================================================
 # ========== Initializations ========================================================================================
-
-usb_addr = Pwrcontrol_init() # power app initialization
 
 # Define global image reference dictionary to prevent garbage collection
 images = {}
@@ -672,10 +590,6 @@ motor_no_req_cb = tk.Checkbutton(
 )
 motor_no_req_cb.place(x=306, y=150, width=85, height=32)
 
-#images["tab5_motor_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab5"))
-#tab5_run_btn = Button(tab5, image=images["tab5_motor_run"], command=lambda: SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e), bd = 0)
-#tab5_run_btn.place(x=225, y=85, width=34, height=34)
-
 reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: clear_entries(motor_entries))
 reset_entries.place(x=300, y=85, width=85, height=32)
 
@@ -835,10 +749,6 @@ dac1dac2_disable_cb = tk.Checkbutton(
     ]
 )
 dac1dac2_disable_cb.place(x=34, y=110, width=125, height=32)
-
-#images["tab7_sg_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab7"))
-#tab7_run_btn = Button(tab7, image=images["tab7_sg_run"], command=lambda: SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e, True, running_status), bd = 0)
-#tab7_run_btn.place(x=160, y=70, width=34, height=34)
 
 reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
 reset_entries.place(x=225, y=70, width=115, height=32)
@@ -1076,7 +986,6 @@ canvas11.create_text(61.0, 144.0, anchor="nw", text="TxCapaApproachRawCountLinFr
 tab11_entry1 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
 tab11_entry1.place(x=61.0, y=168.0, width=115.0, height=32.0)
 
-#canvas11.create_text(61.0, 207.0, anchor="nw", text="ReadCapaApproachSensorRawCount", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab11_entry2 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
 tab11_entry2.place(x=61.0, y=280.0, width=220.0, height=32.0)
 

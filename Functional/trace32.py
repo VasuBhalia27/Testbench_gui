@@ -328,13 +328,6 @@ def ConnectToTraceUDP():
         messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
 
 
-def GetValueVbatt(entry_widget):
-    global dbg 
-    val_master = dbg.fnc("Var.VALUE(UC_UBatt__mV__U16)")
-    val_master = float(f"{val_master/1000:.3f}")
-    entry_widget.delete(0, tk.END)
-    entry_widget.insert(0, str(val_master))
-
 def SendDIDGetVal(entry_widget, DID, get_val_var):
     try:
         dbg.cmd(f'Var.set TestFw_GuiCmd = {DID}')
@@ -356,8 +349,6 @@ def SendDIDGetVal(entry_widget, DID, get_val_var):
             messagebox.showerror("Error", "Trace32 not connected!!!")
 
 
-
-
 def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, fetch_run_status = None, running_status_label = None):
     
     try:
@@ -374,32 +365,11 @@ def SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, DID, fetch_r
             entry_list[i].delete(0, tk.END)
             entry_list[i].insert(0, formatted_value)
 
-        # if fetch_run_status == True and running_status_label:
-        #     running_status = dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
-        #     running_status = int(running_status)
-            
-        #     if running_status == 1:
-        #         running_status_label.config(text= "Running Status: Sleep")
-
-        #     elif running_status == 0:
-        #         running_status_label.config(text= "Running Status: Running")
-
-        #     else:
-        #         running_status_label.config(text= "Running Status: Error")
-
-        # reset_cb()
-        
-        
-        # logs.add_log(DID, fetched_var_value)
-
     except Exception as e:
         print(e)
         error_msg = str(e)
         if "'str' object has no attribute 'cmd'" in error_msg:
             messagebox.showerror("Error","Trace32 not connected!!!")
-
-
-
 
 
 def SendCmdToDbg(command):
@@ -426,13 +396,10 @@ def RunCode(exec_label):
         else:
             UpdateCodeExecLabel_notrunning(exec_label)
         
-
 def PauseCode(exec_label):
 
     dbg.cmd("Break")
     UpdateCodeExecLabel_notrunning(exec_label)
-
-
 
 def QuitTrace32():
     dbg.exit()
@@ -513,7 +480,6 @@ def dac1dac2_enable(dac1dac2value):
 
     dbg.cmd(f'Var.set TestFw_SetGuiDac1Dac2 = 0')
 
-    
 
 def dac1dac2_disable(dac1dac2value):
     # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
@@ -523,8 +489,6 @@ def dac1dac2_disable(dac1dac2value):
     else:
         dac1dac2value.set(0)
         dbg.cmd(f'Var.set TestFw_SetGuiDac1Dac2 = 0')
-
-   
 
 def clear_entries(entries_list):
     for i in range(len(entries_list)):
