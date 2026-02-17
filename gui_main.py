@@ -908,14 +908,14 @@ canvas8.create_text(73.0, 398.0, anchor="nw", text="CapaUnlockRawValue", fill="#
 tab8_entry6 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
 tab8_entry6.place(x=350.0, y=398.0, width=115, height=32)
 
-entry_list = [tab8_entry_1,tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry5, tab8_entry6]
 capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
+capa_entry = [tab8_entry_1,tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry5, tab8_entry6]
 
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-run_test_btn = Button(tab8, image=images["tile1_run_capa"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, entry_list, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
+run_test_btn = Button(tab8, image=images["tile1_run_capa"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, capa_entry, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(entry_list))
+reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(capa_entry))
 reset_entries.place(x=350, y=110, width=115, height=32)
 
 canvas8.create_text(
@@ -970,7 +970,7 @@ images["tab9_nfc_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.
 run_test_btn = Button(tab9, image=images["tab9_nfc_run"], command=lambda: SendDIDGetVal_multiple_entry(nfc_output_variables, nfc_entries, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e), bd = 0)
 run_test_btn.place(x=325, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab9, text="Reset Results", command=lambda: clear_entries(entry_list))
+reset_entries = ttk.Button(tab9, text="Reset Results", command=lambda: clear_entries(nfc_entries))
 reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas9.create_text(
@@ -1026,7 +1026,7 @@ images["tab10_can_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button
 run_test_btn = Button(tab10, image=images["tab10_can_run"], command=lambda: SendDIDGetVal_multiple_entry(can_output_variables, can_entries, TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e), bd = 0)
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: clear_entries(entry_list))
+reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: clear_entries(can_entries))
 reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas10.create_text(
@@ -1067,19 +1067,47 @@ canvas11.create_image(145.0, 37.0, image=images["minibea_logo_11"])
 images["tile1_tab11"] = PhotoImage(file=relative_to_assets("Tile.png", "tab11")) 
 canvas11.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab11"])
 
+CapaApproachSensorRawCount = tk.IntVar(value=1)
+
 canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas11.create_text(61.0, 144.0, anchor="nw", text="Transmit LIN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas11.create_text(61.0, 207.0, anchor="nw", text="Receive LIN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-
+canvas11.create_text(61.0, 144.0, anchor="nw", text="TxCapaApproachRawCountLinFrame", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab11_entry1 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
-tab11_entry1.place(x=61.0, y=168.0, width=250.0, height=20.0)
+tab11_entry1.place(x=61.0, y=168.0, width=115.0, height=32.0)
 
+#canvas11.create_text(61.0, 207.0, anchor="nw", text="ReadCapaApproachSensorRawCount", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab11_entry2 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
-tab11_entry2.place(x=61.0, y=230.0, width=250.0, height=20.0)
+tab11_entry2.place(x=61.0, y=280.0, width=220.0, height=32.0)
+
+lin_entry_list = [tab11_entry2]
+lin_output_variables = ["TestFw_CapaApproachSensorRawCount"]
+
+CapaApproachSensorRawCount_cb = tk.Checkbutton(
+    tab11, 
+    text="ReadCapaApproachSensorRawCount", 
+    variable=lin_output_variables, 
+    onvalue=1, 
+    offvalue=0, 
+    command=lambda: SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
+)
+CapaApproachSensorRawCount_cb.place(x=61, y=230, width=220, height=32)
 
 images["tab11_lin_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab11"))
-tab11_run_btn = Button(tab11, image=images["tab11_lin_run"], command=lambda: print("tile two capa run test ..."), bd = 0)
-tab11_run_btn.place(x=225, y=106, width=34, height=34)
+tab11_run_btn = Button(
+    tab11, 
+    image=images["tab11_lin_run"], 
+    command=lambda: [
+    TransmitLinRawCount(lin_entry_list),
+    SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
+    ], 
+    bd = 0
+)
+tab11_run_btn.place(x=180, y=168.0, width=34, height=34)
+
+canvas11.create_text(220.0, 172.0, anchor="nw", text="Transmit", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+
+reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(lin_entry_list))
+reset_entries.place(x=350, y=110, width=115, height=32)
+
 
 canvas11.create_text(
     260.0,

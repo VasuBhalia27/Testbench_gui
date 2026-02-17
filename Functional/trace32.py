@@ -594,3 +594,19 @@ def poll_target_state(label, window):
         # Stop polling loop on error to prevent ghosting/crashes
         dbg = '' 
         label.config(text="SmartBU Status: Disconnected")
+
+# Add this function to trace32.py
+def TransmitLinRawCount(entry_widget):
+    global dbg
+    try:
+        # Get the value from the entry box
+        raw_count_value = entry_widget.get()
+        
+        if dbg and hasattr(dbg, 'cmd'):
+            # Set the specific variable requested
+            dbg.cmd(f'Var.set TestFw_TxGuiCapaApproachRawCountLinFrame = {raw_count_value}')
+            print(f"Transmitted {raw_count_value} to TestFw_TxGuiCapaApproachRawCountLinFrame")
+        else:
+            messagebox.showerror("Error", "Trace32 not connected!!!")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to transmit: {str(e)}")
