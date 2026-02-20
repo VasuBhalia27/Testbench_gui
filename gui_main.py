@@ -686,8 +686,7 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-dac1value = tk.IntVar(value=2)
-dac2value = tk.IntVar(value=2)
+SgValue = tk.IntVar(value=2)
 
 # Entries
 canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
@@ -722,69 +721,26 @@ tab7_entry8.place(x=610.0, y=offset_top + 3*40, width=115, height=32)
 
 
 # Execution
-sg1_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp"]
-sg1_entries = [tab7_entry_1, tab7_entry2, tab7_entry3, tab7_entry4]
+sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp"]
+sg_entries = [tab7_entry_1, tab7_entry2, tab7_entry3, tab7_entry4, tab7_entry6, tab7_entry7, tab7_entry8]
 
-sg2_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp"]
-sg2_entries = [tab7_entry_1, tab7_entry6, tab7_entry7, tab7_entry8]
-
-dac1_enable_cb = tk.Checkbutton(
+sg_results_cb = tk.Checkbutton(
     tab7, 
-    text="dac1_enable", 
-    variable=dac1value, 
+    text="Sg Results", 
+    variable=SgValue, 
     onvalue=1, 
     offvalue=0, 
     command=lambda: [
-    dac1_enable(dac1value),
-    SendDIDGetVal_multiple_entry(sg1_output_variables, sg1_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
+    sg_results(SgValue),
+    SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e),
+        # Schedule the reset after 1000ms (1 second)
+    window.after(1000, lambda: auto_reset_sg_checkbox(SgValue))
     ]
 )
-dac1_enable_cb.place(x=34, y=110, width=115, height=32)
+sg_results_cb.place(x=34, y=110, width=115, height=32)
 
-dac1_disable_cb = tk.Checkbutton(
-    tab7, 
-    text="dac1_disable", 
-    variable=dac1value, 
-    onvalue=2, 
-    offvalue=0, 
-    command=lambda: [
-    dac1_disable(dac1value),
-    SendDIDGetVal_multiple_entry(sg1_output_variables, sg1_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
-    ]
-)
-dac1_disable_cb.place(x=225, y=110, width=115, height=32)
-
-dac2_enable_cb = tk.Checkbutton(
-    tab7, 
-    text="dac2_enable", 
-    variable=dac2value, 
-    onvalue=1, 
-    offvalue=0, 
-    command=lambda: [
-    dac2_enable(dac2value),
-    SendDIDGetVal_multiple_entry(sg2_output_variables, sg2_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
-    ]
-)
-dac2_enable_cb.place(x=480, y=110, width=115, height=32)
-
-dac2_disable_cb = tk.Checkbutton(
-    tab7, 
-    text="dac2_disable", 
-    variable=dac2value, 
-    onvalue=2, 
-    offvalue=0, 
-    command=lambda: [
-    dac2_disable(dac2value),
-    SendDIDGetVal_multiple_entry(sg2_output_variables, sg2_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
-    ]
-)
-dac2_disable_cb.place(x=610, y=110, width=115, height=32)
-
-sg1_reset_entries = ttk.Button(tab7, text="Sg1 Reset Results", command=lambda: clear_entries(sg1_entries)) #browse button to get repo path
-sg1_reset_entries.place(x=225, y=70, width=115, height=32)
-
-sg2_reset_entries = ttk.Button(tab7, text="Sg2 Reset Results", command=lambda: clear_entries(sg2_entries)) #browse button to get repo path
-sg2_reset_entries.place(x=540, y=70, width=115, height=32)
+sg_reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
+sg_reset_entries.place(x=225, y=70, width=115, height=32)
 
 running_status = tk.Label(tab7_frame, text="Running Status: None")
 running_status.config(bg = "#DFDFDF")

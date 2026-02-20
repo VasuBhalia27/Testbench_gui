@@ -471,41 +471,13 @@ def motor_no_req(selected_motor_state):
         selected_motor_state.set(0)
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
 
-def dac1_enable(dac1value):
-    if dac1value.get() == 1:
-        dac1value.set(1)
+def sg_results(SgValue):
+    if SgValue.get() == 1:
+        SgValue.set(1)
     else:
-        dac1value.set(0)
+        SgValue.set(0)
 
-    dbg.cmd(f'Var.set TestFw_SetGuiDac1 = 1')
-    dbg.cmd(f'Var.set TestFw_SetGuiDac2 = 0')
-
-def dac1_disable(dac1value):
-    if dac1value.get() == 2:
-        dac1value.set(2)
-    else:
-        dac1value.set(0)
-
-    dbg.cmd(f'Var.set TestFw_SetGuiDac1 = 0')
-    dbg.cmd(f'Var.set TestFw_SetGuiDac2 = 0')
-
-def dac2_enable(dac2value):
-    if dac2value.get() == 1:
-        dac2value.set(1)
-    else:
-        dac2value.set(0)
-
-    dbg.cmd(f'Var.set TestFw_SetGuiDac2 = 1')
-    dbg.cmd(f'Var.set TestFw_SetGuiDac1 = 0')
-
-def dac2_disable(dac2value):
-    if dac2value.get() == 2:
-        dac2value.set(2)
-    else:
-        dac2value.set(0)
-
-    dbg.cmd(f'Var.set TestFw_SetGuiDac2 = 0')
-    dbg.cmd(f'Var.set TestFw_SetGuiDac1 = 0')
+    dbg.cmd(f'Var.set TestFw_GetSgResults = 1')
 
 def clear_entries(entries_list):
     for i in range(len(entries_list)):
@@ -602,5 +574,18 @@ def auto_reset_motor_checkbox(selected_motor_state):
     try:
         if dbg and hasattr(dbg, 'cmd'):
             dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
+    except Exception as e:
+        print(f"Failed to auto-reset Trace32 variable: {e}")
+
+
+def auto_reset_sg_checkbox(SgValue):
+    """Resets the checkbox to 0 and updates the debugger variable."""
+    # 1. Uncheck the UI checkbox
+    SgValue.set(0)
+    
+    # 2. Update the Trace32 variable back to 0 (No Request)
+    try:
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd(f'Var.set TestFw_GetSgResults = 0')
     except Exception as e:
         print(f"Failed to auto-reset Trace32 variable: {e}")
