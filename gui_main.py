@@ -707,17 +707,17 @@ canvas7.create_text(34.0, 156 + 3*40, anchor="nw",text="Sg1Opamp", fill="#FFFFFF
 tab7_entry4 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
 tab7_entry4.place(x=225.0, y=offset_top + 3*40, width=115, height=32)
 
-canvas7.create_text(480.0, 156 + 1*40, anchor="nw",text="Sg2PlusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas7.create_text(380.0, 156 + 1*40, anchor="nw",text="Sg2PlusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry6 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry6.place(x=610.0, y=offset_top + 1*40, width=115.0, height=32.0)
+tab7_entry6.place(x=510.0, y=offset_top + 1*40, width=115.0, height=32.0)
 
-canvas7.create_text(480.0, 156 + 2*40, anchor="nw",text="Sg2MinusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas7.create_text(380.0, 156 + 2*40, anchor="nw",text="Sg2MinusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry7 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry7.place(x=610.0, y=offset_top + 2*40, width=115, height=32)
+tab7_entry7.place(x=510.0, y=offset_top + 2*40, width=115, height=32)
 
-canvas7.create_text(480.0, 156 + 3*40, anchor="nw",text="Sg2Opamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas7.create_text(380.0, 156 + 3*40, anchor="nw",text="Sg2Opamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry8 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry8.place(x=610.0, y=offset_top + 3*40, width=115, height=32)
+tab7_entry8.place(x=510.0, y=offset_top + 3*40, width=115, height=32)
 
 
 # Execution
@@ -737,10 +737,10 @@ sg_results_cb = tk.Checkbutton(
     window.after(1000, lambda: auto_reset_sg_checkbox(SgValue))
     ]
 )
-sg_results_cb.place(x=34, y=110, width=115, height=32)
+sg_results_cb.place(x=365, y=110, width=115, height=32)
 
 sg_reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
-sg_reset_entries.place(x=225, y=70, width=115, height=32)
+sg_reset_entries.place(x=510, y=offset_top + 0*40, width=115, height=32)
 
 running_status = tk.Label(tab7_frame, text="Running Status: None")
 running_status.config(bg = "#DFDFDF")
