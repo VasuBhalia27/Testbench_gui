@@ -455,7 +455,6 @@ def QuitTrace32(status_label=None):
             status_label.config(text="Status: Disconnected", fg="red")
 
 def motor_decouple_couple(selected_motor_state):
-    # If cb2 is turned ON, set shared var to 2; if OFF, reset to 0
     if selected_motor_state.get() == 1:
         selected_motor_state.set(1)
     else:
@@ -464,12 +463,26 @@ def motor_decouple_couple(selected_motor_state):
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 1')
 
 def motor_no_req(selected_motor_state):
-    # If cb1 is turned ON, make sure cb2 is OFF by setting the shared var
     if selected_motor_state.get() == 2:
         selected_motor_state.set(2)
     else:
         selected_motor_state.set(0)
     dbg.cmd(f'Var.set MotorTest_SetGuiMotorActuateRequest = 0')
+
+def eos_set(eos_value):
+    if eos_value.get() == 1:
+        eos_value.set(1)
+    else:
+        eos_value.set(0)
+
+    dbg.cmd(f'Var.set EosTest_EosRequestGui = 1')
+
+def eos_reset(eos_value):
+    if eos_value.get() == 2:
+        eos_value.set(2)
+    else:
+        eos_value.set(0)
+    dbg.cmd(f'Var.set EosTest_EosRequestGui = 0')
 
 def sg_results(SgValue):
     if SgValue.get() == 1:

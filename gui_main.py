@@ -156,38 +156,6 @@ tablet1_Y = 192
 # ===================================================================================================================
 # ========== TAB 1 ==================================================================================================
 
-tab1 = ttk.Frame(notebook)
-notebook.add(tab1, text="Welcome")
-
-canvas1 = tk.Canvas(tab1, bg="#DFDFDF", height=651, width=973, bd=0, highlightthickness=0, relief="ridge")
-canvas1.place(x=0, y=0)
-
-canvas1.create_rectangle(
-    0.0,
-    0.0,
-    528.0,
-    75.0,
-    fill="#E8E8E8",
-    outline="")
-
-images["Welcome_text"] = PhotoImage(file=relative_to_assets("welcome_text.png","tab1"))
-image_1 = canvas1.create_image(155.0,165.0,image=images["Welcome_text"])
-
-images["minibea_logo"] = PhotoImage(file=relative_to_assets("minebea_logo.png", "tab1"))
-canvas1.create_image(145.0, 37.0, image=images["minibea_logo"])
-
-images["photo_with_hand"] = PhotoImage(file=relative_to_assets("image.png", "tab1"))
-canvas1.create_image(746.0, 349.0, image=images["photo_with_hand"])
-
-canvas1.create_text(
-    260.0,
-    20.0,
-    anchor="nw",
-    text="U-Shin India",
-    fill="#0066B3",
-    font=("Inter BoldItalic", 24 * -1)
-)
-
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 2 (Settings) =======================================================================================
@@ -423,7 +391,7 @@ led_off_cb = tk.Checkbutton(tab3, text="Led_Off", variable=led_input_condition, 
 led_off_cb.place(x=300, y=150, width=85, height=32)
 
 # Entries
-canvas3.create_text(73.0, 113.0, anchor="nw", text="LED Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas3.create_text(73.0, 113.0, anchor="nw", text="LED Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
 canvas3.create_text(73.0, 210.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
@@ -481,7 +449,7 @@ images["tile_tab4"] = PhotoImage(file=relative_to_assets("Tile.png", "tab4"))
 canvas4.create_image(tablet1_X, tablet1_Y, image=images["tile_tab4"])
 
 # Entries
-canvas4.create_text(73.0, 113.0, anchor="nw", text="BAT Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas4.create_text(73.0, 113.0, anchor="nw", text="BAT Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
 canvas4.create_text(73.0, 168.0, anchor="nw", text="AiBatRef", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab4_entry_1 = ttk.Entry(tab4_frame, style ='Background_grey.TEntry')
@@ -544,7 +512,7 @@ placement_y_coord = 168
 selected_motor_state = tk.IntVar(value=2)
 
 # Entries
-canvas5.create_text(73.0, 85.0, anchor="nw", text="Motor Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas5.create_text(73.0, 85.0, anchor="nw", text="Motor Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas5.create_text(73.0, placement_y_coord+35, anchor="nw", text="MotorVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab5_entry1 = ttk.Entry(tab5_frame, style = 'Background_grey.TEntry')
 tab5_entry1.place(x=306, y=placement_y_coord+35, width=85, height=32)
@@ -591,7 +559,7 @@ motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)
 #motor_no_req_cb.place(x=306, y=150, width=85, height=32)
 
 reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: clear_entries(motor_entries))
-reset_entries.place(x=300, y=85, width=85, height=32)
+reset_entries.place(x=306, y=150, width=85, height=32)
 
 canvas5.create_text(
     260.0,
@@ -630,21 +598,54 @@ images["tile_tab6"] = PhotoImage(file=relative_to_assets("Tile.png", "tab6"))
 canvas6.create_image((tablet1_X + 0), (tablet1_Y + 10), image=images["tile_tab6"])
 
 # Entries
-canvas6.create_text(73.0, 113.0, anchor="nw", text="EOS Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas6.create_text(73.0, placement_y_coord+35*0, anchor="nw", text="EosDiagVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas6.create_text(73.0, 113.0, anchor="nw", text="EOS Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EosDiagVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab6_entry1 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry1.place(x=300, y=placement_y_coord+35*0, width=85, height=32)
+tab6_entry1.place(x=225, y=placement_y_coord+35*1, width=125, height=32)
+
+eos_value = tk.IntVar(value=2)
 
 # Execution
 eos_output_variables = ["TestFw_EosDiagVoltage"]
 eos_entries = [tab6_entry1]
 
-images["tab6_eos_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
-tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
-tab6_run_btn.place(x=225, y=106, width=34, height=34)
+eos_set_cb = tk.Checkbutton(
+    tab6, 
+    text="EOS Set", 
+    variable=eos_value, 
+    onvalue=1, 
+    offvalue=0, 
+    command=lambda: [
+    eos_set(eos_value),
+    SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
+    ]
+)
+eos_set_cb.place(x=73.0, y=150, width=125.0, height=32.0)
+
+eos_reset_cb = tk.Checkbutton(
+    tab6, 
+    text="EOS Reset", 
+    variable=eos_value, 
+    onvalue=2, 
+    offvalue=0, 
+    command=lambda: [
+        eos_reset(eos_value),
+        # Schedule the reading after 5000ms (5 seconds)
+        window.after(15000, lambda: SendDIDGetVal_multiple_entry(
+            eos_output_variables, 
+            eos_entries, 
+            TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e
+        ))
+    ]
+)
+eos_reset_cb.place(x=225.0, y=150, width=125.0, height=32.0)
+
+#images["tab6_eos_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab6"))
+#tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
+#tab6_run_btn.place(x=225, y=106, width=34, height=34)
 
 reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: clear_entries(eos_entries))
-reset_entries.place(x=300, y=110, width=85, height=32)
+reset_entries.place(x=225, y=110, width=125, height=32)
 
 canvas6.create_text(
     260.0,
@@ -689,7 +690,7 @@ offset_top = 150  # offset from top of the frame/window
 SgValue = tk.IntVar(value=2)
 
 # Entries
-canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
 canvas7.create_text(34.0, 156 + 0*40, anchor="nw",text="DoPwrSg", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry_1 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
@@ -784,7 +785,7 @@ images["tile1_tab8"] = PhotoImage(file=relative_to_assets("Tile.png", "tab8"))
 canvas8.create_image(245, 230, image=images["tile1_tab8"])
 
 # Entries
-canvas8.create_text(73.0, 113.0, anchor="nw", text="Capa Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas8.create_text(73.0, 113.0, anchor="nw", text="Capa Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas8.create_text(73.0, 168.0, anchor="nw", text="CapaApproach", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab8_entry_1 = ttk.Entry(tab8_frame, style ='Background_grey.TEntry')
 tab8_entry_1.place(x=350.0, y=168.0, width=115, height=32)
@@ -858,7 +859,7 @@ canvas9.create_image(145.0, 37.0, image=images["minibea_logo_9"])
 images["tile_tab9"] = PhotoImage(file=relative_to_assets("Tile.png", "tab9")) 
 canvas9.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab9"])
 
-canvas9.create_text(73.0, 113.0, anchor="nw", text="NFC Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas9.create_text(73.0, 113.0, anchor="nw", text="NFC Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
 canvas9.create_text(73.0, 168.0, anchor="nw", text="IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab9_entry_1 = ttk.Entry(tab9_frame, style ='Background_grey.TEntry')
@@ -911,7 +912,7 @@ canvas10.create_image(145.0, 37.0, image=images["minibea_logo_10"])
 images["tile1_tab10"] = PhotoImage(file=relative_to_assets("Tile.png", "tab10")) 
 canvas10.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab10"])
 
-canvas10.create_text(61.0, 110.0, anchor="nw", text="CAN Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas10.create_text(61.0, 110.0, anchor="nw", text="CAN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas10.create_text(61.0, 144.0, anchor="nw", text="Transmit CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab10_entry_1 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
 tab10_entry_1.place(x=61.0, y=168.0, width=250.0, height=20.0)
@@ -970,7 +971,7 @@ canvas11.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab11"])
 
 CapaApproachSensorRawCount = tk.IntVar(value=1)
 
-canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test Run", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas11.create_text(61.0, 144.0, anchor="nw", text="TxCapaApproachRawCountLinFrame", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab11_entry1 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
 tab11_entry1.place(x=61.0, y=168.0, width=115.0, height=32.0)
