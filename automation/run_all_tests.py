@@ -19,11 +19,12 @@ from pathlib import Path
 
 # Add parent directory to path so imports work
 current_dir = Path(__file__).parent
+sys.path.insert(0, str(current_dir.parent))
 sys.path.insert(0, str(current_dir))
 
-from core.orchestrator import orchestrate_tests
-from reports.excel_report import generate_excel_report
-from reports.pdf_report import generate_pdf_report
+from automation.core.orchestrator import orchestrate_tests
+from automation.reports.pdf_report import generate_pdf_report
+from automation.reports.excel_comprehensive_writer import SmartBUExcelReportWriter
 
 
 def main():
@@ -54,10 +55,29 @@ def main():
         # Step 2: Print results summary
         print_summary(results, summary)
         
-        # Step 3: Generate Excel report
+        # Step 3: Generate Excel report (comprehensive writer)
         print("\nGenerating Excel report...")
-        excel_path = generate_excel_report(results, reports_dir)
+        writer = SmartBUExcelReportWriter()
+        # prefer the reports_dir used by the runner
+        try:
+            writer.out_dir = Path(reports_dir)
+        except Exception:
+            pass
+        excel_path = writer.write_report(results)
         print(f"[OK] Excel report: {excel_path}")
+
+        # Also maintain a copy called SmartBU_TestResults_latest.xlsx (overwritten each run)
+        try:
+            from shutil import copy2
+            from pathlib import Path
+            latest = Path(reports_dir) / "SmartBU_TestResults_latest.xlsx"
+            try:
+                copy2(str(excel_path), str(latest))
+                print(f"[OK] Latest Excel copy: {latest}")
+            except Exception:
+                pass
+        except Exception:
+            pass
         
         # Step 4: Generate PDF report
         print("Generating PDF report...")

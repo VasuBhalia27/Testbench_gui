@@ -7,6 +7,16 @@ Designed to be extensible for future test types (BAT, LIN, etc.).
 
 from typing import List, Dict, Any
 from tests.led_tests import execute_all_led_tests
+from tests import (
+    battery_tests,
+    motor_tests,
+    eos_tests,
+    sg_tests,
+    capa_tests,
+    nfc_tests,
+    can_tests,
+    lin_tests,
+)
 import json
 
 
@@ -38,14 +48,46 @@ class TestOrchestrator:
         print("Running LED tests...")
         led_results = execute_all_led_tests()
         self.all_results.extend(led_results)
-        
-        # (Future) Execute BAT tests
-        # bat_results = execute_all_bat_tests()
-        # self.all_results.extend(bat_results)
-        
-        # (Future) Execute LIN tests
-        # lin_results = execute_all_lin_tests()
-        # self.all_results.extend(lin_results)
+
+        # Execute Battery tests
+        print("Running Battery tests...")
+        bat_results = battery_tests.run_suite()
+        self.all_results.extend(bat_results)
+
+        # Execute Motor tests
+        print("Running Motor tests...")
+        mot_results = motor_tests.run_suite()
+        self.all_results.extend(mot_results)
+
+        # Execute EOS tests
+        print("Running EOS tests...")
+        eos_results = eos_tests.run_suite()
+        self.all_results.extend(eos_results)
+
+        # Execute Strain Gauge tests
+        print("Running SG tests...")
+        sg_results = sg_tests.run_suite()
+        self.all_results.extend(sg_results)
+
+        # Execute Capa tests
+        print("Running CAPA tests...")
+        capa_results = capa_tests.run_suite()
+        self.all_results.extend(capa_results)
+
+        # Execute NFC tests
+        print("Running NFC tests...")
+        nfc_results = nfc_tests.run_suite()
+        self.all_results.extend(nfc_results)
+
+        # Execute CAN tests
+        print("Running CAN tests...")
+        can_results = can_tests.run_suite()
+        self.all_results.extend(can_results)
+
+        # Execute LIN tests
+        print("Running LIN tests...")
+        lin_results = lin_tests.run_suite()
+        self.all_results.extend(lin_results)
         
         # Calculate summary
         self._calculate_summary()
