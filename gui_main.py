@@ -668,7 +668,7 @@ eos_reset_cb = tk.Checkbutton(
     command=lambda: [
         eos_reset(eos_value),
         # Schedule the reading after 5000ms (5 seconds)
-        window.after(15000, lambda: SendDIDGetVal_multiple_entry(
+        window.after(0, lambda: SendDIDGetVal_multiple_entry(
             eos_output_variables, 
             eos_entries, 
             TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e
