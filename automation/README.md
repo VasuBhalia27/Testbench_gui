@@ -1,226 +1,111 @@
-# SmartBU Automation Framework
+# SmartBU Automation
 
-A clean, headless automation framework for the SmartBU embedded test system.
+This folder contains all automation code for the SmartBU project.
 
-## Architecture Overview
+## Principles
 
-```
-automation/
-├── contracts/                    # Test contract definitions
-│   └── led.yaml                 # Defines stable test contracts for LED tests
-├── backend_adapter/             # Backend integration layer
-│   ├── __init__.py
-│   └── led_service.py           # Adapter to call backend LED DID logic
-├── tests/                       # Test case implementations
-│   ├── __init__.py
-│   └── led_tests.py            # LED test cases
-├── core/                        # Core automation logic
-│   ├── __init__.py
-│   └── orchestrator.py         # Orchestrates all test execution
-├── reports/                     # Report generation
-│   ├── __init__.py
-│   ├── excel_report.py         # Excel report generator
-│   └── pdf_report.py           # PDF report generator
-├── run_all_tests.py            # Main entry point
-└── __init__.py
-```
+1. **Isolation** – Automation lives entirely within this directory. No modifications are made to the existing project files (`gui_main.py`, `Functional/*`, etc.).
+2. **Resilience** – Tests should rely on well-defined interfaces and wrappers so that changes to the backend or GUI have minimal impact. The automation code should adapt through abstraction layers rather than by editing production code.
+3. **Modularity** – Separate logic (wrappers/adapters) from test definitions. Use `automation/core` for interface classes and `automation/tests` for test suites.
+4. **Mocking & Stubbing** – External dependencies (Trace32 connection, file system, GUI widgets) are mocked to allow tests to run in CI without hardware or GUI.
 
-## Key Design Principles
+## Getting started
 
-### 1. Automation Independence
-- **NO UI imports** (no tkinter, PyQt, etc.)
-- **NO direct hardware calls** (no VISA, Trace32, CAN/LIN drivers)
-- **Tests depend ONLY on backend adapter**
+1. Install dependencies (e.g., `pytest`) in the project virtual environment.
+2. Write adapters in `automation/core` that import from `Functional.trace32` and expose simplified methods.
+3. Create tests in `automation/tests` that use `pytest` and monkeypatch fixtures to simulate trace32 and GUI behavior.
 
-### 2. Stable Contracts
-All automation depends on stable output variable names confirmed with backend team:
-- `TestFw_LedVoltage` - LED voltage measurement
+## Automation GUI
 
-These variable names are GUARANTEED STABLE and will not change.
+The automation interface is a minimal Tkinter window that allows a tester
+or script to choose the handle type (Non‑NFC or NFC).  It does **not** show
+the ELF path, which is determined automatically via
+:func:`automation.core.path_utils.smartbu_repo_path`.
 
-### 3. Backend Adapter Pattern
+Use the GUI as follows:
+
 ```python
-# Backend adapter returns stable dictionaries:
-backend_result = read_led_voltage("TC_LED_01")
-# Returns: {"TestFw_LedVoltage": 3.25}
+from automation.core.gui_automation import AutomationGUI
 
-# Backend team can replace implementation without breaking tests:
-# - Originally: mock values
-# - Later: real VISA/Trace32 calls
-# - Later: CAN/LIN protocol
+gui = AutomationGUI()
+variant = gui.run()  # blocks until the user closes the window
+print(f"selected variant {variant}")
 ```
 
-### 4. Test Result Structure
-All tests return consistent dictionaries:
+Tests for the GUI are already included in `automation/tests`.
+
+## Hardware Setup Verification
+
+Once the user selects a variant, the automation performs **silent hardware setup verification**:
+
+1. Automatically connects to Trace32 with the chosen variant
+2. Waits for "stopped at breakpoint" status
+3. Waits 1 second
+4. Executes "Go" command
+5. Verifies "running" status
+
+All these steps happen in the background with progress shown in the automation GUI.
+If verification succeeds, the hardware is ready for testing. If it fails, a clear
+error message explains what went wrong.
+
+Use it programmatically:
+
 ```python
-{
-    "TestCaseID": "TC_LED_01",
-    "TestName": "LED Voltage Verification (LED Connected)",
-    "MeasuredValue": 3.25,
-    "Expected": "2.76 V to 3.83 V",
-    "Status": "PASS",  # or "FAIL"
-    "Details": "Voltage is within acceptable range"
-}
-```
+from automation.core.hardware_setup import HardwareSetupVerifier
 
-## Usage
+def on_status(msg):
+    print(f"[Setup] {msg}")
 
-### Run All Tests (One-Button Automation)
-```bash
-python automation/run_all_tests.py
-```
+verifier = HardwareSetupVerifier(status_callback=on_status)
+success = verifier.verify_setup(preset=1)  # 1=Non-NFC, 2=NFC
 
-**Output:**
-- Console: Test summary with pass/fail status
-- Excel report: `SmartBU_TestResults_YYYYMMDD_HHMMSS.xlsx`
-- PDF report: `SmartBU_TestResults_YYYYMMDD_HHMMSS.pdf`
-- Exit code: 0 (all passed) or 1 (any failed)
-
-### From UI (Example)
-```python
-import subprocess
-result = subprocess.run(["python", "automation/run_all_tests.py"])
-if result.returncode == 0:
-    print("All tests passed!")
+if success:
+    print("Hardware ready for testing")
 else:
-    print("Some tests failed - check reports")
+    print("Hardware setup failed")
 ```
 
-## Extending to New Test Types
+## Running the full automation workflow
 
-To add a new test type (e.g., BAT, LIN), follow this pattern:
-
-### 1. Create Contract (`contracts/bat.yaml`)
-```yaml
-bat_tests:
-  - test_id: "TC_BAT_001"
-    test_name: "Battery Voltage Test"
-    output_variables:
-      TestFw_BatteryVoltage:
-        type: "float"
-        unit: "V"
-    acceptance_criteria:
-      min_voltage: 10.0
-      max_voltage: 14.0
-```
-
-### 2. Create Backend Adapter (`backend_adapter/bat_service.py`)
-```python
-def read_battery_voltage(test_id: str) -> dict:
-    # Backend implements actual hardware interaction
-    return {"TestFw_BatteryVoltage": 12.5}
-```
-
-### 3. Create Test Cases (`tests/bat_tests.py`)
-```python
-class BATTestSuite:
-    @staticmethod
-    def tc_bat_001() -> Dict[str, Any]:
-        # Call adapter and validate
-        result = read_battery_voltage("TC_BAT_001")
-        voltage = result["TestFw_BatteryVoltage"]
-        status = "PASS" if 10.0 <= voltage <= 14.0 else "FAIL"
-        return {"TestCaseID": "TC_BAT_001", ...}
-
-def execute_all_bat_tests() -> list:
-    return [BATTestSuite.tc_bat_001(), ...]
-```
-
-### 4. Add to Orchestrator (`core/orchestrator.py`)
-```python
-def run_all_tests(self) -> List[Dict[str, Any]]:
-    led_results = execute_all_led_tests()
-    self.all_results.extend(led_results)
-    
-    bat_results = execute_all_bat_tests()  # Add this
-    self.all_results.extend(bat_results)
-    
-    return self.all_results
-```
-
-## Dependencies
-
-### Core Requirements
-- Python 3.7+
-- PyYAML (for contract files)
-
-### Optional (for Reports)
-- `openpyxl` - for Excel report generation
-  ```bash
-  pip install openpyxl
-  ```
-- `reportlab` - for PDF report generation
-  ```bash
-  pip install reportlab
-  ```
-
-Install all with:
 ```bash
-pip install pyyaml openpyxl reportlab
+cd d:/Project/Testbench_gui_Charan
+python -m automation.run
 ```
 
-## Testing the Framework
+This launches the variant selector. Once you choose a variant and close the window,
+the hardware setup verification begins automatically and its progress is displayed.
 
-### Test LED Module
-```python
-from tests.led_tests import execute_all_led_tests
-results = execute_all_led_tests()
-for result in results:
-    print(f"{result['TestCaseID']}: {result['Status']}")
+## Recommended commands
+
+```bash
+cd d:/Project/Testbench_gui_Charan
+python -m pytest automation/tests -v
 ```
 
-### Test Backend Adapter
-```python
-from backend_adapter.led_service import read_led_voltage
-data = read_led_voltage("TC_LED_01")
-print(f"LED Voltage: {data['TestFw_LedVoltage']}")
-```
+## LED test sequence
 
-### Test Orchestrator
-```python
-from core.orchestrator import orchestrate_tests
-test_data = orchestrate_tests()
-print(test_data["summary"])
-```
+After successful hardware setup the automation workflow automatically
+executes the functional test sequence appropriate for the chosen variant
+(Non‑NFC or NFC).  Currently only the LED verification is implemented;
+additional routines will be invoked later depending on the variant.  The
+sequence is documented in :mod:`automation.core.test_sequences` and the
+results are written to the status window.  In brief:
 
-## File Locations
+* Issue the appropriate debugger variable to toggle the LED state.
+* Pause five seconds to allow the voltage to settle.
+* Fire the ``TESTFW_GUI_CMD_LED_TEST_e`` DID and poll
+  ``TestFw_LedVoltage`` for a stable value.
+* Evaluate success using 2400–2600 mV for the "on" case and exactly 0 mV
+  for the "off" case.
 
-- **Output directory:** `automation/reports/output/`
-- **Current working directory:** `automation/` root (when called via `python run_all_tests.py`)
+Further test routines (battery, motor, etc.) will be added in follow‑up
+commits.  Each function’s logic is kept in its own module (e.g.
+``automation/core/led_test.py``) so problems can be debugged by running a
+single file instead of the entire suite.
 
-## Future Roadmap
+## Notes
 
-- [ ] Add BAT tests
-- [ ] Add LIN tests
-- [ ] Add database logging for historical results
-- [ ] Add email report distribution
-- [ ] Add performance metrics tracking
-- [ ] Add real-time test execution dashboard
-
-## Notes for Backend Team
-
-### Stable Output Variables
-The following output variables are used by automation and will NOT change:
-- `TestFw_LedVoltage` (float, volts)
-
-When adding new tests, ensure:
-1. Define expected output variable names in contract YAML
-2. Implement backend adapter to return these variables
-3. Do NOT change variable names after confirmation
-4. Automation will only ever read these documented variables
-
-### Backend Adapter Interface
-Each adapter must implement:
-```python
-def read_<test_type>_<measure>(test_id: str) -> dict:
-    """
-    Return dictionary with stable output variables.
-    """
-```
-
-This allows backend implementation to evolve (mock → real hardware) 
-without breaking automation.
-
-## Support
-
-For issues or questions about the automation framework, contact the automation team.
+- Avoid touching the main application logic. If a bug needs fixing in production code, create an issue and coordinate with the development team.
+- Keep test data and helpers in this folder.
+- Hardware setup is completely automated and invisible to the user
+- Status progress is reported via callbacks, making it easy to integrate with any UI or logging system

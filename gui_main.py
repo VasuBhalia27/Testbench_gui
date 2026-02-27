@@ -6,6 +6,9 @@ import ctypes
 from Functional.trace32 import *
 from tkinter import filedialog
 from tkinter import messagebox
+
+# Automation framework imports
+from automation.core import gui_automation, integrated_automation
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
@@ -154,7 +157,41 @@ tablet1_X = 243
 tablet1_Y = 192
 
 # ===================================================================================================================
-# ========== TAB 1 ==================================================================================================
+# ========== TAB 1 (Automation) ======================================================================================
+
+tab1 = ttk.Frame(notebook)
+notebook.add(tab1, text="Automation")
+
+tab1_frame = tk.Frame(tab1, bg="#DFDFDF")
+tab1_frame.pack(fill="both", expand=True)
+
+# Create and embed the automation GUI in TAB 1
+automation_gui = gui_automation.AutomationGUI(parent_widget=tab1_frame)
+
+# Callbacks to lock/unlock other tabs
+def lock_other_tabs():
+    """Disable all tabs except TAB 1 during automation."""
+    for idx in range(1, notebook.index("end")):
+        try:
+            notebook.tab(idx, state="disabled")
+        except:
+            pass
+
+def unlock_other_tabs():
+    """Re-enable all tabs after automation completes."""
+    for idx in range(1, notebook.index("end")):
+        try:
+            notebook.tab(idx, state="normal")
+        except:
+            pass
+
+# Create and attach the automation runner
+automation_runner = integrated_automation.IntegratedAutomationRunner(
+    gui_automation=automation_gui,
+    lock_tabs_callback=lock_other_tabs,
+    unlock_tabs_callback=unlock_other_tabs,
+)
+automation_gui.set_automation_runner(automation_runner)
 
 # ===================================================================================================================
 # ===================================================================================================================
