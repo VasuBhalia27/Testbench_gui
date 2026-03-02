@@ -39,7 +39,6 @@ class AutomationGUI:
         self.parent_widget = parent_widget
         self.lock_callback = lock_callback or (lambda: None)
         self.unlock_callback = unlock_callback or (lambda: None)
-        self.variant = tk.IntVar(value=0)  # start unchecked; user must select
         self.started = False
         self.automation_runner = None  # will be set by integrated setup
         
@@ -52,11 +51,15 @@ class AutomationGUI:
             self.root = tk.Tk()
             self.root.title("SmartBU Test Automation")
             self.root.geometry("500x450")
-            self._build_ui(self.root)
         else:
             # Embedded mode: build UI directly in parent widget
             self.root = parent_widget
-            self._build_ui(parent_widget)
+
+        # create the variant variable now that a root exists
+        self.variant = tk.IntVar(master=self.root, value=0)  # start unchecked; user must select
+
+        # build the interface into whichever container we've chosen
+        self._build_ui(self.root)
 
     def _build_ui(self, container):
         """Construct the GUI layout."""
@@ -243,4 +246,39 @@ class AutomationGUI:
         """
         self.root.mainloop()
         return self.variant.get()
+
+
+# allow the module to be executed directly for manual testing
+if __name__ == "__main__":
+    # ensure the project root (parent of `automation/core`) is on sys.path
+    # so that imports like "automation.core.integrated_automation" succeed
+    import os, sys
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+
+    # simple entry point so developers can launch the automation GUI by
+    # running this file without needing the full application.
+    gui = AutomationGUI()
+
+    # when running standalone we still want the automation flow to work;
+    # create an IntegratedAutomationRunner exactly as gui_main does.  use
+    # no‑op lock/unlock callbacks since there are no other tabs to disable.
+    try:
+        from automation.core import integrated_automation
+    except ImportError:  # pragma: no cover - just in case
+        print("Warning: cannot import integrated_automation; automation will not run")
+        runner = None
+    else:
+        runner = integrated_automation.IntegratedAutomationRunner(
+            gui_automation=gui,
+            lock_tabs_callback=lambda: None,
+            unlock_tabs_callback=lambda: None,
+        )
+        gui.set_automation_runner(runner)
+
+    variant = gui.run()
+    print(f"GUI closed, variant selected = {variant}")
+
 
