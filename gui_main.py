@@ -724,7 +724,7 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-SgValue = tk.IntVar(value=1)
+SgValue = tk.IntVar(value=2)
 continuous_read = tk.BooleanVar(value=False)
 
 # Entries
