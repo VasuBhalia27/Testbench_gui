@@ -619,3 +619,31 @@ def read_sg_values_with_delay(variables, entries):
             
     except Exception as e:
         print(f"Error reading SG values: {e}")
+
+def read_capa_values_with_delay(variables, entries):
+    """Read CAPA values with a small delay"""
+    try:
+        # Trigger measurement
+        if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd(f'Var.set TestFw_GuiCmd = {TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e}')
+            time.sleep(0.2)  # Small delay for measurement
+            
+            for i in range(len(variables)):
+                fetched_var_value = dbg.fnc(f"Var.VALUE({variables[i]})")
+                
+                # Handle different variable types
+                try:
+                    # Try to convert to int for numeric values
+                    int_val = int(fetched_var_value)
+                    formatted_value = format_value_with_unit(variables[i], int_val)
+                except:
+                    # Keep as string for non-numeric values
+                    formatted_value = format_value_with_unit(variables[i], fetched_var_value)
+                
+                entries[i].delete(0, tk.END)
+                entries[i].insert(0, formatted_value)
+    except Exception as e:
+        print(f"Error reading CAPA values: {e}")
+        error_msg = str(e)
+        if "'str' object has no attribute 'cmd'" in error_msg:
+            messagebox.showerror("Error", "Trace32 not connected!!!")

@@ -870,41 +870,105 @@ canvas8.create_image(145.0, 37.0, image=images["minibea_logo_8"])
 images["tile1_tab8"] = PhotoImage(file=relative_to_assets("Tile.png", "tab8")) 
 canvas8.create_image(245, 230, image=images["tile1_tab8"])
 
+# Variables
+CapaValue = tk.IntVar(value=2)
+continuous_read_capa = tk.BooleanVar(value=False)
+
 # Entries
 canvas8.create_text(73.0, 113.0, anchor="nw", text="Capa Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+
 canvas8.create_text(73.0, 168.0, anchor="nw", text="CapaApproach", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab8_entry_1 = ttk.Entry(tab8_frame, style ='Background_grey.TEntry')
+tab8_entry_1 = ttk.Entry(tab8_frame, style='Background_grey.TEntry')
 tab8_entry_1.place(x=350.0, y=168.0, width=115, height=32)
 
 canvas8.create_text(73.0, 214.0, anchor="nw", text="CapaLock", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab8_entry_2 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
+tab8_entry_2 = ttk.Entry(tab8_frame, style='Background_grey.TEntry')
 tab8_entry_2.place(x=350.0, y=214.0, width=115, height=32)
 
 canvas8.create_text(73.0, 260.0, anchor="nw", text="CapaUnlock", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab8_entry3 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
+tab8_entry3 = ttk.Entry(tab8_frame, style='Background_grey.TEntry')
 tab8_entry3.place(x=350.0, y=260.0, width=115, height=32)
 
 canvas8.create_text(73.0, 306.0, anchor="nw", text="CapaApproachRawValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab8_entry4 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
+tab8_entry4 = ttk.Entry(tab8_frame, style='Background_grey.TEntry')
 tab8_entry4.place(x=350.0, y=306.0, width=115, height=32)
 
 canvas8.create_text(73.0, 352.0, anchor="nw", text="CapaLockRawValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab8_entry5 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
+tab8_entry5 = ttk.Entry(tab8_frame, style='Background_grey.TEntry')
 tab8_entry5.place(x=350.0, y=352.0, width=115, height=32)
 
 canvas8.create_text(73.0, 398.0, anchor="nw", text="CapaUnlockRawValue", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab8_entry6 = ttk.Entry(tab8_frame, style = 'Background_grey.TEntry')
+tab8_entry6 = ttk.Entry(tab8_frame, style='Background_grey.TEntry')
 tab8_entry6.place(x=350.0, y=398.0, width=115, height=32)
 
-capa_output_variables = ["TestFw_CapaApproach", "TestFw_CapaLock", "TestFw_CapaUnlock", "TestFw_CapaApproachSensorValue", "TestFw_CapaLockSensorValue", "TestFw_CapaUnlockSensorValue"]
-capa_entry = [tab8_entry_1,tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry5, tab8_entry6]
+# Output variables and entries
+capa_output_variables = [
+    "TestFw_CapaApproach", 
+    "TestFw_CapaLock", 
+    "TestFw_CapaUnlock", 
+    "TestFw_CapaApproachSensorValue", 
+    "TestFw_CapaLockSensorValue", 
+    "TestFw_CapaUnlockSensorValue"
+]
+capa_entries = [tab8_entry_1, tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry5, tab8_entry6]
 
+# Auto-refresh function
+def auto_refresh_capa_values():
+    """Automatically refresh CAPA values every 2 seconds"""
+    try:
+        # Only refresh if Trace32 is connected and we're on the CAPA tab
+        current_tab = notebook.tab(notebook.select(), "text")
+        if current_tab == "Capa Sensor" and dbg and not isinstance(dbg, str):
+            # Read all CAPA values
+            read_capa_values_with_delay(capa_output_variables, capa_entries)
+    except:
+        pass
+    finally:
+        # Schedule next refresh
+        window.after(2000, auto_refresh_capa_values)
+
+# Start auto-refresh
+window.after(2000, auto_refresh_capa_values)
+
+# Continuous Read checkbox
+continuous_read_capa_cb = tk.Checkbutton(
+    tab8, 
+    text="Continuous Read", 
+    variable=continuous_read_capa,
+    command=lambda: toggle_continuous_read_capa(continuous_read_capa.get())
+)
+continuous_read_capa_cb.place(x=350, y=110, width=115, height=32)
+
+def toggle_continuous_read_capa(enabled):
+    if enabled:
+        start_continuous_read_capa()
+    else:
+        pass  # Stop by not rescheduling
+
+def start_continuous_read_capa():
+    """Start continuous reading of CAPA values"""
+    def read_loop():
+        if continuous_read_capa.get():
+            # Read values
+            read_capa_values_with_delay(capa_output_variables, capa_entries)
+            # Schedule next read
+            window.after(1000, read_loop)
+    
+    read_loop()
+
+# Run button
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
-run_test_btn = Button(tab8, image=images["tile1_run_capa"], command=lambda: SendDIDGetVal_multiple_entry(capa_output_variables, capa_entry, TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e), bd = 0)
+run_test_btn = Button(
+    tab8, 
+    image=images["tile1_run_capa"], 
+    command=lambda: read_capa_values_with_delay(capa_output_variables, capa_entries),
+    bd=0
+)
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(capa_entry))
-reset_entries.place(x=350, y=110, width=115, height=32)
+# Reset button
+reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(capa_entries))
+reset_entries.place(x=350, y=65, width=115, height=32)
 
 canvas8.create_text(
     260.0,
