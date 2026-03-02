@@ -602,3 +602,20 @@ def auto_reset_sg_checkbox(SgValue):
             dbg.cmd(f'Var.set TestFw_GetSgResults = 0')
     except Exception as e:
         print(f"Failed to auto-reset Trace32 variable: {e}")
+
+def read_sg_values_with_delay(variables, entries):
+    """Read SG values with a small delay"""
+    try:
+        # Trigger measurement
+        dbg.cmd(f'Var.set TestFw_GuiCmd = {TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e}')
+        time.sleep(0.2)
+        
+        for i in range(len(variables)):
+            fetched_var_value = dbg.fnc(f"Var.VALUE({variables[i]})")
+            formatted_value = format_value_with_unit(variables[i], fetched_var_value)
+            
+            entries[i].delete(0, tk.END)
+            entries[i].insert(0, formatted_value)
+            
+    except Exception as e:
+        print(f"Error reading SG values: {e}")

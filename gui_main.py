@@ -724,7 +724,8 @@ canvas7.create_image(245, 245, image=images["tile1_tab7"])
 
 offset_top = 150  # offset from top of the frame/window
 
-SgValue = tk.IntVar(value=2)
+SgValue = tk.IntVar(value=1)
+continuous_read = tk.BooleanVar(value=False)
 
 # Entries
 canvas7.create_text(34.0, 75.0, anchor="nw", text="Sg Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
@@ -757,6 +758,54 @@ canvas7.create_text(380.0, 156 + 3*40, anchor="nw",text="Sg2Opamp", fill="#FFFFF
 tab7_entry8 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
 tab7_entry8.place(x=510.0, y=offset_top + 3*40, width=115, height=32)
 
+def auto_refresh_sg_values():
+    """Automatically refresh SG values every 2 seconds"""
+    try:
+        # Only refresh if Trace32 is connected and we're on the SG tab
+        current_tab = notebook.tab(notebook.select(), "text")
+        if current_tab == "Strain Gauge" and dbg and not isinstance(dbg, str):
+            # Read all SG values
+            read_sg_values_with_delay(sg_output_variables, sg_entries)
+    except:
+        pass
+    finally:
+        # Schedule next refresh
+        window.after(2000, auto_refresh_sg_values)
+
+# Start auto-refresh
+window.after(2000, auto_refresh_sg_values)
+
+# Add this checkbox near your other SG controls
+continuous_read_cb = tk.Checkbutton(
+    tab7, 
+    text="Continuous Read", 
+    variable=continuous_read,
+    command=lambda: toggle_continuous_read(continuous_read.get())
+)
+continuous_read_cb.place(x=365, y=150, width=115, height=32)
+
+# Add this function
+def toggle_continuous_read(enabled):
+    if enabled:
+        start_continuous_read()
+    else:
+        stop_continuous_read()
+
+def start_continuous_read():
+    """Start continuous reading of SG values"""
+    def read_loop():
+        if continuous_read.get():
+            # Read values
+            read_sg_values_with_delay(sg_output_variables, sg_entries)
+            # Schedule next read
+            window.after(1000, read_loop)
+    
+    read_loop()
+
+def stop_continuous_read():
+    """Stop continuous reading"""
+    pass  # Just stop the loop by not rescheduling
+
 
 # Execution
 sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp"]
@@ -772,7 +821,7 @@ sg_results_cb = tk.Checkbutton(
     sg_results(SgValue),
     SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e),
         # Schedule the reset after 1000ms (1 second)
-    window.after(1000, lambda: auto_reset_sg_checkbox(SgValue))
+    #window.after(1000, lambda: auto_reset_sg_checkbox(SgValue))
     ]
 )
 sg_results_cb.place(x=365, y=110, width=115, height=32)
