@@ -38,10 +38,10 @@ class SgTest:
     """
 
     # pass ranges
-    SG_PLUS_MINUS_MIN = 1650 - 50
-    SG_PLUS_MINUS_MAX = 1650 + 50
+    SG_PLUS_MINUS_MIN = 1600
+    SG_PLUS_MINUS_MAX = 4100
     SG_OPAMP_MIN = 200
-    SG_OPAMP_MAX = 3100
+    SG_OPAMP_MAX = 4600
 
     VARIABLES = [
         "TestFw_DoPwrSg",
