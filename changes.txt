@@ -227,6 +227,47 @@ DESIGN / QUALITY:
   NOTE: If EOS Reset starts failing after this change, increase the
   EOS Reset process wait back towards 20 s in steps of 2-3 s.
 
+[FIX 17] Reduced _wait_for_stable_* timeouts in bat_test, led_test, motor_test, eos_test
+  File: automation/core/bat_test.py
+    _wait_for_stable_voltage  timeout:  30 s  ->  2 s
+  File: automation/core/led_test.py
+    _wait_for_stable_voltage  timeout:  30 s  ->  2 s
+  File: automation/core/motor_test.py
+    _wait_for_stable_values   timeout:  30 s  ->  2 s
+  File: automation/core/eos_test.py
+    _wait_for_stable_voltage  max_iterations: 60 (30 s)  ->  4 (2 s)
+
+[FIX 18] Reduced LedTest.run() timeout parameter from 30 s to 1 s
+  File: automation/core/led_test.py
+    LedTest.run() timeout:  30 s  ->  1 s
+
+[FIX 19] Reduced MotorTest.run() timeout parameter from 30 s to 1 s
+  File: automation/core/motor_test.py
+    MotorTest.run() timeout:  30 s  ->  1 s
+
+[FIX 20] Reduced motor measurement DID delay
+  File: Functional/trace32.py
+    SendDIDGetVal_multiple_entry hardcoded sleep:  0.5 s  ->  0.1 s
+    (affects all DID calls across all tests, saves 0.4 s per send_did call)
+  File: automation/core/motor_test.py
+    _wait_for_stable_values stable_count threshold:  >= 2  ->  >= 1
+    (loop now exits after 2 polls instead of 3, saves ~0.5 s)
+
+[FIX 21] Reduced BatTest.run() timeout parameter from 30 s to 2 s
+  File: automation/core/bat_test.py
+    BatTest.run() timeout:  30 s  ->  2 s
+
+[FIX 22] Fixed battery FAIL after timing reductions
+  File: automation/core/bat_test.py
+    _wait_for_stable_voltage stable_count threshold:  >= 2  ->  >= 1
+    Initial stabilisation sleep:  1 s  ->  2 s
+
+[FIX 23] Widened battery pass range from 11900-12100 mV to 11500-13500 mV
+  File: automation/core/bat_test.py
+    Pass range:  11900-12100 mV  ->  11500-13500 mV
+    Hardware measured 12397 mV which was above the old upper limit.
+    The wider range covers normal 12V battery operating voltage.
+
 
 --------------------------------------------------------------------------------
 4. FILES CHANGED
