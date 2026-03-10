@@ -1,0 +1,221 @@
+================================================================================
+PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
+Date: March 10, 2026
+================================================================================
+
+
+--------------------------------------------------------------------------------
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+
+A Windows desktop test-bench application for U-Shin's SmartBU (XNF Handle) ECU.
+
+Purpose:
+  - Connect to a Lauterbach TRACE32 debugger attached to a PSoC 4 target board
+  - Flash the target ECU with either a Non-NFC or NFC firmware variant
+  - Execute functional validation tests across 9 hardware features:
+    LED, Battery Monitor, Motor, EOS, Strain Gauge, Capacitive Sensor,
+    NFC, CAN, LIN
+  - Display live measurement values in a 12-tab Tkinter GUI panel
+  - Run automated test sequences and report PASS/FAIL
+
+Technology Stack:
+  - GUI       : Python 3 Tkinter + ttk (Canvas-based layout)
+  - Debugger  : Lauterbach lauterbach.trace32.rcl (RCL/UDP port 20006)
+  - Target MCU: Cypress PSoC 4 (PRACTICE CMM scripts)
+  - Reporting : openpyxl (Excel logs)
+  - Testing   : pytest
+  - Launch    : .bat scripts
+
+
+--------------------------------------------------------------------------------
+2. ISSUES FOUND
+--------------------------------------------------------------------------------
+
+CRITICAL (broke at runtime):
+  [1] backend_adapter package did not exist — all test suites imported from it
+      Affected: comprehensive_test_executor.py, led_tests.py, motor_tests.py,
+                battery_tests.py, eos_tests.py, sg_tests.py, capa_tests.py,
+                nfc_tests.py, can_tests.py, lin_tests.py
+
+  [2] orchestrator.py used wrong import paths:
+        from tests.led_tests import ...        (no top-level 'tests' package)
+        from tests import (battery_tests, ...) (same issue)
+
+  [3] Functional/trace32.py hardcoded a conan2 package hash 'tracee4f08930e322b'
+      for the Trace32 binary path — breaks on any machine with a different hash
+
+  [4] LaunchTrace32() called autoexec_cmm_handler() TWICE — the second call
+      overwrote the first, doubling file copy/patch operations unnecessarily
+
+LOGIC ERRORS:
+  [5] led_tests.py: tc_led_03 ("LED Not Connected") and tc_led_03_shorted
+      ("Connection Shorted") used the same 2.76–3.83 V range as tc_led_01
+      ("LED Connected") — a disconnected/shorted line should read ~0 V
+
+  [6] hardware_setup.py: run_code_and_verify() polled TestFw_IsEcuSleeping
+      for ANY response without checking the actual value — a sleeping ECU
+      (value != 0) incorrectly passed the "running" verification
+
+  [7] motor_tests.py / battery_tests.py: PASS criterion was only
+      "value is not None" — no threshold validation applied at all
+
+  [8] test_sequences.py: NFC and CAN results were hardcoded to False
+      (placeholder stubs, never actually executed)
+
+DESIGN / QUALITY:
+  [9]  trace32_adapter.py: clear_eos_entries() and clear_sg_entries() were
+       identical stubs with no meaningful distinction or documentation
+
+  [10] Functional/logging.py: LogApp.add_log() called wb.save() on every
+       single row — very inefficient for high-frequency logging
+
+  [11] requirements.txt listed 'pathlib' — it is part of the Python standard
+       library (since 3.4), not a pip package. Listing it is misleading and
+       can install a conflicting legacy backport.
+
+  [12] automation/README.md referenced stale path d:/Project/Testbench_gui_Charan
+       from a different machine
+
+
+--------------------------------------------------------------------------------
+3. FIXES APPLIED
+--------------------------------------------------------------------------------
+
+[FIX 1] Created automation/backend_adapter/ package (11 new files)
+  Files created:
+    automation/backend_adapter/__init__.py
+    automation/backend_adapter/common.py        — shared read_variable,
+                                                  ensure_connected,
+                                                  send_test_command,
+                                                  set_variable wrappers
+    automation/backend_adapter/led_service.py   — reads TestFw_LedVoltage
+    automation/backend_adapter/motor_service.py — reads motor variables
+    automation/backend_adapter/battery_service.py — reads battery variables
+    automation/backend_adapter/eos_service.py   — reads EOS variables
+    automation/backend_adapter/sg_service.py    — reads SG variables
+    automation/backend_adapter/capa_service.py  — reads Capa variables
+    automation/backend_adapter/nfc_service.py   — reads NFC variables
+    automation/backend_adapter/can_service.py   — reads CAN variables
+    automation/backend_adapter/lin_service.py   — reads LIN variables
+  All services return None gracefully when Trace32 is not connected.
+
+[FIX 2] Fixed automation/core/orchestrator.py
+  Before:
+    from tests.led_tests import execute_all_led_tests
+    from tests import (battery_tests, motor_tests, ...)
+  After:
+    from automation.tests.led_tests import execute_all_led_tests
+    from automation.tests import (battery_tests, motor_tests, ...)
+
+[FIX 3] Fixed Functional/trace32.py — LaunchTrace32()
+  - Removed the duplicate autoexec_cmm_handler() call entirely
+  - Replaced hardcoded conan2 hash path with dynamic glob discovery:
+      Path.home().glob("trace*/p/bin/windows64/t32marm.exe")
+    If no Trace32 installation is found, a clear error dialog is shown.
+
+[FIX 4] Fixed Functional/trace32.py — edit_trace32_config_file()
+  - Replaced hardcoded 'tracee4f08930e322b' hash in SYS= line with:
+      Path.home().glob("trace*/p")
+    So config.t32 is always patched to the actual installed package path.
+
+[FIX 5] Fixed automation/tests/led_tests.py
+  - Fixed import: from backend_adapter.led_service  ->
+                  from automation.backend_adapter.led_service
+  - tc_led_03 ("LED Not Connected"):
+      Before: min=2.76 V, max=3.83 V  (copy-paste of connected range)
+      After:  min=0.0 V,  max=0.1 V   (no current path -> near zero)
+  - tc_led_03_shorted ("Connection Shorted"):
+      Before: min=2.76 V, max=3.83 V  (copy-paste of connected range)
+      After:  min=0.0 V,  max=0.1 V   (shorted line clamps close to 0 V)
+
+[FIX 6] Fixed automation/core/hardware_setup.py — run_code_and_verify()
+  Before:
+    response = t32.dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+    # any response = PASS (sleeping ECU also passed!)
+  After:
+    status = t32.dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
+    if status is not None and int(float(str(status))) == 0:
+        # value must be 0 (awake) to pass
+
+[FIX 7] Fixed automation/tests/motor_tests.py
+  Added per-variable threshold validation:
+    TestFw_MotorCoupledVoltage   : must be > 0 mV
+    TestFw_MotorDecoupledVoltage : must be > 0 mV
+    TestFw_MotorCurrentValue     : must be > 0 mA
+    TestFw_MotorLoadError        : must be == 0 (no error)
+
+[FIX 8] Fixed automation/tests/battery_tests.py
+  Added per-variable threshold validation:
+    TestFw_BatRefStatus : must be present (not None)
+    TestFw_AiBatRef     : must be in range 11900–12100 mV (12 V supply)
+
+[FIX 9] Fixed automation/core/test_sequences.py — run_for_variant()
+  Before:
+    results['nfc'] = False   # hardcoded stub
+    results['can'] = False   # hardcoded stub
+  After:
+    NFC: sends TEST_GUI_CMD_NFC_TEST_e DID, reads TestFw_IsNfcDetectedCard,
+         PASS if value == 1
+    CAN: sends TEST_GUI_CMD_CAN_TEST_e DID, reads DummyBytes,
+         PASS if value > 0
+
+[FIX 10] Updated automation/core/trace32_adapter.py
+  clear_eos_entries() and clear_sg_entries() are now documented as
+  intentional no-ops in automation context (no live GUI widgets available),
+  with guidance to use set_variable() for firmware-side state reset.
+
+[FIX 11] Fixed Functional/logging.py — LogApp
+  Before:
+    def add_log(self, did, result):
+        self.ws.append([...])
+        self.wb.save(self.LOG_FILE_PATH)  # saved on EVERY row
+  After:
+    def add_log(self, did, result):
+        self.ws.append([...])             # in-memory only
+    def close(self):
+        self.wb.save(self.LOG_FILE_PATH)  # save once at session end
+  Also added context manager support (__enter__ / __exit__).
+
+[FIX 12] Fixed requirements.txt
+  Removed 'pathlib' — it is a Python standard library module (not a pip
+  package). Installing it via pip installs a legacy backport that can
+  conflict with the built-in version.
+
+[FIX 13] Fixed automation/README.md
+  Updated stale path references:
+    Before: cd d:/Project/Testbench_gui_Charan
+    After:  cd c:/UShin/Testbench_gui_Charan
+
+
+--------------------------------------------------------------------------------
+4. FILES CHANGED
+--------------------------------------------------------------------------------
+
+  MODIFIED:
+    Functional/trace32.py
+    Functional/logging.py
+    automation/core/orchestrator.py
+    automation/core/test_sequences.py
+    automation/core/hardware_setup.py
+    automation/core/trace32_adapter.py
+    automation/tests/led_tests.py
+    automation/tests/motor_tests.py
+    automation/tests/battery_tests.py
+    requirements.txt
+    automation/README.md
+
+  CREATED:
+    automation/backend_adapter/__init__.py
+    automation/backend_adapter/common.py
+    automation/backend_adapter/led_service.py
+    automation/backend_adapter/motor_service.py
+    automation/backend_adapter/battery_service.py
+    automation/backend_adapter/eos_service.py
+    automation/backend_adapter/sg_service.py
+    automation/backend_adapter/capa_service.py
+    automation/backend_adapter/nfc_service.py
+    automation/backend_adapter/can_service.py
+    automation/backend_adapter/lin_service.py
+
+================================================================================

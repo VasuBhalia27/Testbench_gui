@@ -99,12 +99,14 @@ class HardwareSetupVerifier:
         start = time.time()
         while time.time() - start < timeout:
             try:
-                # poll the target state
+                # Poll the sleeping flag.  The ECU must be AWAKE (value == 0)
+                # before we declare the setup verified.  Accepting any response
+                # without checking the value would allow a sleeping ECU to pass.
                 status = t32.dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
-                # if we reach here, the target is alive and responding
-                self._log("Running: target is executing")
-                return
-            except:
+                if status is not None and int(float(str(status))) == 0:
+                    self._log("Running: target is executing (TestFw_IsEcuSleeping = 0)")
+                    return
+            except Exception:
                 pass
             time.sleep(0.5)
 

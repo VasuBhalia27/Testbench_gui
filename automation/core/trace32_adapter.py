@@ -84,21 +84,23 @@ class Trace32Interface:
 
     def clear_eos_entries(self) -> None:
         """Clear the EOS test result display entries.
-        
-        This mimics the behavior of clicking the "Reset Results" button in the
-        EOS test tab, which clears the displayed voltage values before running
-        a new test.  Used during test automation to ensure clean state between
-        test runs.
+
+        In the manual GUI this clears the Entry widgets on the EOS tab.
+        In the automation layer there are no live GUI widgets, so this call
+        is intentionally a no-op.  If pre-test firmware state needs resetting,
+        use :meth:`set_variable` directly (e.g. ``EosTest_EosRequestGui``).
         """
-        # Delegate to the GUI's clear_entries function in Functional.trace32
-        # This provides a high-level way to reset the UI without directly
-        # manipulating widget state from the automation layer.
+        # t32.clear_entries requires a list of Tkinter Entry widgets which are
+        # not available here; passing [] is a deliberate no-op.
         t32.clear_entries([])
 
     def clear_sg_entries(self) -> None:
         """Clear the SG test result display entries.
 
-        Works just like ``clear_eos_entries`` but for the strain gauge tab.
+        Same as :meth:`clear_eos_entries` but for the Strain Gauge tab.
+        In the automation layer there are no live GUI widgets, so this call
+        is intentionally a no-op.  If pre-test firmware state needs resetting,
+        use :meth:`set_variable` directly (e.g. ``TestFw_GetSgResults``).
         """
         t32.clear_entries([])
 

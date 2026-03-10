@@ -32,6 +32,21 @@ class LogApp:
         self.sr_no = 1
         
     def add_log(self, did: str, result: str):
+        """Append a row to the in-memory workbook.
+
+        Call :meth:`close` (or use this object as a context manager) to
+        persist the workbook to disk.  Saving on every row is avoided here
+        because it is very slow for high-frequency logging.
+        """
         self.ws.append([self.sr_no, did, result])
-        self.wb.save(self.LOG_FILE_PATH)
         self.sr_no += 1
+
+    def close(self):
+        """Flush the workbook to disk.  Call once when a test session ends."""
+        self.wb.save(self.LOG_FILE_PATH)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()

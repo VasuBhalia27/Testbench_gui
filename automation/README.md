@@ -68,7 +68,7 @@ else:
 ## Running the full automation workflow
 
 ```bash
-cd d:/Project/Testbench_gui_Charan
+cd c:/UShin/Testbench_gui_Charan
 python -m automation.run
 ```
 
@@ -78,7 +78,7 @@ the hardware setup verification begins automatically and its progress is display
 ## Recommended commands
 
 ```bash
-cd d:/Project/Testbench_gui_Charan
+cd c:/UShin/Testbench_gui_Charan
 python -m pytest automation/tests -v
 ```
 

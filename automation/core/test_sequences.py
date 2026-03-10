@@ -138,9 +138,27 @@ class TestSequenceRunner:
 
         # placeholder logic for other tests; vary by variant
         if variant == 2:
-            # NFC-specific tests (not yet implemented)
-            results['nfc'] = False
-            results['can'] = False
+            # NFC test: trigger the NFC DID and check whether a card is detected.
+            self._log("NFC: sending test command")
+            self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e)
+            time.sleep(2)
+            try:
+                nfc_val = self.adapter.read_variable("TestFw_IsNfcDetectedCard")
+                results['nfc'] = (nfc_val is not None and int(float(str(nfc_val))) == 1)
+            except Exception:
+                results['nfc'] = False
+                self._log("NFC: variable read failed")
+
+            # CAN test: trigger the CAN DID and verify frames were transferred.
+            self._log("CAN: sending test command")
+            self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
+            time.sleep(2)
+            try:
+                can_val = self.adapter.read_variable("DummyBytes")
+                results['can'] = (can_val is not None and float(str(can_val)) > 0)
+            except Exception:
+                results['can'] = False
+                self._log("CAN: variable read failed")
 
         # the remaining tests will eventually be added here
         return results

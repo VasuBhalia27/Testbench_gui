@@ -6,8 +6,8 @@ Designed to be extensible for future test types (BAT, LIN, etc.).
 """
 
 from typing import List, Dict, Any
-from tests.led_tests import execute_all_led_tests
-from tests import (
+from automation.tests.led_tests import execute_all_led_tests
+from automation.tests import (
     battery_tests,
     motor_tests,
     eos_tests,

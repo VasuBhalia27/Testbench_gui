@@ -107,28 +107,27 @@ def LaunchTrace32(repo_path_entry, selected_preset):
         messagebox.showerror("Error", "BMW repository not found")
         return 
     # --- STEP 3: Config & Launch ---
-    repo_path_XNF = repo_path_entry.get() 
+    repo_path_XNF = repo_path_entry.get()
     if repo_path_XNF and os.path.exists(repo_path_XNF):
         autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
     else:
         messagebox.showerror("Error", "BMW repository not found")
-        return # Stop execution if path is invalid
+        return  # Stop execution if path is invalid
 
-    repo_path_XNF = repo_path_entry.get() #to get the path of XNF directory.
-    if repo_path_XNF:
-        if os.path.exists(repo_path_XNF):
-            autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
-        else:
-            messagebox.showerror("Error", "BMW repository not found")
-    else:
-        messagebox.showerror("Error", "BMW repository not found")
-
-
-
-    user_path = Path.home() #to get the path of user being currently used.
-    user_path = str(user_path) #to get the path of user being currently used.
-    user_path_cleaned = user_path.replace('/', "\\") 
-    trace32_path = f"{user_path_cleaned}\\.conan2\\p\\tracee4f08930e322b\\p\\bin\\windows64\\t32marm.exe"    
+    # Locate the Trace32 ARM debugger executable under the user's conan2 cache.
+    # The package directory name contains a hash that differs per installation,
+    # so we glob for any 'trace*' directory instead of hardcoding one hash.
+    trace32_candidates = sorted(
+        (Path.home() / ".conan2" / "p").glob("trace*/p/bin/windows64/t32marm.exe")
+    )
+    if not trace32_candidates:
+        messagebox.showerror(
+            "Error",
+            "Trace32 ARM debugger not found in ~/.conan2 package cache.\n"
+            "Please verify your Lauterbach Trace32 conan2 installation."
+        )
+        return
+    trace32_path = str(trace32_candidates[-1])
     
     Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
     Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
@@ -287,11 +286,13 @@ def edit_trace32_config_file(filename):
 
     target_prefix = "SYS="
     
-    user_path = Path.home() #to get the path of user being currently used.
-    user_path = str(user_path) #to get the path of user being currently used.
-    user_path_cleaned = user_path.replace('/', "\\") 
-    new_path = f"{user_path_cleaned}\\.conan2\\p\\tracee4f08930e322b\\p"
-
+    # Locate the Trace32 package root directory dynamically.
+    conan2_candidates = sorted(
+        (Path.home() / ".conan2" / "p").glob("trace*/p")
+    )
+    if not conan2_candidates:
+        return False
+    new_path = str(conan2_candidates[-1])
 
     replacement_line = "SYS=" + new_path + "\n"
     

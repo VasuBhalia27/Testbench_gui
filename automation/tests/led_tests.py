@@ -5,7 +5,7 @@ Test cases for LED voltage verification.
 Depends ONLY on the backend adapter, which returns stable output variables.
 """
 
-from backend_adapter.led_service import read_led_voltage
+from automation.backend_adapter.led_service import read_led_voltage
 from typing import Dict, Any
 
 
@@ -79,7 +79,7 @@ class LEDTestSuite:
         Test Case: TC_LED_03 - LED Voltage Verification (LED Not Connected)
         
         Verify LED voltage when Non-Driver PCB is not connected.
-        Expected range: 2.76 V to 3.83 V
+        Expected range: 0.0 V to 0.1 V (near zero — no current path)
         
         Returns:
             Dictionary with test result
@@ -87,9 +87,10 @@ class LEDTestSuite:
         test_id = "TC_LED_03"
         test_name = "LED Voltage Verification (LED Not Connected)"
         
-        # Acceptance criteria
-        min_voltage = 2.76
-        max_voltage = 3.83
+        # Acceptance criteria: disconnected LED has no current path so voltage
+        # should be at or near 0.
+        min_voltage = 0.0
+        max_voltage = 0.1
         
         try:
             backend_result = read_led_voltage(test_id)
@@ -127,7 +128,7 @@ class LEDTestSuite:
         Test Case: TC_LED_03_SHORTED - LED Voltage Verification (Connection Shorted)
         
         Verify LED voltage when LED connection is shorted.
-        Expected range: 2.76 V to 3.83 V
+        Expected range: 0.0 V to 0.1 V (shorted connection pulls line to ground)
         
         Returns:
             Dictionary with test result
@@ -135,9 +136,10 @@ class LEDTestSuite:
         test_id = "TC_LED_03_SHORTED"
         test_name = "LED Voltage Verification (Connection Shorted)"
         
-        # Acceptance criteria
-        min_voltage = 2.76
-        max_voltage = 3.83
+        # Acceptance criteria: a shorted LED connection clamps the line close
+        # to 0 V.
+        min_voltage = 0.0
+        max_voltage = 0.1
         
         try:
             backend_result = read_led_voltage(test_id)
