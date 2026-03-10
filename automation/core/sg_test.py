@@ -87,8 +87,8 @@ class SgTest:
         self.log("SG1: triggering results DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
 
-        self.log("SG1: waiting 5 seconds for measurement")
-        time.sleep(5)
+        self.log("SG1: waiting 3 seconds for measurement")
+        time.sleep(3)
 
         # send DID again before polling in case the firmware uses the DID to
         # latch values into variables (GUI reads immediately after raising flag)
@@ -152,8 +152,8 @@ class SgTest:
         # manual GUI workflow inserts a 2‑second pause after hitting "Reset Results".
         # The firmware may need time to digest the clearing, so mimic that behaviour
         # before proceeding with the next measurement.
-        self.log("SG2: waiting 2 seconds after reset")
-        time.sleep(2)
+        self.log("SG2: waiting 1 second after reset")
+        time.sleep(1)
 
         self.log("SG2: requesting firmware to update SG results")
         self.adapter.set_variable("TestFw_GetSgResults", 1)
@@ -161,8 +161,8 @@ class SgTest:
         self.log("SG2: triggering results DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
 
-        self.log("SG2: waiting 5 seconds for measurement")
-        time.sleep(5)
+        self.log("SG2: waiting 3 seconds for measurement")
+        time.sleep(3)
 
         self.log("SG2: triggering measurement DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
@@ -206,7 +206,7 @@ class SgTest:
         return result
 
     def _wait_for_stable_variables(
-        self, variables: List[str], timeout: float = 30.0, poll_interval: float = 0.5
+        self, variables: List[str], timeout: float = 2.0, poll_interval: float = 0.5
     ) -> Dict[str, Optional[float]]:
         """Poll multiple variables until each produces two identical reads.
 

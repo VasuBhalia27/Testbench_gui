@@ -34,8 +34,8 @@ class BatTest:
         log("BAT: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e)
 
-        log("BAT: waiting 2 seconds for initial stabilisation")
-        time.sleep(2)
+        log("BAT: waiting 1 second for initial stabilisation")
+        time.sleep(1)
 
         voltage = BatTest._wait_for_stable_voltage(adapter, timeout=timeout)
         if voltage is None:

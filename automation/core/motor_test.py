@@ -49,9 +49,6 @@ class MotorTest:
         log("MOTOR: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
 
-        log("MOTOR: waiting 2 seconds for initial stabilisation")
-        time.sleep(2)
-
         voltage, current, load_error, last_readings = MotorTest._wait_for_stable_values(
             adapter, timeout=timeout, poll_interval=0.5
         )

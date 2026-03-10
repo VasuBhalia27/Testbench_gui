@@ -187,6 +187,46 @@ DESIGN / QUALITY:
     Before: cd d:/Project/Testbench_gui_Charan
     After:  cd c:/UShin/Testbench_gui_Charan
 
+[FIX 14] Reduced fixed wait times to lower total test run duration
+         (hardware confirmed stable with shorter waits in testing)
+
+  File: automation/core/led_test.py
+    LED stabilisation wait:  5 s  ->  2 s  (saves 6 s across ON+OFF)
+
+  File: automation/core/bat_test.py
+    BAT initial stabilisation:  2 s  ->  1 s  (saves 1 s)
+
+  File: automation/core/motor_test.py
+    MOTOR initial stabilisation:  2 s  ->  1 s  (saves 1 s)
+
+[FIX 16] Reduced _wait_for_stable_variables timeout in sg_test.py
+  File: automation/core/sg_test.py
+    _wait_for_stable_variables timeout:  30 s  ->  2 s
+    Hardware confirmed: SG variables stabilise well within 2 seconds.
+  File: automation/core/motor_test.py
+    MOTOR initial stabilisation:  1 s  ->  0 s  (saves 1 s)
+    Hardware confirmed: motor variables stabilise instantly after DID trigger;
+    the polling loop already handles stability detection so the fixed wait
+    is redundant.
+
+  File: automation/core/eos_test.py
+    EOS Reset process wait:          20 s ->  15 s ->  1 s  (saves 19 s total)
+    EOS Reset initial stabilisation:  2 s ->   1 s  (saves 1 s)
+    EOS Set after-clear wait:         1 s ->   0.5 s (saves 0.5 s)
+    EOS Set process wait:             3 s ->   2 s  (saves 1 s)
+    EOS Set initial stabilisation:    2 s ->   1 s  (saves 1 s)
+
+  File: automation/core/sg_test.py
+    SG1 measurement wait:   5 s  ->  3 s  (saves 2 s)
+    SG2 after-reset wait:   2 s  ->  1 s  (saves 1 s)
+    SG2 measurement wait:   5 s  ->  3 s  (saves 2 s)
+
+  Total fixed-wait savings: ~21.5 seconds
+  Expected total run time:  ~3.5 min -> ~2 min
+
+  NOTE: If EOS Reset starts failing after this change, increase the
+  EOS Reset process wait back towards 20 s in steps of 2-3 s.
+
 
 --------------------------------------------------------------------------------
 4. FILES CHANGED
@@ -199,6 +239,11 @@ DESIGN / QUALITY:
     automation/core/test_sequences.py
     automation/core/hardware_setup.py
     automation/core/trace32_adapter.py
+    automation/core/led_test.py
+    automation/core/bat_test.py
+    automation/core/motor_test.py
+    automation/core/eos_test.py
+    automation/core/sg_test.py
     automation/tests/led_tests.py
     automation/tests/motor_tests.py
     automation/tests/battery_tests.py

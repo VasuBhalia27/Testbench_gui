@@ -83,17 +83,16 @@ class EosTest:
         # Tick EOS Reset - send DID with reset command
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
         
-        # Wait 20 seconds for reset process
-        self.log("EOS Reset: waiting 20 seconds for stabilisation")
-        time.sleep(20)
+        self.log("EOS Reset: waiting 1 second for stabilisation")
+        time.sleep(1)
         
         # Send DID to get voltage readout
         self.log("EOS Reset: triggering measurement DID")
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
         
-        # Wait 2 seconds for stabilization before polling
-        self.log("EOS Reset: waiting 2 seconds for initial stabilisation")
-        time.sleep(2)
+        # Wait 1 second for stabilization before polling
+        self.log("EOS Reset: waiting 1 second for initial stabilisation")
+        time.sleep(1)
         
         # Poll until voltage is stable
         voltage = self._wait_for_stable_voltage()
@@ -141,9 +140,9 @@ class EosTest:
             # If clear_eos_entries not available in adapter, skip
             pass
         
-        # Wait 1 second after clearing
-        self.log("EOS Set: waiting 1 second after clear")
-        time.sleep(1)
+        # Wait 0.5 seconds after clearing
+        self.log("EOS Set: waiting 0.5 seconds after clear")
+        time.sleep(0.5)
         
         self.log("EOS Set: setting hardware to set mode")
         # Critical: Set the hardware to SET mode (1) before sending DID
@@ -158,17 +157,17 @@ class EosTest:
         self.log("EOS Set: triggering set command")
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
         
-        # Wait 3 seconds for set process to complete
-        self.log("EOS Set: waiting 3 seconds for set process")
-        time.sleep(3)
+        # Wait 2 seconds for set process to complete
+        self.log("EOS Set: waiting 2 seconds for set process")
+        time.sleep(2)
         
         # Send DID to get voltage readout
         self.log("EOS Set: triggering measurement DID")
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
         
-        # Wait 2 seconds for stabilization before polling
-        self.log("EOS Set: waiting 2 seconds for initial stabilisation")
-        time.sleep(2)
+        # Wait 1 second for stabilization before polling
+        self.log("EOS Set: waiting 1 second for initial stabilisation")
+        time.sleep(1)
         
         # Poll until voltage is stable
         voltage = self._wait_for_stable_voltage()

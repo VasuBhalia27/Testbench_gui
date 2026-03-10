@@ -39,8 +39,8 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log("LED: waiting 5 seconds for voltage to stabilise")
-        time.sleep(5)
+        log("LED: waiting 2 seconds for voltage to stabilise")
+        time.sleep(2)
 
         log("LED: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
