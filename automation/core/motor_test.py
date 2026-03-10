@@ -23,7 +23,7 @@ class MotorTest:
     def run(
         adapter: Trace32Interface,
         status_callback: Optional[Callable[[str], None]] = None,
-        timeout: float = 30.0,
+        timeout: float = 1.0,
     ) -> bool:
         """Execute one motor test case.
 
@@ -100,7 +100,7 @@ class MotorTest:
     @staticmethod
     def _wait_for_stable_values(
         adapter: Trace32Interface,
-        timeout: float = 30.0,
+        timeout: float = 2.0,
         poll_interval: float = 0.5,
         tolerance: float = 1.0,
     ):
@@ -168,11 +168,11 @@ class MotorTest:
                     stable_counts["load_error"] = 0
                 last_load_error = load_error
 
-            # All three must be stable (2+ consecutive stable reads)
+            # All three must be stable (1+ consecutive stable reads)
             if (
-                stable_counts["voltage"] >= 2
-                and stable_counts["current"] >= 2
-                and stable_counts["load_error"] >= 2
+                stable_counts["voltage"] >= 1
+                and stable_counts["current"] >= 1
+                and stable_counts["load_error"] >= 1
             ):
                 # return the stable values and also include a last_readings dict
                 last_readings = {

@@ -23,7 +23,7 @@ class LedTest:
         adapter: Trace32Interface,
         on: bool,
         status_callback: Optional[Callable[[str], None]] = None,
-        timeout: float = 30.0,
+        timeout: float = 1.0,
     ) -> bool:
         """Execute one LED test case.
 
@@ -59,7 +59,7 @@ class LedTest:
     @staticmethod
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
-        timeout: float = 30.0,
+        timeout: float = 2.0,
         poll_interval: float = 0.5,
     ) -> Optional[float]:
         """Poll ``TestFw_LedVoltage`` until a stable reading appears.

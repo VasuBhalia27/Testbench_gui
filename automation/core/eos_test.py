@@ -188,7 +188,7 @@ class EosTest:
             "max": self.MAX_SET_VOLTAGE
         }
     
-    def _wait_for_stable_voltage(self, max_iterations=60):
+    def _wait_for_stable_voltage(self, max_iterations=4):
         """
         Poll voltage until two consecutive readings are stable (identical).
         
@@ -196,7 +196,7 @@ class EosTest:
         identical readings within tolerance indicate stability.
         
         Args:
-            max_iterations: Maximum number of 0.5-second polls (default: 60 → 30 seconds)
+            max_iterations: Maximum number of 0.5-second polls (default: 4 → 2 seconds)
         
         Returns:
             float: Stable voltage value (mV)

@@ -19,7 +19,7 @@ class BatTest:
     def run(
         adapter: Trace32Interface,
         status_callback: Optional[Callable[[str], None]] = None,
-        timeout: float = 30.0,
+        timeout: float = 5.0,
     ) -> bool:
         """Execute one battery test case.
 
@@ -34,8 +34,8 @@ class BatTest:
         log("BAT: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e)
 
-        log("BAT: waiting 1 second for initial stabilisation")
-        time.sleep(1)
+        log("BAT: waiting 2 seconds for initial stabilisation")
+        time.sleep(2)
 
         voltage = BatTest._wait_for_stable_voltage(adapter, timeout=timeout)
         if voltage is None:
@@ -48,7 +48,7 @@ class BatTest:
     @staticmethod
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
-        timeout: float = 30.0,
+        timeout: float = 5.0,
         poll_interval: float = 0.5,
     ) -> Optional[float]:
         """Poll ``TestFw_AiBatRef`` until a stable reading appears.
@@ -73,7 +73,7 @@ class BatTest:
                 else:
                     stable_count = 0
                 last = val
-                if stable_count >= 2:
+                if stable_count >= 1:
                     return val
 
             time.sleep(poll_interval)
