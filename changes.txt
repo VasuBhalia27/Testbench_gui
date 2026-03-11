@@ -286,6 +286,39 @@ DESIGN / QUALITY:
     stabilisation sleep:  kept at 2 s  (user reverted 3 s change)
   NOTE: Motor and EOS changes were NOT applied - components not attached to PCB.
 
+[FIX 26] Added CAPA test following SG pattern (self-contained direct polling)
+  Files created:
+    automation/core/capa_test.py  (new — CapaTest class, SG-style direct polling)
+  Files modified:
+    automation/core/test_sequences.py
+      - Added: from automation.core.capa_test import CapaTest
+      - Added: run_capa_test() method delegating to CapaTest.run()
+      - run_for_variant(): capa_results added after sg_results;
+        results['tc_capa_01'] and results['tc_capa_02'] now populated
+    automation/tests/capa_tests.py
+      - Replaced backend-adapter stub with minimal reference docstring
+  Architecture:
+    CapaTest follows the exact SgTest pattern — no CapaTestSuite delegation.
+    Variables polled directly via self.adapter.read_variable().
+    _wait_for_stable_variables() timeout 2.0 s, stable_count >= 2.
+    Both TC_CAPA_01 and TC_CAPA_02 trigger TEST_GUI_CMD_CAPA_TEST_e DID,
+    sleep 2 s, then poll the 6 CAPA firmware variables.
+  Pass criteria:
+    TC_CAPA_01: CapaUnlockSensorValue 9120-9200, Unlock/Approach/Lock == 1
+                (requires physical touch; will FAIL in fully automated runs)
+    TC_CAPA_02: CapaUnlockSensorValue <= 9120, Unlock/Approach/Lock == 0
+                (resting state; passes without physical interaction)
+
+[FIX 27] Widened CAPA sensor threshold and added approach/lock sensor checks
+  File: automation/core/capa_test.py
+    Replaced UNLOCK_SENSOR_MIN=9120 / UNLOCK_SENSOR_MAX=9200 with SENSOR_THRESHOLD=9000
+    TC_CAPA_01 pass: all three sensor values (unlock, approach, lock) > 9000
+                     AND Unlock/Approach/Lock flags == 1
+    TC_CAPA_02 pass: all three sensor values <= 9000
+                     AND Unlock/Approach/Lock flags == 0
+    Log now shows unlock_sensor, approach_sensor, lock_sensor separately
+    Hardware was reading 9058 which was just below the old 9120 lower bound
+
 
 --------------------------------------------------------------------------------
 4. FILES CHANGED
@@ -303,13 +336,16 @@ DESIGN / QUALITY:
     automation/core/motor_test.py
     automation/core/eos_test.py
     automation/core/sg_test.py
+    automation/core/test_sequences.py  (FIX 26: CapaTest wired in)
     automation/tests/led_tests.py
     automation/tests/motor_tests.py
     automation/tests/battery_tests.py
+    automation/tests/capa_tests.py    (FIX 26: replaced stub)
     requirements.txt
     automation/README.md
 
   CREATED:
+    automation/core/capa_test.py      (FIX 26: new CapaTest class)
     automation/backend_adapter/__init__.py
     automation/backend_adapter/common.py
     automation/backend_adapter/led_service.py

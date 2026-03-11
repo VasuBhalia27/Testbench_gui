@@ -20,6 +20,7 @@ from automation.core.bat_test import BatTest
 from automation.core.motor_test import MotorTest
 from automation.core.eos_test import EosTest
 from automation.core.sg_test import SgTest
+from automation.core.capa_test import CapaTest
 from Functional.trace32 import TestFunctionCmd
 
 
@@ -98,6 +99,17 @@ class TestSequenceRunner:
         sg = SgTest(self.adapter, status_callback=self._log)
         return sg.run()
 
+    def run_capa_test(self) -> dict:
+        """Run the capacitive sensor sequence (TC_CAPA_01 and TC_CAPA_02).
+
+        Returns a dict with keys ``'capa1'`` and ``'capa2'``
+        mirroring the return value of :class:`CapaTest.run`.
+        capa1 requires physical sensor touch; it will fail in fully
+        automated runs.
+        """
+        capa = CapaTest(self.adapter, status_callback=self._log)
+        return capa.run()
+
     # ------------------------------------------------------------------
     def run_for_variant(self, variant: int) -> dict:
         """Execute all applicable tests for the selected variant.
@@ -135,6 +147,12 @@ class TestSequenceRunner:
         sg_results = self.run_sg_test()
         results['sg1'] = sg_results['sg1']
         results['sg2'] = sg_results['sg2']
+
+        # CAPA (capacitive sensor) tests follow SG.
+        # capa1 requires physical touch; capa2 is the resting state.
+        capa_results = self.run_capa_test()
+        results['capa1'] = capa_results['capa1']
+        results['capa2'] = capa_results['capa2']
 
         # placeholder logic for other tests; vary by variant
         if variant == 2:
