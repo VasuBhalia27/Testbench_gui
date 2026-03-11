@@ -39,8 +39,8 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log("LED: waiting 3 seconds for voltage to stabilise")
-        time.sleep(3)
+        log("LED: waiting 2 seconds for voltage to stabilise")
+        time.sleep(2)
 
         log("LED: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
@@ -59,7 +59,7 @@ class LedTest:
     @staticmethod
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
-        timeout: float = 2.0,
+        timeout: float = 3.0,
         poll_interval: float = 0.5,
     ) -> Optional[float]:
         """Poll ``TestFw_LedVoltage`` until a stable reading appears.

@@ -281,7 +281,9 @@ DESIGN / QUALITY:
     _wait_for_stable_voltage tolerance:  1e-3 mV  ->  50.0 mV
     (real hardware ADC values vary by several mV per read; 0.001 mV was too
     tight causing "voltage never stabilised within timeout" on LED ON)
-    LedTest.run() timeout:  3.0 s  ->  5.0 s  (more headroom for stability)
+    LedTest.run() timeout:  3.0 s  ->  5.0 s
+    _wait_for_stable_voltage default timeout:  2.0 s  ->  3.0 s  (user edit)
+    stabilisation sleep:  kept at 2 s  (user reverted 3 s change)
   NOTE: Motor and EOS changes were NOT applied - components not attached to PCB.
 
 
