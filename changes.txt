@@ -262,6 +262,14 @@ DESIGN / QUALITY:
     _wait_for_stable_voltage stable_count threshold:  >= 2  ->  >= 1
     Initial stabilisation sleep:  1 s  ->  2 s
 
+[FIX 24] Reduced test_sequences.py proxy method timeouts from 30 s to 2 s
+  File: automation/core/test_sequences.py
+    run_led_test timeout:     30 s  ->  2 s  (manually adjusted to 3 s by user)
+    run_battery_test timeout: 30 s  ->  2 s
+    run_motor_test timeout:   30 s  ->  2 s
+
+  NOTE: run_led_test timeout later set to 3.0 s by user after hardware testing.
+
 [FIX 23] Widened battery pass range from 11900-12100 mV to 11500-13500 mV
   File: automation/core/bat_test.py
     Pass range:  11900-12100 mV  ->  11500-13500 mV

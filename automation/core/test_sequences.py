@@ -47,7 +47,7 @@ class TestSequenceRunner:
 
     # ---- LED ----------------------------------------------------------------
 
-    def run_led_test(self, on: bool, timeout: float = 30.0) -> bool:
+    def run_led_test(self, on: bool, timeout: float = 3.0) -> bool:
         """Proxy to :class:`LedTest` which lives in a dedicated module.
 
         Keeping the implementation in its own file simplifies debugging
@@ -62,7 +62,7 @@ class TestSequenceRunner:
         )
 
     # add stubs for future tests so the runner API is clear
-    def run_battery_test(self, timeout: float = 30.0) -> bool:
+    def run_battery_test(self, timeout: float = 2.0) -> bool:
         """Run the battery monitor sequence using ``BatTest``."""
         return BatTest.run(
             adapter=self.adapter,
@@ -70,7 +70,7 @@ class TestSequenceRunner:
             timeout=timeout,
         )
 
-    def run_motor_test(self, timeout: float = 30.0) -> bool:
+    def run_motor_test(self, timeout: float = 2.0) -> bool:
         """Run the motor test sequence using ``MotorTest``."""
         return MotorTest.run(
             adapter=self.adapter,
