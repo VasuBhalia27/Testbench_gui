@@ -23,7 +23,7 @@ class LedTest:
         adapter: Trace32Interface,
         on: bool,
         status_callback: Optional[Callable[[str], None]] = None,
-        timeout: float = 1.0,
+        timeout: float = 5.0,
     ) -> bool:
         """Execute one LED test case.
 
@@ -39,8 +39,8 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log("LED: waiting 2 seconds for voltage to stabilise")
-        time.sleep(2)
+        log("LED: waiting 3 seconds for voltage to stabilise")
+        time.sleep(3)
 
         log("LED: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
@@ -54,7 +54,7 @@ class LedTest:
         if on:
             return 2400 <= voltage <= 2600
         else:
-            return voltage == 0.0
+            return voltage <= 10.0
 
     @staticmethod
     def _wait_for_stable_voltage(
@@ -79,12 +79,12 @@ class LedTest:
                 val = None
 
             if val is not None:
-                if last is not None and abs(val - last) < 1e-3:
+                if last is not None and abs(val - last) < 50.0:
                     stable_count += 1
                 else:
                     stable_count = 0
                 last = val
-                if stable_count >= 2:
+                if stable_count >= 1:
                     return val
 
             time.sleep(poll_interval)

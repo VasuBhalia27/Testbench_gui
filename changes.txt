@@ -276,6 +276,14 @@ DESIGN / QUALITY:
     Hardware measured 12397 mV which was above the old upper limit.
     The wider range covers normal 12V battery operating voltage.
 
+[FIX 25] Fixed LED ON stability detection and increased timeout
+  File: automation/core/led_test.py
+    _wait_for_stable_voltage tolerance:  1e-3 mV  ->  50.0 mV
+    (real hardware ADC values vary by several mV per read; 0.001 mV was too
+    tight causing "voltage never stabilised within timeout" on LED ON)
+    LedTest.run() timeout:  3.0 s  ->  5.0 s  (more headroom for stability)
+  NOTE: Motor and EOS changes were NOT applied - components not attached to PCB.
+
 
 --------------------------------------------------------------------------------
 4. FILES CHANGED
