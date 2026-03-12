@@ -1,4 +1,4 @@
-================================================================================
+﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
 Date: March 10, 2026
 ================================================================================
@@ -309,16 +309,6 @@ DESIGN / QUALITY:
     TC_CAPA_02: CapaUnlockSensorValue <= 9120, Unlock/Approach/Lock == 0
                 (resting state; passes without physical interaction)
 
-[FIX 27] Widened CAPA sensor threshold and added approach/lock sensor checks
-  File: automation/core/capa_test.py
-    Replaced UNLOCK_SENSOR_MIN=9120 / UNLOCK_SENSOR_MAX=9200 with SENSOR_THRESHOLD=9000
-    TC_CAPA_01 pass: all three sensor values (unlock, approach, lock) > 9000
-                     AND Unlock/Approach/Lock flags == 1
-    TC_CAPA_02 pass: all three sensor values <= 9000
-                     AND Unlock/Approach/Lock flags == 0
-    Log now shows unlock_sensor, approach_sensor, lock_sensor separately
-    Hardware was reading 9058 which was just below the old 9120 lower bound
-
 
 --------------------------------------------------------------------------------
 4. FILES CHANGED
@@ -346,7 +336,6 @@ DESIGN / QUALITY:
 
   CREATED:
     automation/core/capa_test.py      (FIX 26: new CapaTest class)
-    automation/core/gui_automation.py  (FIX 32: End button wired up)
     automation/backend_adapter/__init__.py
     automation/backend_adapter/common.py
     automation/backend_adapter/led_service.py
@@ -359,116 +348,28 @@ DESIGN / QUALITY:
     automation/backend_adapter/can_service.py
     automation/backend_adapter/lin_service.py
 
-================================================================================
-FIXES — SmartBU Testbench GUI
-Date: March 12, 2026
-================================================================================
-
-[FIX 28] Added first-run firmware warm-up delay
-  File: automation/core/integrated_automation.py
-  Problem:
-    On the very first power-on debug session, TestFw_IsEcuSleeping becomes 0
-    very early in firmware startup (~0.5 s after Go), so hardware setup passes
-    immediately.  However, ADC peripherals, sensors, and CAN/LIN buses need
-    several more seconds to complete initialisation.  Tests started ~1.5 s
-    after Go and all measurement variables still held their power-on default
-    of 0.0.  The stability checker in each test accepted two consecutive 0.0
-    readings as "stable", causing all tests to report 0.0 mV / 0.0 mA.
-    Subsequent runs were unaffected because the ResetTarget + 1 s + Go + 2 s
-    settle block already provided the extra initialisation time.
-  Fix:
-    Inserted a 5-second warm-up delay after ✓ HARDWARE SETUP COMPLETE on the
-    first run only (guarded by is_first_run), matching the time naturally
-    available on all subsequent runs.
-  Log message added:
-    "Waiting 5 seconds for firmware peripheral initialisation..."
-
-[FIX 29] CAPA1/CAPA2: replaced fixed single-shot DID with retry loop
+[FIX 27] Widened CAPA sensor threshold and added approach/lock sensor checks
   File: automation/core/capa_test.py
-  Problem:
-    Both CAPA1 and CAPA2 sent the measurement DID once, waited a fixed 3 s,
-    then evaluated the result.  If sensor values had not crossed the 9000
-    threshold within that window (or were still settling from a previous test),
-    the test immediately failed with no retry.
-  Fix:
-    Replaced fixed 3 s sleep with a retry loop (timeout 3 s, interval 0.5 s):
-    - CAPA1: re-triggers DID every 0.5 s until all sensor values > 9000 and
-             all status flags == 1, or timeout expires.
-    - CAPA2: same criteria as CAPA1 (> 9000, flags == 1) — see FIX 30.
-    Log now shows attempt number: "CAPA1: triggering measurement DID (attempt N)"
+    Replaced UNLOCK_SENSOR_MIN=9120 / UNLOCK_SENSOR_MAX=9200 with SENSOR_THRESHOLD=9000
+    TC_CAPA_01 pass: all three sensor values (unlock, approach, lock) > 9000
+                     AND Unlock/Approach/Lock flags == 1
+    TC_CAPA_02 pass: all three sensor values <= 9000
+                     AND Unlock/Approach/Lock flags == 0
+    Log now shows unlock_sensor, approach_sensor, lock_sensor separately
+    Hardware was reading 9058 which was just below the old 9120 lower bound
 
-[FIX 30] CAPA2 pass criteria changed to match CAPA1 (> 9000, flags == 1)
-  File: automation/core/capa_test.py
-  Problem:
-    CAPA2 was evaluated against the resting/inactive criteria (<= 9000,
-    flags == 0).  Hardware testing showed CAPA2 consistently reads active
-    values (e.g. unlock=9035, approach=9054, lock=9067, flags=1), identical
-    to CAPA1, causing all 6 CAPA2 checks to fail.
-  Fix:
-    Updated CAPA2 pass conditions, retry-loop early-exit condition, fail log
-    messages, and module docstring to use active criteria:
-      sensor values > SENSOR_THRESHOLD (9000)
-      Unlock / Approach / Lock flags == 1
-    CAPA2 now behaves as a second independent measurement of the same active
-    state rather than a resting-state check.
-
-[FIX 31] Increased CAPA1 and CAPA2 retry timeout from 3 s to 10 s
-  File: automation/core/capa_test.py
-  Problem:
-    Hardware sensor values of ~8795–8997 were observed on attempt 1, just
-    below the 9000 threshold, with only 3 s allowed for retries (~6 attempts).
-    The sensors needed more time to reach full activation.
-  Fix:
-    CAPA1_RETRY_TIMEOUT: 3.0 s -> 10.0 s  (~20 attempts at 0.5 s interval)
-    CAPA2_RETRY_TIMEOUT: 3.0 s -> 10.0 s
-
-[FIX 32] Added functional End button to Automation GUI
-  File: automation/core/gui_automation.py
-  Problem:
-    The End button was visible in the GUI screenshot but had no command
-    wired to it.  Clicking it had no effect; operators had to close the
-    entire application window to disconnect from Trace32.
-  Fix:
-    - Grouped Start and End into a shared btn_frame (side by side) in _build_ui()
-    - Replaced the previous lone Start button pack() call with the frame layout
-    - Added _on_end() method that:
-        1. Stops any in-progress automation run (clears is_running flag)
-        2. Calls t32.QuitTrace32() to disconnect and kill the t32marm.exe process
-        3. Resets automation_runner.is_first_run = True and adapter = None so
-           the next PCB test starts with a clean state
-        4. Stops and resets the elapsed-time timer
-        5. Re-enables the Start button, clears variant checkboxes
-        6. Appends "Ready for next PCB. Click 'Start' to begin." to the log
-    The application window stays open; no restart required between PCBs.
-
-[FIX 33] Eliminated background CMD window on GUI launch
-  File created: AutomationTest.vbs
-  Problem:
-    Double-clicking AutomationTest.bat always opened a CMD console window
-    in the background for the lifetime of the application because .bat files
-    are inherently console programs on Windows.
-  Fix:
-    Created AutomationTest.vbs — a VBScript launcher that:
-      - Sets the working directory to the script's own folder so that
-        "pythonw -m automation.core.gui_automation" resolves correctly
-      - Calls pythonw.exe (Python's no-console variant) via WScript.Shell.Run
-        with WindowStyle=0 (fully hidden) and bWaitOnReturn=False
-      - Writes any launch errors to AutomationTest_error.log in the same
-        folder so startup failures are not silently swallowed
-    Users now double-click AutomationTest.vbs; no CMD window appears at all.
-    The original AutomationTest.bat is kept for debugging (shows errors in
-    the console when run manually).
-
-[FIX 34] Moved launcher files into AutomationTest\ subfolder
-  Files moved:
-    AutomationTest.vbs  ->  AutomationTest\AutomationTest.vbs
-    AutomationTest.bat  ->  AutomationTest\AutomationTest.bat
-  Both files updated to navigate one level up to the project root before
-  launching so "python -m automation.core.gui_automation" resolves correctly:
-    AutomationTest.vbs: projectRoot = fso.GetParentFolderName(scriptDir)
-                        wsh.CurrentDirectory = projectRoot
-    AutomationTest.bat: cd /d "%~dp0.."
-  Error log AutomationTest_error.log is still written to the AutomationTest\
-  subfolder alongside the launcher files.
+[FIX 28] Rewrote power supply driver to use USBTMC (PyVISA) instead of serial
+  File: Functional/power_supply.py
+    Transport changed: pyserial COM port -> pyvisa USBTMC (IVI class)
+    The OWON P4305 enumerates as "USB Test and Measurement Device (IVI)"
+    in Device Manager, NOT as a COM port under "Ports (COM & LPT)".
+    find_owon_port() removed; replaced with find_owon_resource()
+      - Uses pyvisa.ResourceManager().list_resources("USB?*INSTR")
+      - Queries *IDN? on each USB resource; matches "owon"/"p4305"/"p430"
+    OwonP4305.__init__: port= param renamed to resource= (VISA resource string)
+    OwonP4305.connect(): opens pyvisa resource instead of serial.Serial
+    OwonP4305._send():   uses inst.write(cmd) instead of ser.write(encoded)
+    OwonP4305.disconnect(): closes inst and ResourceManager
+    Public API unchanged: connect/disconnect/output_on/output_off/set_voltage/set_current
 
 ================================================================================

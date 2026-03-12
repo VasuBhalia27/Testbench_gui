@@ -12,15 +12,15 @@ added later as the automation coverage expands.
 import time
 from typing import Callable, Optional
 
-from automation.core.trace32_adapter import Trace32Interface
+from AutomationScripts.core.trace32_adapter import Trace32Interface
 
 # individual sequence modules
-from automation.core.led_test import LedTest
-from automation.core.bat_test import BatTest
-from automation.core.motor_test import MotorTest
-from automation.core.eos_test import EosTest
-from automation.core.sg_test import SgTest
-from automation.core.capa_test import CapaTest
+from AutomationScripts.core.led_test import LedTest
+from AutomationScripts.core.bat_test import BatTest
+from AutomationScripts.core.motor_test import MotorTest
+from AutomationScripts.core.eos_test import EosTest
+from AutomationScripts.core.sg_test import SgTest
+from AutomationScripts.core.capa_test import CapaTest
 from Functional.trace32 import TestFunctionCmd
 
 
@@ -102,9 +102,9 @@ class TestSequenceRunner:
     def run_capa_test(self) -> dict:
         """Run the capacitive sensor sequence (TC_CAPA_01 and TC_CAPA_02).
 
-        Returns a dict with keys ``'tc_capa_01'`` and ``'tc_capa_02'``
+        Returns a dict with keys ``'capa1'`` and ``'capa2'``
         mirroring the return value of :class:`CapaTest.run`.
-        TC_CAPA_01 requires physical sensor touch; it will fail in fully
+        capa1 requires physical sensor touch; it will fail in fully
         automated runs.
         """
         capa = CapaTest(self.adapter, status_callback=self._log)
@@ -149,10 +149,10 @@ class TestSequenceRunner:
         results['sg2'] = sg_results['sg2']
 
         # CAPA (capacitive sensor) tests follow SG.
-        # TC_CAPA_01 requires physical touch; TC_CAPA_02 is the resting state.
+        # capa1 requires physical touch; capa2 is the resting state.
         capa_results = self.run_capa_test()
-        results['tc_capa_01'] = capa_results['tc_capa_01']
-        results['tc_capa_02'] = capa_results['tc_capa_02']
+        results['capa1'] = capa_results['capa1']
+        results['capa2'] = capa_results['capa2']
 
         # placeholder logic for other tests; vary by variant
         if variant == 2:

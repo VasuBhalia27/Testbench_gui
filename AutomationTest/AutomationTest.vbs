@@ -18,7 +18,7 @@ projectRoot = fso.GetParentFolderName(scriptDir)
 wsh.CurrentDirectory = projectRoot
 
 logPath = scriptDir & "\AutomationTest_error.log"
-cmd = "pythonw -m automation.core.gui_automation"
+cmd = "pythonw -m AutomationScripts.core.gui_automation"
 
 ' WindowStyle 0 = hidden, bWaitOnReturn False = fire-and-forget
 On Error Resume Next

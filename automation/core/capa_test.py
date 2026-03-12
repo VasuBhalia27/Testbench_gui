@@ -12,20 +12,16 @@ The automation sequence for each test case is:
 Acceptance Criteria:
 
 TC_CAPA_01 (Unlock Sensor Active — requires physical touch on sensor):
-  - TestFw_CapaUnlockSensorValue:  > 9000
-  - TestFw_CapaApproachSensorValue: > 9000
-  - TestFw_CapaLockSensorValue:     > 9000
-  - TestFw_CapaUnlock:              1
-  - TestFw_CapaApproach:            1
-  - TestFw_CapaLock:                1
+  - TestFw_CapaUnlockSensorValue: 9120-9200
+  - TestFw_CapaUnlock:            1
+  - TestFw_CapaApproach:          1
+  - TestFw_CapaLock:              1
 
-TC_CAPA_02 (Second measurement — same active criteria as TC_CAPA_01):
-  - TestFw_CapaUnlockSensorValue:  > 9000
-  - TestFw_CapaApproachSensorValue: > 9000
-  - TestFw_CapaLockSensorValue:     > 9000
-  - TestFw_CapaUnlock:              1
-  - TestFw_CapaApproach:            1
-  - TestFw_CapaLock:                1
+TC_CAPA_02 (Unlock Sensor Inactive — resting state, always runs in automation):
+  - TestFw_CapaUnlockSensorValue: <= 9120
+  - TestFw_CapaUnlock:            0
+  - TestFw_CapaApproach:          0
+  - TestFw_CapaLock:              0
 
 NOTE: TC_CAPA_01 requires physical interaction (touching the capacitive sensor).
 It will FAIL in fully automated runs unless a mechanical actuator is present.
@@ -49,9 +45,9 @@ class CapaTest:
         "TestFw_CapaUnlockSensorValue",
     ]
 
-    # Sensor value threshold: > SENSOR_THRESHOLD means active (TC_CAPA_01 pass),
-    # <= SENSOR_THRESHOLD means inactive (TC_CAPA_02 pass).
-    SENSOR_THRESHOLD = 9000
+    # TC_CAPA_01 pass criteria
+    UNLOCK_SENSOR_MIN = 9120
+    UNLOCK_SENSOR_MAX = 9200
 
     def __init__(
         self, adapter, status_callback: Optional[Callable[[str], None]] = None
@@ -63,13 +59,13 @@ class CapaTest:
         """Execute both CAPA test cases sequentially.
 
         Returns:
-            A dictionary with keys ``'capa1'`` and ``'capa2'``;
+            A dictionary with keys ``'tc_capa_01'`` and ``'tc_capa_02'``;
             each value contains the test result with a ``'pass'`` flag and
             the measured values.
         """
         results: Dict[str, Dict] = {}
-        results["capa1"] = self.run_tc_capa_01()
-        results["capa2"] = self.run_tc_capa_02()
+        results["tc_capa_01"] = self.run_tc_capa_01()
+        results["tc_capa_02"] = self.run_tc_capa_02()
         return results
 
     def run_tc_capa_01(self) -> Dict:
@@ -77,78 +73,35 @@ class CapaTest:
 
         NOTE: Requires physical touch on capacitive sensor. Will fail in
         automated runs without physical interaction.
-
-        Retries sending the measurement DID for up to 3 seconds in case the
-        sensor activation is detected after the first DID trigger.
         """
-        CAPA1_RETRY_TIMEOUT = 10.0
-        CAPA1_RETRY_INTERVAL = 0.5
+        self.log("CAPA1: triggering measurement DID")
+        self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
 
-        readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
-        deadline = time.time() + CAPA1_RETRY_TIMEOUT
-        attempt = 0
+        self.log("CAPA1: waiting 2 seconds for measurement")
+        time.sleep(2)
 
-        while True:
-            attempt += 1
-            self.log(f"CAPA1: triggering measurement DID (attempt {attempt})")
-            self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
-            time.sleep(CAPA1_RETRY_INTERVAL)
+        readings = self._wait_for_stable_variables(self.VARIABLES)
 
-            readings = self._wait_for_stable_variables(self.VARIABLES)
+        approach = readings.get("TestFw_CapaApproach")
+        lock     = readings.get("TestFw_CapaLock")
+        unlock   = readings.get("TestFw_CapaUnlock")
+        unlock_sensor = readings.get("TestFw_CapaUnlockSensorValue")
 
-            unlock_sensor_val   = readings.get("TestFw_CapaUnlockSensorValue")
-            approach_sensor_val = readings.get("TestFw_CapaApproachSensorValue")
-            lock_sensor_val     = readings.get("TestFw_CapaLockSensorValue")
-            unlock_val          = readings.get("TestFw_CapaUnlock")
-            approach_val        = readings.get("TestFw_CapaApproach")
-            lock_val            = readings.get("TestFw_CapaLock")
-
-            # Accept as soon as all sensor values are in the active range
-            sensors_active = (
-                unlock_sensor_val   is not None and unlock_sensor_val   > self.SENSOR_THRESHOLD
-                and approach_sensor_val is not None and approach_sensor_val > self.SENSOR_THRESHOLD
-                and lock_sensor_val     is not None and lock_sensor_val     > self.SENSOR_THRESHOLD
-                and unlock_val  is not None and unlock_val  == 1.0
-                and approach_val is not None and approach_val == 1.0
-                and lock_val    is not None and lock_val    == 1.0
-            )
-            if sensors_active or time.time() >= deadline:
-                break
-
-        approach        = readings.get("TestFw_CapaApproach")
-        lock            = readings.get("TestFw_CapaLock")
-        unlock          = readings.get("TestFw_CapaUnlock")
-        approach_sensor = readings.get("TestFw_CapaApproachSensorValue")
-        lock_sensor     = readings.get("TestFw_CapaLockSensorValue")
-        unlock_sensor   = readings.get("TestFw_CapaUnlockSensorValue")
-
-        pass_unlock_sensor  = unlock_sensor   is not None and unlock_sensor   > self.SENSOR_THRESHOLD
-        pass_approach_sensor= approach_sensor is not None and approach_sensor > self.SENSOR_THRESHOLD
-        pass_lock_sensor    = lock_sensor     is not None and lock_sensor     > self.SENSOR_THRESHOLD
-        pass_unlock         = unlock   is not None and unlock   == 1.0
-        pass_approach       = approach is not None and approach == 1.0
-        pass_lock           = lock     is not None and lock     == 1.0
-        pass_status = (
-            pass_unlock_sensor and pass_approach_sensor and pass_lock_sensor
-            and pass_unlock and pass_approach and pass_lock
-        )
+        pass_sensor  = unlock_sensor is not None and self.UNLOCK_SENSOR_MIN <= unlock_sensor <= self.UNLOCK_SENSOR_MAX
+        pass_unlock  = unlock  is not None and unlock  == 1.0
+        pass_approach= approach is not None and approach == 1.0
+        pass_lock    = lock    is not None and lock    == 1.0
+        pass_status  = pass_sensor and pass_unlock and pass_approach and pass_lock
 
         self.log(
-            f"CAPA1: unlock_sensor={unlock_sensor}, approach_sensor={approach_sensor}, "
-            f"lock_sensor={lock_sensor}"
-        )
-        self.log(
-            f"CAPA1: unlock={unlock}, approach={approach}, lock={lock}"
+            f"CAPA1: sensor={unlock_sensor}, unlock={unlock}, "
+            f"approach={approach}, lock={lock}"
         )
         if pass_status:
             self.log("CAPA1: ✓ all values in pass range")
         else:
-            if not pass_unlock_sensor:
-                self.log(f"CAPA1: ✗ unlock sensor {unlock_sensor} expected > {self.SENSOR_THRESHOLD}")
-            if not pass_approach_sensor:
-                self.log(f"CAPA1: ✗ approach sensor {approach_sensor} expected > {self.SENSOR_THRESHOLD}")
-            if not pass_lock_sensor:
-                self.log(f"CAPA1: ✗ lock sensor {lock_sensor} expected > {self.SENSOR_THRESHOLD}")
+            if not pass_sensor:
+                self.log(f"CAPA1: ✗ unlock sensor {unlock_sensor} out of range ({self.UNLOCK_SENSOR_MIN}-{self.UNLOCK_SENSOR_MAX})")
             if not pass_unlock:
                 self.log(f"CAPA1: ✗ CapaUnlock {unlock} expected 1")
             if not pass_approach:
@@ -161,86 +114,41 @@ class CapaTest:
         return result
 
     def run_tc_capa_02(self) -> Dict:
-        """TC_CAPA_02: CAPA Unlock Active State (second measurement).
+        """TC_CAPA_02: CAPA Unlock Inactive State (resting/default)."""
+        self.log("CAPA2: triggering measurement DID")
+        self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
 
-        Retries sending the measurement DID for up to 3 seconds, accepting
-        the first reading where all sensor values are > SENSOR_THRESHOLD and
-        all status flags equal 1 (same criteria as TC_CAPA_01).
-        """
-        CAPA2_RETRY_TIMEOUT = 10.0
-        CAPA2_RETRY_INTERVAL = 0.5
+        self.log("CAPA2: waiting 2 seconds for measurement")
+        time.sleep(2)
 
-        readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
-        deadline = time.time() + CAPA2_RETRY_TIMEOUT
-        attempt = 0
+        readings = self._wait_for_stable_variables(self.VARIABLES)
 
-        while True:
-            attempt += 1
-            self.log(f"CAPA2: triggering measurement DID (attempt {attempt})")
-            self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
-            time.sleep(CAPA2_RETRY_INTERVAL)
+        approach = readings.get("TestFw_CapaApproach")
+        lock     = readings.get("TestFw_CapaLock")
+        unlock   = readings.get("TestFw_CapaUnlock")
+        unlock_sensor = readings.get("TestFw_CapaUnlockSensorValue")
 
-            readings = self._wait_for_stable_variables(self.VARIABLES)
-
-            unlock_sensor_val   = readings.get("TestFw_CapaUnlockSensorValue")
-            approach_sensor_val = readings.get("TestFw_CapaApproachSensorValue")
-            lock_sensor_val     = readings.get("TestFw_CapaLockSensorValue")
-            unlock_val          = readings.get("TestFw_CapaUnlock")
-            approach_val        = readings.get("TestFw_CapaApproach")
-            lock_val            = readings.get("TestFw_CapaLock")
-
-            # Accept as soon as all sensor values are in the active range
-            sensors_active = (
-                unlock_sensor_val   is not None and unlock_sensor_val   > self.SENSOR_THRESHOLD
-                and approach_sensor_val is not None and approach_sensor_val > self.SENSOR_THRESHOLD
-                and lock_sensor_val     is not None and lock_sensor_val     > self.SENSOR_THRESHOLD
-                and unlock_val  is not None and unlock_val  == 1.0
-                and approach_val is not None and approach_val == 1.0
-                and lock_val    is not None and lock_val    == 1.0
-            )
-            if sensors_active or time.time() >= deadline:
-                break
-
-        approach        = readings.get("TestFw_CapaApproach")
-        lock            = readings.get("TestFw_CapaLock")
-        unlock          = readings.get("TestFw_CapaUnlock")
-        approach_sensor = readings.get("TestFw_CapaApproachSensorValue")
-        lock_sensor     = readings.get("TestFw_CapaLockSensorValue")
-        unlock_sensor   = readings.get("TestFw_CapaUnlockSensorValue")
-
-        pass_unlock_sensor   = unlock_sensor   is not None and unlock_sensor   > self.SENSOR_THRESHOLD
-        pass_approach_sensor = approach_sensor is not None and approach_sensor > self.SENSOR_THRESHOLD
-        pass_lock_sensor     = lock_sensor     is not None and lock_sensor     > self.SENSOR_THRESHOLD
-        pass_unlock          = unlock   is not None and unlock   == 1.0
-        pass_approach        = approach is not None and approach == 1.0
-        pass_lock            = lock     is not None and lock     == 1.0
-        pass_status = (
-            pass_unlock_sensor and pass_approach_sensor and pass_lock_sensor
-            and pass_unlock and pass_approach and pass_lock
-        )
+        pass_sensor  = unlock_sensor is not None and unlock_sensor <= self.UNLOCK_SENSOR_MIN
+        pass_unlock  = unlock  is not None and unlock  == 0.0
+        pass_approach= approach is not None and approach == 0.0
+        pass_lock    = lock    is not None and lock    == 0.0
+        pass_status  = pass_sensor and pass_unlock and pass_approach and pass_lock
 
         self.log(
-            f"CAPA2: unlock_sensor={unlock_sensor}, approach_sensor={approach_sensor}, "
-            f"lock_sensor={lock_sensor}"
-        )
-        self.log(
-            f"CAPA2: unlock={unlock}, approach={approach}, lock={lock}"
+            f"CAPA2: sensor={unlock_sensor}, unlock={unlock}, "
+            f"approach={approach}, lock={lock}"
         )
         if pass_status:
             self.log("CAPA2: ✓ all values in pass range")
         else:
-            if not pass_unlock_sensor:
-                self.log(f"CAPA2: ✗ unlock sensor {unlock_sensor} expected > {self.SENSOR_THRESHOLD}")
-            if not pass_approach_sensor:
-                self.log(f"CAPA2: ✗ approach sensor {approach_sensor} expected > {self.SENSOR_THRESHOLD}")
-            if not pass_lock_sensor:
-                self.log(f"CAPA2: ✗ lock sensor {lock_sensor} expected > {self.SENSOR_THRESHOLD}")
+            if not pass_sensor:
+                self.log(f"CAPA2: ✗ unlock sensor {unlock_sensor} expected <= {self.UNLOCK_SENSOR_MIN}")
             if not pass_unlock:
-                self.log(f"CAPA2: ✗ CapaUnlock {unlock} expected 1")
+                self.log(f"CAPA2: ✗ CapaUnlock {unlock} expected 0")
             if not pass_approach:
-                self.log(f"CAPA2: ✗ CapaApproach {approach} expected 1")
+                self.log(f"CAPA2: ✗ CapaApproach {approach} expected 0")
             if not pass_lock:
-                self.log(f"CAPA2: ✗ CapaLock {lock} expected 1")
+                self.log(f"CAPA2: ✗ CapaLock {lock} expected 0")
 
         result = {"pass": pass_status}
         result.update(readings)

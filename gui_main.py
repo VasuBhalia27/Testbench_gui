@@ -8,7 +8,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 
 # Automation framework imports
-from automation.core import gui_automation, integrated_automation
+from AutomationScripts.core import gui_automation, integrated_automation
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
