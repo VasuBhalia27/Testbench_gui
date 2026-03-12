@@ -93,6 +93,17 @@ class IntegratedAutomationRunner:
 
             self._log("\n✓ HARDWARE SETUP COMPLETE")
 
+            # On the very first power-on debug session the firmware sets
+            # TestFw_IsEcuSleeping = 0 early in its startup routine, but the
+            # peripheral hardware (ADCs, sensors, CAN/LIN buses) needs several
+            # more seconds to complete initialisation.  Subsequent runs already
+            # have this extra time because of the ResetTarget + Go + 2 s settle
+            # in the non-first-run path.  Adding an equivalent delay here makes
+            # the first run behave consistently with all further runs.
+            if self.is_first_run:
+                self._log("Waiting 5 seconds for firmware peripheral initialisation...")
+                time.sleep(5)
+
             # Initialize adapter once on first run, then reuse for all subsequent runs
             if self.adapter is None:
                 self.adapter = trace32_adapter.Trace32Interface()
