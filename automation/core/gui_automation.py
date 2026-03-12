@@ -74,10 +74,17 @@ class AutomationGUI:
                             font=(None, 10), justify="center")
         welcome.pack(pady=5)
 
-        # Start button (initially visible)
-        self.start_button = ttk.Button(container, text="Start",
+        # Button row: Start and End side by side
+        btn_frame = ttk.Frame(container)
+        btn_frame.pack(pady=10)
+
+        self.start_button = ttk.Button(btn_frame, text="Start",
                                        command=self._on_start)
-        self.start_button.pack(pady=10)
+        self.start_button.pack(side="left", padx=8)
+
+        self.end_button = ttk.Button(btn_frame, text="End",
+                                     command=self._on_end)
+        self.end_button.pack(side="left", padx=8)
 
         # Create a main area that will hold control_frame above status_frame.
         # Using grid inside this area ensures the control frame stays above the
@@ -141,6 +148,47 @@ class AutomationGUI:
         self.main_area.rowconfigure(1, weight=1)
 
         # Initially control_frame is not gridded; it will be shown on Start
+
+    def _on_end(self) -> None:
+        """Handle End button click.
+
+        Disconnects from Trace32 (kills the debugger process) and resets the
+        GUI back to a clean state so the operator can immediately plug in the
+        next PCB and click Start without restarting the application.
+        """
+        # If automation is still running, stop it gracefully first
+        if self.automation_runner is not None and getattr(self.automation_runner, 'is_running', False):
+            self.append_status("\nEnd requested — waiting for current run to finish...")
+            # signal the runner to stop after the current step
+            self.automation_runner.is_running = False
+
+        # Close the Trace32 debugger connection
+        try:
+            from Functional import trace32 as t32
+            if t32.dbg and hasattr(t32.dbg, 'cmd'):
+                self.append_status("Closing Trace32 debugger...")
+                t32.QuitTrace32(status_label=None)
+                self.append_status("Trace32 closed.")
+            else:
+                self.append_status("Trace32 not connected — nothing to close.")
+        except Exception as e:
+            self.append_status(f"Note: Trace32 close: {e}")
+
+        # Reset the automation runner so the next run starts fresh
+        if self.automation_runner is not None:
+            self.automation_runner.is_first_run = True
+            self.automation_runner.adapter = None
+
+        # Stop timer and reset GUI
+        self._stop_timer()
+        self.timer_label.config(text="Time Elapsed: 00:00")
+        self.timer_start_time = None
+        self.started = False
+        self.start_button.config(state="normal")
+        self.variant.set(0)
+        self.non_nfc_cb.state(["!selected"])
+        self.nfc_cb.state(["!selected"])
+        self.append_status("\nReady for next PCB. Click 'Start' to begin.")
 
     def _on_start(self):
         """Handle Start button click."""

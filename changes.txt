@@ -346,6 +346,7 @@ DESIGN / QUALITY:
 
   CREATED:
     automation/core/capa_test.py      (FIX 26: new CapaTest class)
+    automation/core/gui_automation.py  (FIX 32: End button wired up)
     automation/backend_adapter/__init__.py
     automation/backend_adapter/common.py
     automation/backend_adapter/led_service.py
@@ -420,5 +421,54 @@ Date: March 12, 2026
   Fix:
     CAPA1_RETRY_TIMEOUT: 3.0 s -> 10.0 s  (~20 attempts at 0.5 s interval)
     CAPA2_RETRY_TIMEOUT: 3.0 s -> 10.0 s
+
+[FIX 32] Added functional End button to Automation GUI
+  File: automation/core/gui_automation.py
+  Problem:
+    The End button was visible in the GUI screenshot but had no command
+    wired to it.  Clicking it had no effect; operators had to close the
+    entire application window to disconnect from Trace32.
+  Fix:
+    - Grouped Start and End into a shared btn_frame (side by side) in _build_ui()
+    - Replaced the previous lone Start button pack() call with the frame layout
+    - Added _on_end() method that:
+        1. Stops any in-progress automation run (clears is_running flag)
+        2. Calls t32.QuitTrace32() to disconnect and kill the t32marm.exe process
+        3. Resets automation_runner.is_first_run = True and adapter = None so
+           the next PCB test starts with a clean state
+        4. Stops and resets the elapsed-time timer
+        5. Re-enables the Start button, clears variant checkboxes
+        6. Appends "Ready for next PCB. Click 'Start' to begin." to the log
+    The application window stays open; no restart required between PCBs.
+
+[FIX 33] Eliminated background CMD window on GUI launch
+  File created: AutomationTest.vbs
+  Problem:
+    Double-clicking AutomationTest.bat always opened a CMD console window
+    in the background for the lifetime of the application because .bat files
+    are inherently console programs on Windows.
+  Fix:
+    Created AutomationTest.vbs — a VBScript launcher that:
+      - Sets the working directory to the script's own folder so that
+        "pythonw -m automation.core.gui_automation" resolves correctly
+      - Calls pythonw.exe (Python's no-console variant) via WScript.Shell.Run
+        with WindowStyle=0 (fully hidden) and bWaitOnReturn=False
+      - Writes any launch errors to AutomationTest_error.log in the same
+        folder so startup failures are not silently swallowed
+    Users now double-click AutomationTest.vbs; no CMD window appears at all.
+    The original AutomationTest.bat is kept for debugging (shows errors in
+    the console when run manually).
+
+[FIX 34] Moved launcher files into AutomationTest\ subfolder
+  Files moved:
+    AutomationTest.vbs  ->  AutomationTest\AutomationTest.vbs
+    AutomationTest.bat  ->  AutomationTest\AutomationTest.bat
+  Both files updated to navigate one level up to the project root before
+  launching so "python -m automation.core.gui_automation" resolves correctly:
+    AutomationTest.vbs: projectRoot = fso.GetParentFolderName(scriptDir)
+                        wsh.CurrentDirectory = projectRoot
+    AutomationTest.bat: cd /d "%~dp0.."
+  Error log AutomationTest_error.log is still written to the AutomationTest\
+  subfolder alongside the launcher files.
 
 ================================================================================
