@@ -373,3 +373,93 @@ DESIGN / QUALITY:
     Public API unchanged: connect/disconnect/output_on/output_off/set_voltage/set_current
 
 ================================================================================
+EXTERNAL POWER SUPPLY SETUP — OWON P4305 (for new PC / Japan colleague)
+================================================================================
+
+The OWON P4305 connects via USB and appears in Windows Device Manager as:
+  "USB Test and Measurement Device (IVI)"
+  under the category "USB Test and Measurement Devices"
+It does NOT appear as a COM port.
+
+Communication uses PyVISA (USBTMC transport).  The following must be installed
+on any new PC before the power supply will work.
+
+--------------------------------------------------------------------------------
+STEP 1 — Install NI-VISA Runtime (required VISA backend)
+--------------------------------------------------------------------------------
+PyVISA on this laptop uses:  C:\windows\system32\visa32.dll  (NI-VISA)
+
+Download NI-VISA Runtime (free, no NI license needed):
+  URL:  https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html
+  Choose: "NI-VISA Runtime" (not the full development suite)
+  Tested version: 2024 Q1 or later
+
+After installation visa32.dll will be present and PyVISA will find it
+automatically — no extra configuration needed.
+
+  ALTERNATIVE (no NI-VISA install):
+    Install pyvisa-py + libusb backend instead:
+      pip install pyvisa-py pyusb
+    Then install libusb-win32 or WinUSB via Zadig (https://zadig.akeo.ie/)
+    and point the ResourceManager at the pure-Python backend:
+      pyvisa.ResourceManager('@py')
+    NOTE: The Functional/power_supply.py code uses the default ResourceManager()
+    which auto-selects visa32.dll if present.  If using pyvisa-py, change
+    find_owon_resource() to use ResourceManager('@py').
+
+--------------------------------------------------------------------------------
+STEP 2 — Install IVI USBTMC Driver (USB device driver)
+--------------------------------------------------------------------------------
+The OWON P4305 uses the IVI Foundation USBTMC device driver.
+
+Option A (automatic — usually sufficient):
+  Plug the USB cable into the PC.  Windows Update may install the driver
+  automatically.  Check Device Manager:
+    - GOOD: device appears under "USB Test and Measurement Devices"
+            with status "This device is working properly"
+    - BAD:  device appears under "Other devices" with a yellow warning icon
+            → proceed to Option B
+
+Option B (manual driver install):
+  The IVI USBTMC driver is included with NI-VISA Runtime (Step 1).
+  After NI-VISA is installed, unplug and re-plug the USB cable;
+  Windows will find the driver automatically.
+
+  Alternative: download the standalone IVI USBTMC driver from:
+    https://www.ivifoundation.org/usbtmc
+
+--------------------------------------------------------------------------------
+STEP 3 — Install Python packages
+--------------------------------------------------------------------------------
+All required packages are listed in requirements.txt.  Run:
+
+  pip install -r requirements.txt
+
+requirements.txt includes:  pyvisa (already present)
+pyserial is also in requirements.txt but is NOT used for the power supply —
+it is kept only for other serial peripherals.
+
+--------------------------------------------------------------------------------
+STEP 4 — Verify detection
+--------------------------------------------------------------------------------
+After Steps 1-3, verify the supply is visible with:
+
+  python -c "import pyvisa; rm = pyvisa.ResourceManager(); print(rm.list_resources())"
+
+Expected output (serial number will differ):
+  ('USB0::0x5345::0x1235::24150974::INSTR', ...)
+
+If the USB resource appears, the power supply will be detected automatically
+by find_owon_resource() — no code changes or config needed.
+
+--------------------------------------------------------------------------------
+QUICK SUMMARY FOR JAPAN COLLEAGUE
+--------------------------------------------------------------------------------
+1. Install NI-VISA Runtime from ni.com (free download)
+2. Plug in OWON P4305 USB cable — driver installs automatically
+3. Run:  pip install -r requirements.txt
+4. Verify:  python -c "import pyvisa; print(pyvisa.ResourceManager().list_resources())"
+   → Should show a USB0::0x5345::... resource
+5. No code changes needed — auto-detection uses OWON VID 0x5345
+
+================================================================================
