@@ -149,6 +149,14 @@ class TestSequenceRunner:
 
         if bat_voltage == 0.0:
             self._log(
+                "BAT: 0.0 mV — ADC not ready yet, waiting 10 s and retrying..."
+            )
+            time.sleep(10)
+            bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
+            results['battery'] = bat_passed
+
+        if bat_voltage == 0.0:
+            self._log(
                 "BAT: ✗ voltage is 0.0 mV — supply has not yet stabilised.\n"
                 "     Please wait for the voltage to stabilise and try again."
             )

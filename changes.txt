@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 47)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 50)
 ================================================================================
 
 
@@ -363,6 +363,42 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 50] BAT 0.0 mV: auto-retry with 10 s wait instead of immediate abort  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/test_sequences.py
+      - run_for_variant(): when initial BAT read returns 0.0 mV, automatically
+        waits 10 seconds and retries once (with a 10 s polling window) before
+        giving up, instead of immediately returning FAIL and forcing the user
+        to click Start again.
+    AutomationScripts/core/bat_test.py
+      - _wait_for_stable_voltage(): skip 0.0 readings entirely — two consecutive
+        zeros were previously accepted as 'stable' and returned as the voltage,
+        masking the fact the ADC had not produced a real sample yet.
+
+[FIX 49] Timer stops (freezes) at final elapsed time after automation ends  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/gui_automation.py
+      - _stop_timer(): now also clears timer_start_time = None so that any
+        _update_timer callback still queued in the 100 ms race window exits
+        without rescheduling itself — eliminating the runaway timer.
+      - reset_for_new_run(): changed from _reset_timer() back to _stop_timer()
+        so the display freezes at the final elapsed time instead of resetting
+        to 00:00.
+    AutomationScripts/core/integrated_automation.py
+      - Both reset_for_new_run() callsites changed to
+        gui.root.after(0, gui.reset_for_new_run) so all Tkinter operations
+        (after_cancel, label update, button state) run on the main thread.
+
+[FIX 48] Timer does not reset between runs; stops and freezes at final time  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/gui_automation.py
+      - reset_for_new_run(): replaced _stop_timer() with _reset_timer() to
+        clear timer_start_time and stop runaway rescheduling.
+    AutomationScripts/core/integrated_automation.py
+      - Both reset_for_new_run() callsites changed to
+        gui.root.after(0, gui.reset_for_new_run) for Tkinter thread safety.
+  Note: FIX 49 supersedes this fix by reverting to freeze-in-place behaviour.
 
 [FIX 47] Removed firmware flag checks from CAPA pass criteria  (March 13, 2026)
   Files modified:

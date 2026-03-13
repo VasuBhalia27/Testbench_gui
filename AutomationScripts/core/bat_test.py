@@ -84,7 +84,9 @@ class BatTest:
             except Exception:
                 val = None
 
-            if val is not None:
+            # 0.0 means the ADC has not produced a real reading yet;
+            # skip it so it is never mistaken for a stable voltage.
+            if val is not None and val != 0.0:
                 if last is not None and abs(val - last) < 1e-3:
                     stable_count += 1
                 else:
