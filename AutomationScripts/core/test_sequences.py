@@ -148,31 +148,28 @@ class TestSequenceRunner:
             )
             return results
 
+        # CAPA tests run immediately after battery (before other tests so that
+        # the capacitive sensors are measured while nothing else is active).
+        capa_results = self.run_capa_test()
+        results['capa1'] = capa_results['capa1']
+        results['capa2'] = capa_results['capa2']
+
         # the LED tests run in both variants
         results['led_on'] = self.run_led_test(on=True)
         results['led_off'] = self.run_led_test(on=False)
 
-        # motor test should always run immediately after battery
+        # motor test
         results['motor'] = self.run_motor_test()
 
-        # EOS test should always run immediately after motor (both reset and set cases)
+        # EOS test (both reset and set cases)
         eos_results = self.run_eos_test()
         results['eos_reset'] = eos_results['eos_reset']
         results['eos_set'] = eos_results['eos_set']
 
-        # Strain gauge (SG) tests follow EOS.  They are split into two cases
-        # corresponding to the two bridges on the board; each returns its own
-        # pass/fail dictionary so that the runner and GUI can report them
-        # individually.
+        # Strain gauge (SG) tests follow EOS.
         sg_results = self.run_sg_test()
         results['sg1'] = sg_results['sg1']
         results['sg2'] = sg_results['sg2']
-
-        # CAPA (capacitive sensor) tests follow SG.
-        # capa1 requires physical touch; capa2 is the resting state.
-        capa_results = self.run_capa_test()
-        results['capa1'] = capa_results['capa1']
-        results['capa2'] = capa_results['capa2']
 
         # placeholder logic for other tests; vary by variant
         if variant == 2:

@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 32)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 33)
 ================================================================================
 
 
@@ -363,6 +363,14 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 33] Moved CAPA tests to run immediately after battery test  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/test_sequences.py
+      - Previous order: Battery → LED ON → LED OFF → Motor → EOS → SG → CAPA
+      - New order:      Battery → CAPA1 → CAPA2 → LED ON → LED OFF → Motor → EOS → SG
+      - Rationale: capacitive sensors are measured cleanly before any other
+        hardware (LEDs, motor, EOS) is activated.
 
 [FIX 32] Added CAN/LIN OFF / ON checkboxes parallel to Handle Type Selection  (March 13, 2026)
   File modified:
