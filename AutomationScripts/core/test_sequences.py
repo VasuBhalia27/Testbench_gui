@@ -71,6 +71,14 @@ class TestSequenceRunner:
             timeout=timeout,
         )
 
+    def run_battery_test_with_voltage(self, timeout: float = 2.0):
+        """Run the battery monitor sequence and return ``(passed, voltage_mV)``."""
+        return BatTest.run_with_voltage(
+            adapter=self.adapter,
+            status_callback=self._log,
+            timeout=timeout,
+        )
+
     def run_motor_test(self, timeout: float = 2.0) -> bool:
         """Run the motor test sequence using ``MotorTest``."""
         return MotorTest.run(
@@ -125,12 +133,24 @@ class TestSequenceRunner:
         :param variant: 1 for non‑NFC, 2 for NFC
         """
         results = {}
+
+        # --- Battery voltage check (runs first) ----------------------------
+        # A reading of 0.0 mV means the supply has not yet stabilised.
+        # In that case there is no point running further tests; all hardware
+        # functions depend on a healthy supply voltage.
+        bat_passed, bat_voltage = self.run_battery_test_with_voltage()
+        results['battery'] = bat_passed
+
+        if bat_voltage == 0.0:
+            self._log(
+                "BAT: ✗ voltage is 0.0 mV — supply has not yet stabilised.\n"
+                "     Please wait for the voltage to stabilise and try again."
+            )
+            return results
+
         # the LED tests run in both variants
         results['led_on'] = self.run_led_test(on=True)
         results['led_off'] = self.run_led_test(on=False)
-
-        # battery test should always run immediately after LEDs
-        results['battery'] = self.run_battery_test()
 
         # motor test should always run immediately after battery
         results['motor'] = self.run_motor_test()

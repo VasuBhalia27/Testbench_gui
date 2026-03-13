@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026
+Date: March 10, 2026  (last updated: March 13, 2026)
 ================================================================================
 
 
@@ -314,6 +314,10 @@ DESIGN / QUALITY:
 4. FILES CHANGED
 --------------------------------------------------------------------------------
 
+  MODIFIED (March 13, 2026):
+    AutomationScripts/core/bat_test.py    (FIX 29: run_with_voltage added)
+    AutomationScripts/core/test_sequences.py  (FIX 29: battery first + early stop)
+
   MODIFIED:
     Functional/trace32.py
     Functional/logging.py
@@ -357,6 +361,26 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 29] Battery voltage check moved to first test; early stop if 0.0 mV  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/bat_test.py
+      - BatTest.run() now delegates to new BatTest.run_with_voltage()
+        (public bool API unchanged — backwards compatible)
+      - New BatTest.run_with_voltage() returns (passed: bool, voltage: float);
+        returns (False, 0.0) when the variable cannot be read
+    AutomationScripts/core/test_sequences.py
+      - Added run_battery_test_with_voltage() proxy on TestSequenceRunner
+      - run_for_variant() reordered: battery test now runs FIRST, before LED
+      - If bat_voltage == 0.0 mV the sequence logs a stabilisation warning
+        and returns immediately — LED, Motor, EOS, SG, CAPA tests are skipped
+      - Previous order: LED ON -> LED OFF -> Battery -> Motor -> EOS -> SG -> CAPA
+      - New order:      Battery -> (early stop if 0.0 mV) -> LED ON -> LED OFF
+                        -> Motor -> EOS -> SG -> CAPA
+  Rationale:
+    All downstream tests depend on a stable supply voltage.  A 0.0 mV
+    battery reading indicates the supply or ADC has not yet initialised;
+    running further tests in that state produces misleading FAIL results.
 
 [FIX 28] Rewrote power supply driver to use USBTMC (PyVISA) instead of serial
   File: Functional/power_supply.py

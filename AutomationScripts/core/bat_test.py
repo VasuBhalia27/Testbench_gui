@@ -29,6 +29,23 @@ class BatTest:
         :return: ``True`` if the final voltage lies within the pass range
                  (11500--13500 mV), ``False`` otherwise.
         """
+        passed, _ = BatTest.run_with_voltage(adapter, status_callback, timeout)
+        return passed
+
+    @staticmethod
+    def run_with_voltage(
+        adapter: Trace32Interface,
+        status_callback: Optional[Callable[[str], None]] = None,
+        timeout: float = 5.0,
+    ) -> tuple:
+        """Execute one battery test case and return both pass/fail and the measured voltage.
+
+        :param adapter: trace32 adapter to use for communication
+        :param status_callback: optional logger for progress
+        :param timeout: maximum number of seconds to wait for a stable reading
+        :return: tuple ``(passed: bool, voltage: float)`` where *voltage* is 0.0
+                 if the reading could not be obtained.
+        """
         log = status_callback or (lambda msg: None)
 
         log("BAT: triggering measurement DID")
@@ -40,10 +57,10 @@ class BatTest:
         voltage = BatTest._wait_for_stable_voltage(adapter, timeout=timeout)
         if voltage is None:
             log("BAT: voltage never stabilised within timeout")
-            return False
+            return False, 0.0
 
         log(f"BAT: final voltage = {voltage} mV")
-        return 11500 <= voltage <= 13500
+        return 11500 <= voltage <= 13500, voltage
 
     @staticmethod
     def _wait_for_stable_voltage(
