@@ -256,18 +256,40 @@ class AutomationGUI:
             self.root.update()  # refresh GUI immediately
 
     def show_restart_warning(self) -> None:
-        """Show a warning dialog when battery voltage is 0.0 mV on two consecutive runs."""
+        """Show a warning dialog when battery voltage is 0.0 mV on two consecutive runs.
+
+        After the user dismisses the dialog the debugger is closed and the
+        application window is destroyed automatically.
+        """
         messagebox.showwarning(
             title="Battery Voltage Not Detected",
             message=(
                 "Battery voltage has read 0.0 mV on two consecutive runs.\n\n"
                 "The supply voltage has not stabilised yet.\n\n"
-                "Please:\n"
-                "  1. Close this application completely.\n"
-                "  2. Wait for the supply voltage to stabilise.\n"
-                "  3. Restart the application and try again."
+                "Please follow these steps:\n"
+                "  1. Wait for the supply voltage to stabilise.\n"
+                "  2. Check all hardware connections.\n"
+                "  3. Click OK — the debugger will be closed automatically.\n"
+                "  4. The application will close automatically.\n"
+                "  5. Restart the application and try again."
             )
         )
+        # Step 3: close the Trace32 debugger connection
+        self.append_status("\nClosing Trace32 debugger before exit...")
+        try:
+            from Functional import trace32 as t32
+            if t32.dbg and hasattr(t32.dbg, 'cmd'):
+                t32.QuitTrace32(status_label=None)
+                self.append_status("Trace32 closed.")
+        except Exception as e:
+            self.append_status(f"Note: Trace32 close: {e}")
+
+        # Step 4: destroy the top-level window (closes the application)
+        self.append_status("Closing application window...")
+        try:
+            self.root.winfo_toplevel().destroy()
+        except Exception:
+            pass
 
     def reset_for_new_run(self) -> None:
         """Reset GUI to allow another automation run."""

@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 31)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 31 rev2)
 ================================================================================
 
 
@@ -380,9 +380,14 @@ DESIGN / QUALITY:
         - any run that proceeds past battery resets counter to 0
     AutomationScripts/core/gui_automation.py
       - Added messagebox to tkinter import
-      - New show_restart_warning() method: displays a messagebox.showwarning
-        dialog instructing the operator to close the application, wait for
-        supply voltage to stabilise, and restart
+      - show_restart_warning() updated with 5-step instructions:
+          1. Wait for supply voltage to stabilise
+          2. Check all hardware connections
+          3. Click OK — debugger closed automatically (calls QuitTrace32)
+          4. Application window closes automatically (winfo_toplevel().destroy())
+          5. Restart the application and try again
+      - After user clicks OK: debugger is closed, then top-level window
+        is destroyed (application exits) — no manual close needed
 
 [FIX 30] Added MinebeaMitsumi / U-Shin India logo to Automation tab  (March 13, 2026)
   File modified:
