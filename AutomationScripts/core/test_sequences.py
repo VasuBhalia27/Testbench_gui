@@ -36,15 +36,21 @@ class TestSequenceRunner:
                     used to communicate with the debugger.
     :param status_callback: optional callable for progress messages.
                             Receives a single string argument.
+    :param power_cycle_callback: optional callable that performs a full PSU
+                                 power cycle + target reset + Go.  Called
+                                 before CAPA tests to de-saturate the
+                                 capacitive sensor circuit.
     """
 
     def __init__(
         self,
         adapter: Trace32Interface,
         status_callback: Optional[Callable[[str], None]] = None,
+        power_cycle_callback: Optional[Callable[[], None]] = None,
     ):
         self.adapter = adapter
         self._log = status_callback or (lambda msg: None)
+        self._power_cycle = power_cycle_callback or (lambda: None)
 
     # ---- LED ----------------------------------------------------------------
 

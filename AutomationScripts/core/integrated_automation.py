@@ -112,7 +112,7 @@ class IntegratedAutomationRunner:
                 self._log("\n✗ HARDWARE SETUP FAILED")
                 self.is_running = False
                 self.unlock_tabs()
-                self.gui.reset_for_new_run()
+                self.gui.root.after(0, self.gui.reset_for_new_run)
                 return
 
             self._log("\n✓ HARDWARE SETUP COMPLETE")
@@ -181,6 +181,7 @@ class IntegratedAutomationRunner:
 
             if all_passed:
                 self._log("\n✓✓ ALL TESTS PASSED ✓✓")
+                self._log("Remove PCB and insert the next PCB to test.")
             else:
                 self._log("\n✗ Some tests failed - review results above")
 
@@ -196,11 +197,39 @@ class IntegratedAutomationRunner:
             self._log("\nAutomation complete. Click 'Start' to run again.")
             self.is_running = False
             self.unlock_tabs()
-            self.gui.reset_for_new_run()
+            self.gui.root.after(0, self.gui.reset_for_new_run)
 
     def _log(self, message: str) -> None:
         """Log a message to the GUI status area."""
         self.gui.append_status(message)
+
+    def _capa_power_cycle(self) -> None:
+        """Power-cycle the supply and reset the target before CAPA tests.
+
+        The capacitive sensor circuit can saturate during a run.  Cutting
+        power and restarting the firmware clears the saturation so that the
+        CAPA measurements are valid.  Extended settle times are required for
+        the unlock sensor to fully de-saturate.
+        """
+        self._log("CAPA pre-cycle: turning supply OFF...")
+        self.power_off_supply()
+        self._log("CAPA pre-cycle: waiting 5 seconds for capacitors to discharge...")
+        time.sleep(5)
+        self._log("CAPA pre-cycle: turning supply ON...")
+        self.power_on_supply()
+        self._log("CAPA pre-cycle: waiting 5 seconds for supply to stabilise...")
+        time.sleep(5)
+        self._log("CAPA pre-cycle: resetting target...")
+        try:
+            t32.ResetTarget(status_label=None)
+            self._log("CAPA pre-cycle: target reset complete")
+            time.sleep(1)
+            t32.RunCode(exec_label=None)
+            self._log("CAPA pre-cycle: code execution started")
+            self._log("CAPA pre-cycle: waiting 10 seconds for firmware and sensors to initialise...")
+            time.sleep(10)
+        except Exception as e:
+            self._log(f"CAPA pre-cycle: reset failed — {e}")
 
     def power_on_supply(self) -> None:
         """Connect to the OWON P4305 and enable its output."""

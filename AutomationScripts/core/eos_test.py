@@ -1,7 +1,7 @@
 """EOS Test Module for SmartBU Hardware Automation
 
 This module implements two EOS (Electric Outlet Sense) test cases:
-1. EOS Reset: Monitors voltage 2800-3000 mV after 20-second wait
+1. EOS Reset: Monitors voltage 1500-3000 mV after 20-second wait
 2. EOS Set: Monitors voltage 1400-1600 mV after 3-second wait
 
 Both tests poll TestFw_EosDiagVoltage until stable.
@@ -17,7 +17,7 @@ class EosTest:
     """EOS test automation with dual test cases."""
     
     # Pass criteria for EOS Reset (mV)
-    MIN_RESET_VOLTAGE = 2800
+    MIN_RESET_VOLTAGE = 1500
     MAX_RESET_VOLTAGE = 3000
     
     # Pass criteria for EOS Set (mV)

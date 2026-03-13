@@ -399,7 +399,7 @@ class AutomationGUI:
         self.start_button.config(state="normal")
         # keep control_frame visible so handle selection and timer remain
         # available for the user after a run completes
-        self._stop_timer()
+        self._stop_timer()  # freezes display at final time; clears timer_start_time to stop rescheduling
         # Status text is now cleared only when Start button is clicked,
         # not here, so it persists after automation completes
         # reset variant to unchecked state
@@ -434,10 +434,13 @@ class AutomationGUI:
             self.timer_id = self.root.after(100, self._update_timer)
 
     def _stop_timer(self) -> None:
-        """Stop the timer from updating."""
+        """Stop the timer from updating (display stays frozen at last value)."""
         if self.timer_id is not None:
             self.root.after_cancel(self.timer_id)
             self.timer_id = None
+        # Clear start time so any already-queued _update_timer callback
+        # exits without rescheduling itself (race-condition guard).
+        self.timer_start_time = None
 
     def set_automation_runner(self, runner) -> None:
         """Set the automation runner instance."""

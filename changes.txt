@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 42)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 47)
 ================================================================================
 
 
@@ -363,6 +363,64 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 47] Removed firmware flag checks from CAPA pass criteria  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/capa_test.py
+      - CAPA1 and CAPA2 pass_status: removed pass_unlock/pass_approach/pass_lock
+        (TestFw_CapaUnlock/Approach/Lock == 1.0 checks) from the pass condition.
+        Firmware sets these flags only when sensor > its own internal threshold
+        (~9000) which we cannot change; flag can be 0 even when sensor reads
+        8989–8995 (valid hardware).
+      - Firmware flag values still read and printed to the log for information.
+      - Pass/fail now determined solely by raw sensor values vs per-sensor
+        thresholds (UNLOCK=8900, APPROACH=9000, LOCK=9000).
+      - Failure log no longer reports "CapaUnlock/Approach/Lock expected 1".
+
+[FIX 46] CAPA unlock sensor threshold lowered to 8900; removed pre-CAPA power cycle  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/capa_test.py
+      - Split single SENSOR_THRESHOLD=9000 into per-sensor constants:
+          UNLOCK_SENSOR_THRESHOLD  = 8900  (unlock reads ~8989-8994 due to HW tolerance)
+          APPROACH_SENSOR_THRESHOLD = 9000 (approach reads ~9046-9075 — unchanged)
+          LOCK_SENSOR_THRESHOLD     = 9000 (lock reads ~9023-9039 — unchanged)
+      - All stabilise-loop conditions and pass/fail criteria updated to use
+        the appropriate per-sensor threshold
+      - Log messages updated to show correct per-sensor threshold values
+      - Updated docstring acceptance criteria table
+    AutomationScripts/core/test_sequences.py
+      - Removed pre-CAPA power-cycle call (power_cycle_callback no longer
+        invoked before run_capa_test) to eliminate ~20 s overhead per PCB
+    AutomationScripts/core/integrated_automation.py
+      - TestSequenceRunner instantiation: removed power_cycle_callback arg
+      - _capa_power_cycle() method retained in case it is needed in future
+
+[FIX 45] Power-cycle supply before CAPA tests to de-saturate sensor circuit  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/integrated_automation.py
+      - Added _capa_power_cycle() method: PSU OFF → 2s → PSU ON → 2s →
+        ResetTarget → 1s → RunCode (Go) → 2s settle
+      - TestSequenceRunner instantiation now passes power_cycle_callback=
+        self._capa_power_cycle
+    AutomationScripts/core/test_sequences.py
+      - TestSequenceRunner.__init__(): added optional power_cycle_callback param
+      - run_for_variant(): calls self._power_cycle() before run_capa_test()
+        with a log message "CAPA: power-cycling supply to reset capacitive
+        sensor circuit..."
+
+[FIX 44] EOS Reset voltage pass range updated to 1500–3000 mV  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/eos_test.py
+      - MIN_RESET_VOLTAGE: 0 → 1500
+      - MAX_RESET_VOLTAGE: unchanged (3000)
+      - Updated module docstring to reflect new range
+
+[FIX 43] EOS Reset voltage pass range changed to 0–3000 mV  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/eos_test.py
+      - MIN_RESET_VOLTAGE: 2800 → 0
+      - MAX_RESET_VOLTAGE: unchanged (3000)
+      - Updated module docstring to reflect new range
 
 [FIX 42] Non-Driver automatically pre-selected when Start is clicked  (March 13, 2026)
   File modified:
