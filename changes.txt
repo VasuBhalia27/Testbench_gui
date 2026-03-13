@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 41)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 42)
 ================================================================================
 
 
@@ -363,6 +363,16 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 42] Non-Driver automatically pre-selected when Start is clicked  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - _on_start(): calls self._sync(1) immediately after reset_timer,
+        so Non-Driver (variant 1) is checked and automation is launched
+        without any manual input from the operator
+      - Status log shows "Non-Driver pre-selected. Change to Driver (NFC) if needed..."
+      - Operator can still override by clicking Driver (with NFC) after Start
+        and before the automation thread begins
 
 [FIX 41] CAN/LIN OFF automatically pre-selected after hardware initialisation  (March 13, 2026)
   File modified:

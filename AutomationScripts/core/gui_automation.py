@@ -255,7 +255,9 @@ class AutomationGUI:
         self.status_text.config(state="disabled")
         # Reset timer
         self._reset_timer()
-        self.append_status("Step 1: Please select Handle Type (variant) to proceed...")
+        # Pre-select Non-Driver (variant 1) so operator can confirm or change it
+        self._sync(1)
+        self.append_status("Step 1: Non-Driver pre-selected. Change to Driver (NFC) if needed...")
 
     def _sync_canlin(self, value: int) -> None:
         """Keep the CAN/LIN OFF/ON checkbuttons mutually exclusive.
