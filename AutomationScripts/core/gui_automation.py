@@ -22,7 +22,7 @@ Usage example::
 """
 
 import tkinter as tk
-from tkinter import ttk, PhotoImage
+from tkinter import ttk, PhotoImage, messagebox
 import time
 from pathlib import Path
 
@@ -254,6 +254,20 @@ class AutomationGUI:
         self.status_text.config(state="disabled")
         if self.parent_widget is not None:
             self.root.update()  # refresh GUI immediately
+
+    def show_restart_warning(self) -> None:
+        """Show a warning dialog when battery voltage is 0.0 mV on two consecutive runs."""
+        messagebox.showwarning(
+            title="Battery Voltage Not Detected",
+            message=(
+                "Battery voltage has read 0.0 mV on two consecutive runs.\n\n"
+                "The supply voltage has not stabilised yet.\n\n"
+                "Please:\n"
+                "  1. Close this application completely.\n"
+                "  2. Wait for the supply voltage to stabilise.\n"
+                "  3. Restart the application and try again."
+            )
+        )
 
     def reset_for_new_run(self) -> None:
         """Reset GUI to allow another automation run."""

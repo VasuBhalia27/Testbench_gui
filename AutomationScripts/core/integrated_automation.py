@@ -41,6 +41,7 @@ class IntegratedAutomationRunner:
         self.is_running = False
         self.adapter = None  # Trace32 adapter persists across runs
         self.psu: OwonP4305 = None  # power supply instance
+        self.consecutive_bat_zero_count = 0  # tracks successive 0.0 mV battery failures
 
     def start_automation(self, variant: int) -> None:
         """
@@ -119,8 +120,8 @@ class IntegratedAutomationRunner:
             # in the non-first-run path.  Adding an equivalent delay here makes
             # the first run behave consistently with all further runs.
             if self.is_first_run:
-                self._log("Waiting 5 seconds for firmware peripheral initialisation...")
-                time.sleep(5)
+                self._log("Waiting 10 seconds for firmware peripheral initialisation...")
+                time.sleep(10)
 
             # Initialize adapter once on first run, then reuse for all subsequent runs
             if self.adapter is None:
@@ -132,6 +133,26 @@ class IntegratedAutomationRunner:
 
             self._log("\nExecuting functional test sequence...")
             results = runner.run_for_variant(variant)
+
+            # Detect the 0.0 mV early-stop condition: run_for_variant returns
+            # only {'battery': False} when voltage is 0.0 mV.
+            bat_zero_stop = (list(results.keys()) == ['battery'] and not results.get('battery', True))
+
+            if bat_zero_stop:
+                self.consecutive_bat_zero_count += 1
+                self._log(
+                    f"BAT: zero-voltage failure count: {self.consecutive_bat_zero_count}/2"
+                )
+                if self.consecutive_bat_zero_count >= 2:
+                    self._log(
+                        "\n⚠ Battery voltage is 0.0 mV on 2 consecutive runs.\n"
+                        "   Please close the application and restart it,\n"
+                        "   then allow more time for the supply to stabilise."
+                    )
+                    self.consecutive_bat_zero_count = 0
+                    self.gui.root.after(0, self.gui.show_restart_warning)
+            else:
+                self.consecutive_bat_zero_count = 0
 
             # Log results; helper covers both simple booleans and nested dict
             # results.  The return value indicates overall pass status.

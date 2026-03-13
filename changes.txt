@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 30)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 31)
 ================================================================================
 
 
@@ -315,8 +315,9 @@ DESIGN / QUALITY:
 --------------------------------------------------------------------------------
 
   MODIFIED (March 13, 2026):
-    AutomationScripts/core/gui_automation.py  (FIX 30: logo added)
-    AutomationScripts/core/bat_test.py    (FIX 29: run_with_voltage added)
+    AutomationScripts/core/integrated_automation.py  (FIX 31: init wait 10 s + restart warning)
+    AutomationScripts/core/gui_automation.py          (FIX 31: show_restart_warning(); FIX 30: logo)
+    AutomationScripts/core/bat_test.py                (FIX 29: run_with_voltage added)
     AutomationScripts/core/test_sequences.py  (FIX 29: battery first + early stop)
 
   MODIFIED:
@@ -362,6 +363,26 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 31] Increased HW init wait; added restart warning on 2 consecutive 0.0 mV battery failures  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/integrated_automation.py
+      - IntegratedAutomationRunner.__init__: added self.consecutive_bat_zero_count = 0
+      - First-run firmware peripheral init wait: 5 s → 10 s
+        (more time for ADCs and peripherals to stabilise on cold start)
+      - After run_for_variant() returns: detects 0.0 mV early-stop condition
+        (results dict contains only {'battery': False})
+        - increments consecutive_bat_zero_count and logs "BAT: zero-voltage
+          failure count: N/2"
+        - on 2nd consecutive 0.0 mV failure: logs ⚠ warning in status area,
+          resets counter to 0, and schedules show_restart_warning() on the
+          main GUI thread via root.after(0, ...)
+        - any run that proceeds past battery resets counter to 0
+    AutomationScripts/core/gui_automation.py
+      - Added messagebox to tkinter import
+      - New show_restart_warning() method: displays a messagebox.showwarning
+        dialog instructing the operator to close the application, wait for
+        supply voltage to stabilise, and restart
 
 [FIX 30] Added MinebeaMitsumi / U-Shin India logo to Automation tab  (March 13, 2026)
   File modified:
