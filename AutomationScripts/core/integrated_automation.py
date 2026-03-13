@@ -168,6 +168,10 @@ class IntegratedAutomationRunner:
         except Exception as e:
             self._log(f"\n✗ AUTOMATION ERROR: {e}")
         finally:
+            # Turn the power supply OFF after every run (pass or fail) so the
+            # PCB is de-energised before the operator removes it from the fixture.
+            self._log("Turning power supply OFF to safe the PCB...")
+            self.power_off_supply()
             self._log("\nAutomation complete. Click 'Start' to run again.")
             self.is_running = False
             self.unlock_tabs()

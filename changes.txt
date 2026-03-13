@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 33)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 34)
 ================================================================================
 
 
@@ -363,6 +363,15 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 34] Power supply turns OFF automatically after every automation run  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/integrated_automation.py
+      - _run_automation_thread() finally block: added power_off_supply() call
+        before "Automation complete" log message
+      - Applies on every run regardless of pass/fail/exception outcome
+      - Ensures the PCB is de-energised before the operator removes it
+        from the fixture, preventing damage during PCB changeover
 
 [FIX 33] Moved CAPA tests to run immediately after battery test  (March 13, 2026)
   File modified:
