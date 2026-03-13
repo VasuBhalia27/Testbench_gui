@@ -22,8 +22,11 @@ Usage example::
 """
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, PhotoImage
 import time
+from pathlib import Path
+
+_ASSETS_DIR = Path(__file__).parent.parent.parent / "assets_GC" / "Page_12(Auto)" / "assets" / "frame0"
 
 
 class AutomationGUI:
@@ -63,6 +66,16 @@ class AutomationGUI:
 
     def _build_ui(self, container):
         """Construct the GUI layout."""
+        # ---- Company logo (upper-left, matching Settings tab style) ----
+        logo_bar = tk.Frame(container, bg="#DFDFDF")
+        logo_bar.pack(fill="x", padx=0, pady=(4, 0))
+        try:
+            self._logo_image = PhotoImage(file=str(_ASSETS_DIR / "minebea_logo_12.png"))
+            logo_label = tk.Label(logo_bar, image=self._logo_image, bg="#DFDFDF")
+            logo_label.pack(side="left", padx=10)
+        except Exception:
+            self._logo_image = None  # logo file missing — skip silently
+
         # Welcome header
         header = ttk.Label(container, text="SmartBU Test Automation",
                            font=(None, 16, "bold"))

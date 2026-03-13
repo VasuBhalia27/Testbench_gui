@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 30)
 ================================================================================
 
 
@@ -315,6 +315,7 @@ DESIGN / QUALITY:
 --------------------------------------------------------------------------------
 
   MODIFIED (March 13, 2026):
+    AutomationScripts/core/gui_automation.py  (FIX 30: logo added)
     AutomationScripts/core/bat_test.py    (FIX 29: run_with_voltage added)
     AutomationScripts/core/test_sequences.py  (FIX 29: battery first + early stop)
 
@@ -361,6 +362,20 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 30] Added MinebeaMitsumi / U-Shin India logo to Automation tab  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - Added PhotoImage to tkinter import
+      - Added: from pathlib import Path
+      - Added module-level _ASSETS_DIR constant pointing to
+        assets_GC/Page_12(Auto)/assets/frame0/
+      - _build_ui(): new logo_bar tk.Frame packed at the very top of the
+        container (before the "SmartBU Test Automation" header label)
+      - minebea_logo_12.png loaded into a tk.Label aligned to the left,
+        matching the Settings tab placement (canvas2.create_image at x=145)
+      - try/except around image load so the tab remains functional if the
+        asset file is missing on any machine
 
 [FIX 29] Battery voltage check moved to first test; early stop if 0.0 mV  (March 13, 2026)
   Files modified:
