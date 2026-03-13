@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 31 rev2)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 32)
 ================================================================================
 
 
@@ -315,8 +315,8 @@ DESIGN / QUALITY:
 --------------------------------------------------------------------------------
 
   MODIFIED (March 13, 2026):
+    AutomationScripts/core/gui_automation.py  (FIX 32: CAN/LIN checkboxes; FIX 31: restart warning; FIX 30: logo)
     AutomationScripts/core/integrated_automation.py  (FIX 31: init wait 10 s + restart warning)
-    AutomationScripts/core/gui_automation.py          (FIX 31: show_restart_warning(); FIX 30: logo)
     AutomationScripts/core/bat_test.py                (FIX 29: run_with_voltage added)
     AutomationScripts/core/test_sequences.py  (FIX 29: battery first + early stop)
 
@@ -363,6 +363,20 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 32] Added CAN/LIN OFF / ON checkboxes parallel to Handle Type Selection  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - AutomationGUI.__init__: added self.canlin_enabled = tk.IntVar(value=0)
+      - _build_ui(): new ttk.Labelframe "CAN/LIN Setting" packed between
+        the Handle Type Selection frame and the Timer label
+        - "CAN/LIN OFF" checkbutton (onvalue=0) at row 0
+        - "CAN/LIN ON"  checkbutton (onvalue=1) at row 1
+        - both start unchecked; mutually exclusive via _sync_canlin()
+      - New _sync_canlin(value) method: sets canlin_enabled and updates
+        visual checked/unchecked state of both buttons
+      - _on_end() and reset_for_new_run(): reset canlin_enabled to 0 and
+        uncheck both CAN/LIN buttons on each reset
 
 [FIX 31] Increased HW init wait; added restart warning on 2 consecutive 0.0 mV battery failures  (March 13, 2026)
   Files modified:

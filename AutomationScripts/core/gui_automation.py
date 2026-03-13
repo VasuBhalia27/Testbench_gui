@@ -60,6 +60,8 @@ class AutomationGUI:
 
         # create the variant variable now that a root exists
         self.variant = tk.IntVar(master=self.root, value=0)  # start unchecked; user must select
+        # CAN/LIN enable toggle: 0 = OFF (disabled), 1 = ON (enabled)
+        self.canlin_enabled = tk.IntVar(master=self.root, value=0)
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -138,6 +140,32 @@ class AutomationGUI:
         else:
             self.nfc_cb.state(["!selected"])
 
+        # CAN/LIN Setting frame (middle of control frame)
+        self.canlin_frame = ttk.Labelframe(self.control_frame, text="CAN/LIN Setting")
+        self.canlin_frame.pack(side="left", padx=(0, 20), fill="x", expand=False)
+
+        self.canlin_off_cb = ttk.Checkbutton(
+            self.canlin_frame,
+            text="CAN/LIN OFF",
+            variable=self.canlin_enabled,
+            onvalue=0, offvalue=1,
+            command=lambda: self._sync_canlin(0),
+        )
+        self.canlin_off_cb.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+
+        self.canlin_on_cb = ttk.Checkbutton(
+            self.canlin_frame,
+            text="CAN/LIN ON",
+            variable=self.canlin_enabled,
+            onvalue=1, offvalue=0,
+            command=lambda: self._sync_canlin(1),
+        )
+        self.canlin_on_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+
+        # initial visual state: both unchecked
+        self.canlin_off_cb.state(["!selected"])
+        self.canlin_on_cb.state(["!selected"])
+
         # Timer label (right side of control frame)
         self.timer_label = ttk.Label(self.control_frame,
                                      text="Time Elapsed: 00:00",
@@ -202,6 +230,9 @@ class AutomationGUI:
         self.variant.set(0)
         self.non_nfc_cb.state(["!selected"])
         self.nfc_cb.state(["!selected"])
+        self.canlin_enabled.set(0)
+        self.canlin_off_cb.state(["!selected"])
+        self.canlin_on_cb.state(["!selected"])
         self.append_status("\nReady for next PCB. Click 'Start' to begin.")
 
     def _on_start(self):
@@ -222,6 +253,12 @@ class AutomationGUI:
         # Reset timer
         self._reset_timer()
         self.append_status("✓ Please select a variant to proceed...")
+
+    def _sync_canlin(self, value: int) -> None:
+        """Keep the CAN/LIN OFF/ON checkbuttons mutually exclusive."""
+        self.canlin_enabled.set(value)
+        self.canlin_off_cb.state(["selected"] if value == 0 else ["!selected"])
+        self.canlin_on_cb.state(["selected"] if value == 1 else ["!selected"])
 
     def _sync(self, value: int) -> None:
         """Keep the pair of checkbuttons mutually exclusive."""
@@ -304,6 +341,9 @@ class AutomationGUI:
         self.variant.set(0)
         self.non_nfc_cb.state(["!selected"])
         self.nfc_cb.state(["!selected"])
+        self.canlin_enabled.set(0)
+        self.canlin_off_cb.state(["!selected"])
+        self.canlin_on_cb.state(["!selected"])
 
     def _reset_timer(self) -> None:
         """Reset timer to 00:00."""
