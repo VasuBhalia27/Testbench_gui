@@ -339,10 +339,12 @@ class AutomationGUI:
 
     def prompt_canlin_selection(self) -> None:
         """Called by IntegratedAutomationRunner (via root.after) once hardware
-        initialisation is complete. Shows the CAN/LIN prompt in the status log.
+        initialisation is complete. Pre-selects CAN/LIN OFF and shows the prompt.
         """
         self.waiting_for_canlin = True
-        self.append_status("\nStep 2: Please select CAN/LIN setting (OFF or ON) to continue...")
+        # Pre-select CAN/LIN OFF so the operator can just confirm or change it
+        self._sync_canlin(0)
+        self.append_status("\nStep 2: CAN/LIN OFF pre-selected. Change to ON if needed...")
 
     def append_status(self, message: str) -> None:
         """Append a message to the status text area."""

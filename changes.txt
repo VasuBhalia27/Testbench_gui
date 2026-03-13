@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 39)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 41)
 ================================================================================
 
 
@@ -363,6 +363,24 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 41] CAN/LIN OFF automatically pre-selected after hardware initialisation  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - prompt_canlin_selection(): calls self._sync_canlin(0) immediately
+        after setting waiting_for_canlin=True, so CAN/LIN OFF is checked
+        and the automation thread is signalled without any manual input
+      - Status log shows "CAN/LIN OFF pre-selected. Change to ON if needed..."
+      - Operator can still override by clicking CAN/LIN ON before the
+        automation thread processes the event (CAN/LIN ON path still
+        performs a target reset + readback as before)
+
+[FIX 40] Swapped Handle Type Selection and CAN/LIN Setting positions  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - _build_ui(): Handle Type Selection frame is now packed first (left)
+        and CAN/LIN Setting frame is packed second (right)
+      - No logic changes; purely a visual layout update
 
 [FIX 39] Motor test fails when current = 65535 mA (saturation sentinel)  (March 13, 2026)
   File modified:
