@@ -42,17 +42,22 @@ class IntegratedAutomationRunner:
         self.adapter = None  # Trace32 adapter persists across runs
         self.psu: OwonP4305 = None  # power supply instance
         self.consecutive_bat_zero_count = 0  # tracks successive 0.0 mV battery failures
+        self._canlin_event = threading.Event()  # set by GUI when user selects CAN/LIN after hw init
 
-    def start_automation(self, variant: int) -> None:
+    def start_automation(self, variant: int, canlin_enabled: int = 0) -> None:
         """
         Start the automation sequence in a background thread.
 
         :param variant: 1 for Non-NFC, 2 for NFC
+        :param canlin_enabled: unused — kept for API compatibility; the actual
+                               CAN/LIN selection is collected from the user
+                               after hardware initialisation completes.
         """
         if self.is_running:
             return
 
         self.is_running = True
+        self._canlin_event.clear()
         thread = threading.Thread(target=self._run_automation_thread, args=(variant,))
         thread.daemon = True
         thread.start()
@@ -126,7 +131,23 @@ class IntegratedAutomationRunner:
             # Initialize adapter once on first run, then reuse for all subsequent runs
             if self.adapter is None:
                 self.adapter = trace32_adapter.Trace32Interface()
-            
+
+            # Prompt the user to select CAN/LIN setting now that hardware is
+            # fully initialised and Trace32 is connected.
+            self._canlin_event.clear()
+            self.gui.root.after(0, self.gui.prompt_canlin_selection)
+            self._log("Waiting for CAN/LIN selection...")
+            selected_in_time = self._canlin_event.wait(timeout=120)
+            if not selected_in_time:
+                self._log("⚠ CAN/LIN selection timed out (120 s) — defaulting to CAN/LIN OFF")
+
+            # Read the value chosen by the user (already applied by _sync_canlin)
+            canlin_enabled = self.gui.canlin_enabled.get()
+            can_dep_value = 0 if canlin_enabled == 1 else 1
+            canlin_label = "ON" if canlin_enabled == 1 else "OFF"
+            self._log(f"CAN/LIN confirmed: TestFw_GuiCanDependencyDisable = {can_dep_value} (CAN/LIN {canlin_label})")
+            self.adapter.set_variable("TestFw_GuiCanDependencyDisable", can_dep_value)
+
             runner = test_sequences.TestSequenceRunner(
                 self.adapter, status_callback=self._log
             )

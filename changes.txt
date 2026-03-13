@@ -1,6 +1,6 @@
 ﻿================================================================================
 PROJECT ANALYSIS & FIXES — SmartBU Testbench GUI
-Date: March 10, 2026  (last updated: March 13, 2026 — FIX 34)
+Date: March 10, 2026  (last updated: March 13, 2026 — FIX 39)
 ================================================================================
 
 
@@ -363,6 +363,91 @@ DESIGN / QUALITY:
                      AND Unlock/Approach/Lock flags == 0
     Log now shows unlock_sensor, approach_sensor, lock_sensor separately
     Hardware was reading 9058 which was just below the old 9120 lower bound
+
+[FIX 39] Motor test fails when current = 65535 mA (saturation sentinel)  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/motor_test.py
+      - pass_current condition changed from `current > 0` to
+        `current > 0 and current != 65535`
+      - 65535 (0xFFFF) is a hardware saturation sentinel meaning the ADC
+        or firmware returned an invalid/overflow value
+      - Failure log distinguishes saturation: "current 65535.0 mA is a
+        saturation sentinel (0xFFFF) — hardware error"
+      - Updated module docstring to document the new pass criterion
+
+[FIX 38] CAN/LIN ON triggers debugger reset before reading TestFw_GuiCanDependencyDisable  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - _sync_canlin(): split into two paths inside a daemon background thread:
+          CAN/LIN ON  → ResetTarget() (SYStem.Up) → sleep 1s → RunCode() (Go)
+                        → sleep 2s → read TestFw_GuiCanDependencyDisable (after reset)
+                        → fire _canlin_event
+          CAN/LIN OFF → read TestFw_GuiCanDependencyDisable (current value)
+                        → fire _canlin_event
+        Background thread prevents the GUI from freezing during the reset/wait.
+        Both paths log the variable value before signalling the automation thread.
+      - Added import threading to top-level imports (already present from FIX 37 prep)
+
+[FIX 37] CAN/LIN selection moved to AFTER hardware initialisation  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/gui_automation.py
+      - __init__: replaced canlin_selected flag with waiting_for_canlin flag
+      - _on_start(): prompt changed to "Step 1: Please select Handle Type"
+        (variant selected first, CAN/LIN later)
+      - _sync(): removed canlin_selected guard; fires automation immediately
+        after variant selection; lock_callback() stays here
+      - _start_automation(): calls start_automation(variant) without canlin
+        arg; logs that CAN/LIN will be prompted after hw init
+      - Added prompt_canlin_selection(): called via root.after() by the runner
+        after hardware setup is complete; sets waiting_for_canlin=True and
+        shows "Step 2: Please select CAN/LIN setting" prompt
+      - _sync_canlin(): now only active when waiting_for_canlin=True; reads
+        TestFw_GuiCanDependencyDisable (Trace32 now connected), logs value,
+        clears waiting_for_canlin, and fires _canlin_event to resume thread
+      - _on_end() and reset_for_new_run(): reset waiting_for_canlin=False
+    AutomationScripts/core/integrated_automation.py
+      - __init__: added self._canlin_event = threading.Event()
+      - start_automation(): clears _canlin_event before launching thread;
+        canlin_enabled param kept for API compat but is now unused
+      - _run_automation_thread(variant): no longer receives canlin_enabled;
+        after hw setup complete + 10 s wait + adapter init:
+          1. Clears _canlin_event
+          2. Calls gui.prompt_canlin_selection() via root.after()
+          3. Waits up to 120 s for user to select CAN/LIN
+          4. Reads canlin_enabled from gui.canlin_enabled.get()
+          5. Sets TestFw_GuiCanDependencyDisable accordingly
+          6. Continues with test sequence
+
+[FIX 36] Sequential CAN/LIN → variant selection flow with Trace32 readback  (March 13, 2026)
+  File modified:
+    AutomationScripts/core/gui_automation.py
+      - Added self.canlin_selected = False flag to __init__
+      - _on_start(): shows "Step 1: Please select CAN/LIN setting (OFF or ON)"
+        instead of immediately prompting for variant; does NOT lock tabs yet
+      - _sync_canlin(value): when started=True, marks canlin_selected=True,
+        reads TestFw_GuiCanDependencyDisable from Trace32 (t32.dbg) and logs
+        the current firmware value, then shows "Step 2: Please select Handle
+        Type (variant)". Falls back gracefully if Trace32 is not yet connected.
+      - _sync(value): guards on canlin_selected; if user picks a variant
+        without selecting CAN/LIN first, logs a warning and returns. Only
+        calls lock_callback() and starts automation after CAN/LIN is chosen.
+      - _on_end() and reset_for_new_run(): reset canlin_selected = False
+
+[FIX 35] Wired CAN/LIN OFF/ON checkbox to TestFw_GuiCanDependencyDisable  (March 13, 2026)
+  Files modified:
+    AutomationScripts/core/gui_automation.py
+      - _start_automation(): reads self.canlin_enabled.get() and passes it
+        as canlin arg to automation_runner.start_automation()
+      - Logs "CAN/LIN setting: ON/OFF" in status area at start of each run
+    AutomationScripts/core/integrated_automation.py
+      - start_automation(variant, canlin_enabled=0): new canlin_enabled param
+        (0 = OFF, 1 = ON; default 0 = OFF for safety)
+      - _run_automation_thread(variant, canlin_enabled=0): receives value
+      - Before test sequence: sets TestFw_GuiCanDependencyDisable via
+        adapter.set_variable():
+          CAN/LIN OFF (canlin_enabled=0) -> TestFw_GuiCanDependencyDisable = 1
+          CAN/LIN ON  (canlin_enabled=1) -> TestFw_GuiCanDependencyDisable = 0
+        Mirrors Functional/trace32.py CANoe_Disable() / CANoe_Enable() logic
 
 [FIX 34] Power supply turns OFF automatically after every automation run  (March 13, 2026)
   File modified:

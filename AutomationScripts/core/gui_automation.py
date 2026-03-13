@@ -24,6 +24,7 @@ Usage example::
 import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
 import time
+import threading
 from pathlib import Path
 
 _ASSETS_DIR = Path(__file__).parent.parent.parent / "assets_GC" / "Page_12(Auto)" / "assets" / "frame0"
@@ -62,6 +63,7 @@ class AutomationGUI:
         self.variant = tk.IntVar(master=self.root, value=0)  # start unchecked; user must select
         # CAN/LIN enable toggle: 0 = OFF (disabled), 1 = ON (enabled)
         self.canlin_enabled = tk.IntVar(master=self.root, value=0)
+        self.waiting_for_canlin = False  # True when hw init done and awaiting user CAN/LIN pick
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -111,7 +113,7 @@ class AutomationGUI:
         # Make the frame a child of main_area so it becomes visible when gridded there.
         self.control_frame = ttk.Frame(self.main_area)
 
-        # Variant selection frame (left side)
+        # Handle Type Selection frame (left side — first)
         self.variant_frame = ttk.Labelframe(self.control_frame,
                                            text="Handle Type Selection")
         self.variant_frame.pack(side="left", padx=(0, 20), fill="x", expand=False)
@@ -140,7 +142,7 @@ class AutomationGUI:
         else:
             self.nfc_cb.state(["!selected"])
 
-        # CAN/LIN Setting frame (middle of control frame)
+        # CAN/LIN Setting frame (right side — second)
         self.canlin_frame = ttk.Labelframe(self.control_frame, text="CAN/LIN Setting")
         self.canlin_frame.pack(side="left", padx=(0, 20), fill="x", expand=False)
 
@@ -233,11 +235,13 @@ class AutomationGUI:
         self.canlin_enabled.set(0)
         self.canlin_off_cb.state(["!selected"])
         self.canlin_on_cb.state(["!selected"])
+        self.waiting_for_canlin = False
         self.append_status("\nReady for next PCB. Click 'Start' to begin.")
 
     def _on_start(self):
         """Handle Start button click."""
         self.started = True
+        self.waiting_for_canlin = False
         self.start_button.config(state="disabled")
         # Grid control_frame into main_area row 0 so it appears above status
         try:
@@ -245,25 +249,73 @@ class AutomationGUI:
         except Exception:
             # fallback to packing into container if grid fails
             self.control_frame.pack(padx=20, pady=10, fill="x")
-        self.lock_callback()  # lock other tabs
         # Clear old status text when Start is clicked
         self.status_text.config(state="normal")
         self.status_text.delete(1.0, tk.END)
         self.status_text.config(state="disabled")
         # Reset timer
         self._reset_timer()
-        self.append_status("✓ Please select a variant to proceed...")
+        self.append_status("Step 1: Please select Handle Type (variant) to proceed...")
 
     def _sync_canlin(self, value: int) -> None:
-        """Keep the CAN/LIN OFF/ON checkbuttons mutually exclusive."""
+        """Keep the CAN/LIN OFF/ON checkbuttons mutually exclusive.
+
+        CAN/LIN OFF: reads TestFw_GuiCanDependencyDisable immediately and
+                     signals the automation thread to continue.
+        CAN/LIN ON:  resets the debugger target first (SYStem.Up + Go), then
+                     re-reads TestFw_GuiCanDependencyDisable so the log shows
+                     the post-reset firmware value before signalling the thread.
+                     The reset runs in a background thread to keep the GUI responsive.
+        """
         self.canlin_enabled.set(value)
         self.canlin_off_cb.state(["selected"] if value == 0 else ["!selected"])
         self.canlin_on_cb.state(["selected"] if value == 1 else ["!selected"])
 
+        if not getattr(self, "waiting_for_canlin", False):
+            return
+
+        canlin_label = "ON" if value == 1 else "OFF"
+        self.append_status(f"\nCAN/LIN setting selected: {canlin_label}")
+
+        def _signal_thread():
+            """Optionally reset the target, apply the CAN/LIN value, read it back, then fire the event."""
+            try:
+                from Functional import trace32 as t32
+                # Determine the value to write:
+                #   CAN/LIN ON  (value=1) -> TestFw_GuiCanDependencyDisable = 0
+                #   CAN/LIN OFF (value=0) -> TestFw_GuiCanDependencyDisable = 1
+                can_dep_value = 0 if value == 1 else 1
+                if value == 1:
+                    # Reset target so firmware re-initialises cleanly
+                    self.append_status("Resetting debugger target...")
+                    t32.ResetTarget(status_label=None)
+                    self.append_status("Target reset complete")
+                    time.sleep(1)
+                    t32.RunCode(exec_label=None)
+                    self.append_status("Code execution started")
+                    time.sleep(2)  # allow firmware to initialise
+                # Set the variable to the user-selected value
+                if t32.dbg and hasattr(t32.dbg, 'cmd'):
+                    t32.dbg.cmd(f"Var.set TestFw_GuiCanDependencyDisable = {can_dep_value}")
+                    # Read back to confirm
+                    raw = t32.dbg.fnc("Var.VALUE(TestFw_GuiCanDependencyDisable)")
+                    self.append_status(
+                        f"TestFw_GuiCanDependencyDisable = {int(float(str(raw)))} (set by CAN/LIN {canlin_label} selection)"
+                    )
+                else:
+                    self.append_status("TestFw_GuiCanDependencyDisable: Trace32 not connected")
+            except Exception as e:
+                self.append_status(f"TestFw_GuiCanDependencyDisable: could not apply \u2014 {e}")
+            finally:
+                self.waiting_for_canlin = False
+                if self.automation_runner is not None and hasattr(self.automation_runner, "_canlin_event"):
+                    self.automation_runner._canlin_event.set()
+
+        threading.Thread(target=_signal_thread, daemon=True).start()
+
     def _sync(self, value: int) -> None:
         """Keep the pair of checkbuttons mutually exclusive."""
         if value == 1:
-            # user clicked non‑NFC
             self.variant.set(1)
         elif value == 2:
             self.variant.set(2)
@@ -272,7 +324,8 @@ class AutomationGUI:
         self.nfc_cb.state(["!selected"] if self.variant.get() != 2 else ["selected"])
         # Only trigger automation if user explicitly started the flow
         if getattr(self, "started", False):
-            # Start timer when user selects a variant
+            # Lock other tabs, start timer, then launch automation
+            self.lock_callback()
             self._start_timer()
             self.root.after(100, self._start_automation)
 
@@ -281,7 +334,15 @@ class AutomationGUI:
         if self.automation_runner is not None:
             variant = self.variant.get()
             self.append_status(f"\nVariant selected: {variant}")
+            self.append_status("Starting automation — CAN/LIN selection will be prompted after hardware initialisation.")
             self.automation_runner.start_automation(variant)
+
+    def prompt_canlin_selection(self) -> None:
+        """Called by IntegratedAutomationRunner (via root.after) once hardware
+        initialisation is complete. Shows the CAN/LIN prompt in the status log.
+        """
+        self.waiting_for_canlin = True
+        self.append_status("\nStep 2: Please select CAN/LIN setting (OFF or ON) to continue...")
 
     def append_status(self, message: str) -> None:
         """Append a message to the status text area."""
@@ -344,6 +405,7 @@ class AutomationGUI:
         self.canlin_enabled.set(0)
         self.canlin_off_cb.state(["!selected"])
         self.canlin_on_cb.state(["!selected"])
+        self.waiting_for_canlin = False
 
     def _reset_timer(self) -> None:
         """Reset timer to 00:00."""

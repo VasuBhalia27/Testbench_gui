@@ -6,7 +6,7 @@ The motor monitor test reads three variables:
   - ``TestFw_MotorLoadError``
 
 and waits for them to stabilise after triggering the appropriate DID.
-Pass criteria: voltage > 0 mV, current > 0 mA, and load error == 0.
+Pass criteria: voltage > 0 mV, current > 0 mA and != 65535 mA (saturation sentinel), and load error == 0.
 """
 
 import time
@@ -82,7 +82,7 @@ class MotorTest:
         )
 
         pass_voltage = voltage > 0
-        pass_current = current > 0
+        pass_current = current > 0 and current != 65535
         pass_load_error = load_error == 0
 
         if pass_voltage and pass_current and pass_load_error:
@@ -92,7 +92,10 @@ class MotorTest:
             if not pass_voltage:
                 log(f"MOTOR: ✗ voltage {voltage} is not > 0")
             if not pass_current:
-                log(f"MOTOR: ✗ current {current} is not > 0")
+                if current == 65535:
+                    log(f"MOTOR: ✗ current {current} mA is a saturation sentinel (0xFFFF) — hardware error")
+                else:
+                    log(f"MOTOR: ✗ current {current} is not > 0")
             if not pass_load_error:
                 log(f"MOTOR: ✗ load_error {load_error} is not == 0")
             return False
