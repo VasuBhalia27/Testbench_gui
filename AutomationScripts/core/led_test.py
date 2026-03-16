@@ -57,6 +57,40 @@ class LedTest:
             return voltage <= 10.0
 
     @staticmethod
+    def run_with_voltage(
+        adapter: Trace32Interface,
+        on: bool,
+        status_callback: Optional[Callable[[str], None]] = None,
+        timeout: float = 5.0,
+    ) -> tuple:
+        """Like :meth:`run` but also returns the measured voltage.
+
+        :return: tuple ``(passed: bool, voltage_mV: float)``; voltage is 0.0
+                 when the reading could not be obtained.
+        """
+        log = status_callback or (lambda msg: None)
+
+        log(f"LED {'ON' if on else 'OFF'}: setting request")
+        adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
+
+        log("LED: waiting 2 seconds for voltage to stabilise")
+        time.sleep(2)
+
+        log("LED: triggering measurement DID")
+        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
+
+        voltage = LedTest._wait_for_stable_voltage(adapter, timeout=timeout)
+        if voltage is None:
+            log("LED: voltage never stabilised within timeout")
+            return False, 0.0
+
+        log(f"LED: final voltage = {voltage} mV")
+        if on:
+            return 2400 <= voltage <= 2600, voltage
+        else:
+            return voltage <= 10.0, voltage
+
+    @staticmethod
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
         timeout: float = 3.0,

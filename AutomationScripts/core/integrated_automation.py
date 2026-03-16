@@ -185,6 +185,14 @@ class IntegratedAutomationRunner:
             else:
                 self._log("\n✗ Some tests failed - review results above")
 
+            # Generate Excel test report from the actual hardware measurements.
+            try:
+                from AutomationScripts.report_generator import generate_report
+                report_path = generate_report(run_results=results)
+                self._log(f"Report saved: {report_path}")
+            except Exception as _exc:
+                self._log(f"⚠ Report generation failed: {_exc}")
+
             self.is_first_run = False
 
         except Exception as e:

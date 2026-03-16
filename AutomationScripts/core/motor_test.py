@@ -101,6 +101,46 @@ class MotorTest:
             return False
 
     @staticmethod
+    def run_with_values(
+        adapter: Trace32Interface,
+        status_callback: Optional[Callable[[str], None]] = None,
+        timeout: float = 1.0,
+    ) -> tuple:
+        """Like :meth:`run` but also returns the measured values.
+
+        :return: tuple ``(passed, voltage_mV, current_mA, load_error)``;
+                 numeric values are 0.0 when readings could not be obtained.
+        """
+        log = status_callback or (lambda msg: None)
+
+        log("MOTOR: setting DecoupleCouple state")
+        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
+        time.sleep(1)
+        log("MOTOR: clearing DecoupleCouple request")
+        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
+
+        log("MOTOR: triggering measurement DID")
+        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+
+        voltage, current, load_error, _ = MotorTest._wait_for_stable_values(
+            adapter, timeout=timeout, poll_interval=0.5
+        )
+
+        v = voltage if voltage is not None else 0.0
+        i = current if current is not None else 0.0
+        e = load_error if load_error is not None else -1.0
+
+        if voltage is None or current is None or load_error is None:
+            return False, v, i, e
+
+        log(f"MOTOR: final values - voltage={v} mV, current={i} mA, load_error={e}")
+
+        passed = v > 0 and 0 < i < 65535 and e == 0
+        if passed:
+            log("MOTOR: \u2713 all values in pass range")
+        return passed, v, i, e
+
+    @staticmethod
     def _wait_for_stable_values(
         adapter: Trace32Interface,
         timeout: float = 2.0,

@@ -93,6 +93,23 @@ class TestSequenceRunner:
             timeout=timeout,
         )
 
+    def run_led_test_with_voltage(self, on: bool, timeout: float = 3.0) -> tuple:
+        """Proxy to :meth:`LedTest.run_with_voltage`; returns ``(passed, voltage_mV)``."""
+        return LedTest.run_with_voltage(
+            adapter=self.adapter,
+            on=on,
+            status_callback=self._log,
+            timeout=timeout,
+        )
+
+    def run_motor_test_with_values(self, timeout: float = 2.0) -> tuple:
+        """Run the motor test and return ``(passed, voltage_mV, current_mA, load_error)``."""
+        return MotorTest.run_with_values(
+            adapter=self.adapter,
+            status_callback=self._log,
+            timeout=timeout,
+        )
+
     def run_eos_test(self) -> dict:
         """Run the EOS test sequence (both Reset and Set cases).
         
@@ -145,7 +162,7 @@ class TestSequenceRunner:
         # In that case there is no point running further tests; all hardware
         # functions depend on a healthy supply voltage.
         bat_passed, bat_voltage = self.run_battery_test_with_voltage()
-        results['battery'] = bat_passed
+        results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:
             self._log(
@@ -153,11 +170,11 @@ class TestSequenceRunner:
             )
             time.sleep(10)
             bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
-            results['battery'] = bat_passed
+            results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:
             self._log(
-                "BAT: ✗ voltage is 0.0 mV — supply has not yet stabilised.\n"
+                "BAT: \u2717 voltage is 0.0 mV \u2014 supply has not yet stabilised.\n"
                 "     Please wait for the voltage to stabilise and try again."
             )
             return results
@@ -169,11 +186,15 @@ class TestSequenceRunner:
         results['capa2'] = capa_results['capa2']
 
         # the LED tests run in both variants
-        results['led_on'] = self.run_led_test(on=True)
-        results['led_off'] = self.run_led_test(on=False)
+        led_on_passed, led_on_v   = self.run_led_test_with_voltage(on=True)
+        led_off_passed, led_off_v = self.run_led_test_with_voltage(on=False)
+        results['led_on']  = {'pass': led_on_passed,  'voltage': led_on_v}
+        results['led_off'] = {'pass': led_off_passed, 'voltage': led_off_v}
 
         # motor test
-        results['motor'] = self.run_motor_test()
+        mot_passed, mot_v, mot_i, mot_e = self.run_motor_test_with_values()
+        results['motor'] = {'pass': mot_passed, 'voltage': mot_v,
+                            'current': mot_i, 'load_error': mot_e}
 
         # EOS test (both reset and set cases)
         eos_results = self.run_eos_test()
