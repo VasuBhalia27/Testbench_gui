@@ -1,7 +1,15 @@
+import sys
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
 import ctypes
+
+# Allow running this script from Gui_Main_Script while importing sibling
+# top-level packages such as Functional and AutomationScripts.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 #from Functional.power_supply import *
 from Functional.trace32 import *
 from tkinter import filedialog
@@ -88,7 +96,7 @@ def browse_repo_path():
 images = {}
 
 # Base Paths
-OUTPUT_PATH = Path(__file__).parent
+OUTPUT_PATH = _REPO_ROOT
 ASSETS_PATH_TAB1 = OUTPUT_PATH / Path(r"assets_GC\Page_1(Welcome_page)\assets\frame0")
 ASSETS_PATH_TAB2 = OUTPUT_PATH / Path(r"assets_GC\Page_2(Settings)\assets\frame0")
 ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"assets_GC\Page_3(Led)\assets\frame0")

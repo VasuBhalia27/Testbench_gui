@@ -82,7 +82,7 @@ echo.
 :: Launch GUI
 echo Starting SmartBU GUI...
 echo.
-python gui_main.py
+python Gui_Main_Script\gui_main.py
 
 echo.
 echo Application closed.

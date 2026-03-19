@@ -833,3 +833,81 @@ OWON selection (for India setup)
 
   Optional explicit resource:
     $env:OWON_PSU_RESOURCE = "USB0::0x5345::....::INSTR"
+
+================================================================================
+[FIX 52] Added PSU selector dropdown in Automation GUI (OWON/KIKUSUI)
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+
+What changed:
+  - Added "Power Supply" selector in Automation tab:
+      OWON / KIKUSUI
+  - Start action now applies selected backend automatically by setting:
+      PSU_TYPE=owon | PSU_TYPE=kikusui
+  - Selection is shown in status log at run start.
+
+================================================================================
+[FIX 53] Added persistent PSU selection across launches
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+
+What changed:
+  - Added local settings file persistence:
+      AutomationScripts/automation_gui_settings.json
+  - Saves last selected PSU type and auto-loads on next launch.
+  - PSU_TYPE environment variable still has higher priority when explicitly set.
+
+================================================================================
+[FIX 54] Added one-click enable/disable for PSU automation
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+  AutomationScripts/core/integrated_automation.py
+
+What changed:
+  - Added "Automation ON" checkbox under Power Supply section.
+  - Introduced environment flag:
+      PSU_AUTOMATION=1 (enabled, default)
+      PSU_AUTOMATION=0 (disabled)
+  - When disabled, runner skips:
+      - automated PSU OFF/ON sequence at start
+      - automated PSU OFF at end
+  - Status log now states when PSU automation is disabled.
+
+================================================================================
+[FIX 55] Reorganized top-level files into requested folders
+================================================================================
+
+Folders created:
+  Gui_Main_Script/
+  Config/
+
+Moves performed:
+  - gui_main.py -> Gui_Main_Script/gui_main.py
+  - changes.txt, config.t32, pytest.ini, python.log, requirements.txt,
+    USBIdentifier.bat -> Config/
+
+Compatibility updates:
+  - ManualTest/SmartBuApp.bat launch path updated to:
+      python Gui_Main_Script\\gui_main.py
+  - Functional/trace32.py config path updated to:
+      Config\\config.t32
+    with fallback to legacy root config.t32.
+
+================================================================================
+[FIX 56] Fixed manual launch import and assets path after gui_main move
+================================================================================
+
+Files modified:
+  Gui_Main_Script/gui_main.py
+
+What changed:
+  - Added repository root insertion into sys.path so imports resolve:
+      Functional, AutomationScripts
+  - Updated asset base path to repository root so all asset_GC images load
+    correctly when running from Gui_Main_Script.

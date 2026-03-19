@@ -131,7 +131,10 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     
     Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
     Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
-    trace_configfile_path = f"{Automation_repo_path}\\config.t32"    
+    trace_configfile_path = f"{Automation_repo_path}\\Config\\config.t32"
+    if not os.path.exists(trace_configfile_path):
+        # Backward compatibility for older folder layout.
+        trace_configfile_path = f"{Automation_repo_path}\\config.t32"
     
 
     repo_path_XNF = str(repo_path_XNF)
