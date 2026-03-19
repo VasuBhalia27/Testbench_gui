@@ -1,181 +1,210 @@
-"""OWON P4305 programmable DC power supply driver.
+"""Programmable DC power supply drivers (OWON + KIKUSUI).
 
-The P4305 connects to the PC via USB and enumerates as a USB Test and
-Measurement Device (USBTMC / IVI class) - visible in Device Manager under
-"USB Test and Measurement Devices".  It does NOT appear as a COM port.
+This module supports multiple bench supplies over VISA/SCPI and exposes a
+common API used by automation:
 
-Communication: PyVISA (USBTMC transport), SCPI text commands.
+- connect()
+- disconnect()
+- output_on()
+- output_off()
+- set_voltage(volts)
+- set_current(amps)
 
-Supported commands used here:
-  :SYST:REMOTE   - take the supply out of local (front-panel) mode
-  :SYST:LOCAL    - return control to the front panel
-  OUT ON / OUT OFF - enable / disable the output
-  VOLT <V>       - set output voltage  (e.g. "VOLT 12.000")
-  CURR <A>       - set current limit   (e.g. "CURR 2.000")
-  *IDN?          - identification query used during auto-detection
+Select the supply type with environment variable ``PSU_TYPE``:
 
-Auto-detection:
-  find_owon_resource() lists all VISA USB resources and returns the first
-  whose *IDN? response contains an OWON-related keyword.
-  Pass an explicit VISA resource string (e.g.
-  "USB0::0x5345::0x1234::P4305::INSTR") to the constructor to bypass
-  auto-detection.
+- ``owon`` (default)
+- ``kikusui``
 
-Usage example::
+Optional explicit VISA resource env vars:
 
-    from Functional.power_supply import OwonP4305
-
-    psu = OwonP4305()          # auto-detect via USBTMC
-    psu.connect()
-    psu.set_voltage(12.0)
-    psu.set_current(2.0)
-    psu.output_on()
-    ...
-    psu.output_off()
-    psu.disconnect()
-
-    # or as a context manager:
-    with OwonP4305() as psu:
-        psu.set_voltage(12.0)
-        psu.set_current(2.0)
-        psu.output_on()
+- ``OWON_PSU_RESOURCE``
+- ``KIKUSUI_PSU_RESOURCE``
 """
 
+import os
 import time
-from typing import Optional
+from typing import Callable, Optional
 
 import pyvisa
 
-# Timeout in milliseconds for VISA read/write operations
+# Timeout in milliseconds for VISA read/write operations.
 _VISA_TIMEOUT_MS = 3000
 
-# OWON USB Vendor ID (0x5345).  The P4305 does not respond to *IDN? so we
-# match directly on the VID embedded in the VISA resource string, e.g.
-# "USB0::0x5345::0x1235::24150974::INSTR".
+# Vendor IDs visible in VISA USB resource strings.
 _OWON_VID = "0x5345"
+_KIKUSUI_VID = "0x0B3E"
 
 
-def find_owon_resource() -> Optional[str]:
-    """Scan all VISA USB resources and return the first OWON device found.
-
-    Matches by OWON's USB Vendor ID (0x5345) embedded in the resource string.
-    The OWON P4305 does not respond to *IDN? so no query is performed.
-
-    Returns the VISA resource string (e.g.
-    ``"USB0::0x5345::0x1235::24150974::INSTR"``) or ``None`` if no OWON
-    device is connected.
-    """
+def _list_usb_resources() -> tuple:
     try:
         rm = pyvisa.ResourceManager()
         resources = rm.list_resources("USB?*INSTR")
+        rm.close()
+        return resources
+    except Exception:
+        return ()
+
+
+def _probe_idn(resource: str) -> Optional[str]:
+    inst = None
+    rm = None
+    try:
+        rm = pyvisa.ResourceManager()
+        inst = rm.open_resource(resource)
+        inst.timeout = _VISA_TIMEOUT_MS
+        inst.write_termination = "\n"
+        inst.read_termination = "\n"
+        response = inst.query("*IDN?")
+        return response.strip().upper() if response else None
     except Exception:
         return None
+    finally:
+        try:
+            if inst is not None:
+                inst.close()
+        except Exception:
+            pass
+        try:
+            if rm is not None:
+                rm.close()
+        except Exception:
+            pass
 
-    for resource in resources:
-        if _OWON_VID.lower() in resource.lower():
+
+def find_owon_resource() -> Optional[str]:
+    """Return first OWON VISA USB resource string, or None if not found."""
+    for resource in _list_usb_resources():
+        if _OWON_VID in resource.lower():
             return resource
-
+        idn = _probe_idn(resource)
+        if idn and "OWON" in idn:
+            return resource
     return None
 
 
-class OwonP4305:
-    """Driver for the OWON P4305 single-channel programmable DC supply.
+def find_kikusui_resource() -> Optional[str]:
+    """Return first KIKUSUI VISA USB resource string, or None if not found."""
+    for resource in _list_usb_resources():
+        if _KIKUSUI_VID in resource.lower():
+            return resource
+        idn = _probe_idn(resource)
+        if idn and ("KIKUSUI" in idn or "PWR401L" in idn):
+            return resource
+    return None
 
-    :param resource: explicit VISA resource string
-                     (e.g. ``"USB0::0x5345::0x1234::P4305::INSTR"``).
-                     If ``None``, :func:`find_owon_resource` is used to
-                     auto-detect via USBTMC.
-    """
 
-    def __init__(self, resource: Optional[str] = None):
+class _ScpiPowerSupply:
+    """Shared SCPI/VISA implementation for supported bench supplies."""
+
+    def __init__(
+        self,
+        name: str,
+        resource: Optional[str],
+        resolver: Callable[[], Optional[str]],
+        remote_cmd: str,
+        local_cmd: str,
+    ):
+        self.name = name
         self._resource = resource
-        self._inst: Optional[pyvisa.resources.Resource] = None
-        self._rm:   Optional[pyvisa.ResourceManager]    = None
-
-    # ------------------------------------------------------------------
-    # Connection management
-    # ------------------------------------------------------------------
+        self._resolver = resolver
+        self._remote_cmd = remote_cmd
+        self._local_cmd = local_cmd
+        self._inst = None
+        self._rm = None
 
     def connect(self) -> None:
-        """Open the VISA connection and switch the supply to remote mode."""
-        resource = self._resource or find_owon_resource()
+        resource = self._resource or self._resolver()
         if resource is None:
             raise RuntimeError(
-                "OWON P4305 not found on any USBTMC/USB resource.\n"
-                "Check that the USB cable is connected and the device appears\n"
-                "under 'USB Test and Measurement Devices' in Device Manager.\n"
-                "Alternatively pass the resource string explicitly:\n"
-                "  OwonP4305(resource='USB0::0x5345::0x1234::P4305::INSTR')"
+                f"{self.name} not found on VISA USB resources. "
+                "Set resource explicitly via environment variable or constructor."
             )
-        self._rm   = pyvisa.ResourceManager()
+
+        self._rm = pyvisa.ResourceManager()
         self._inst = self._rm.open_resource(resource)
         self._inst.timeout = _VISA_TIMEOUT_MS
-        self._inst.write_termination = '\n'
-        self._inst.read_termination  = '\n'
-        time.sleep(0.2)   # allow the USBTMC driver to settle
-        self._send(":SYST:REMOTE")
+        self._inst.write_termination = "\n"
+        self._inst.read_termination = "\n"
+        time.sleep(0.2)
+        self._send(self._remote_cmd)
 
     def disconnect(self) -> None:
-        """Return the supply to local (front-panel) mode and close the connection."""
         if self._inst is not None:
             try:
-                self._send(":SYST:LOCAL")
+                self._send(self._local_cmd)
             except Exception:
                 pass
             try:
                 self._inst.close()
             except Exception:
                 pass
+
         if self._rm is not None:
             try:
                 self._rm.close()
             except Exception:
                 pass
-        self._inst = None
-        self._rm   = None
 
-    # ------------------------------------------------------------------
-    # Output control
-    # ------------------------------------------------------------------
+        self._inst = None
+        self._rm = None
 
     def output_on(self) -> None:
-        """Enable the DC output."""
         self._send("OUTP ON")
 
     def output_off(self) -> None:
-        """Disable the DC output."""
         self._send("OUTP OFF")
 
-    # ------------------------------------------------------------------
-    # Parameter setting
-    # ------------------------------------------------------------------
-
     def set_voltage(self, volts: float) -> None:
-        """Set the output voltage in Volts."""
         self._send(f"VOLT {volts:.3f}")
 
     def set_current(self, amps: float) -> None:
-        """Set the current limit in Amps."""
         self._send(f"CURR {amps:.3f}")
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
     def _send(self, cmd: str) -> None:
-        """Write a SCPI command string via VISA."""
         if self._inst is None:
             raise RuntimeError("Power supply not connected - call connect() first.")
         self._inst.write(cmd)
-        time.sleep(0.05)   # brief pause so the supply can process the command
+        time.sleep(0.05)
 
-    # ------------------------------------------------------------------
-    # Context manager support
-    # ------------------------------------------------------------------
 
-    def __enter__(self) -> "OwonP4305":
-        self.connect()
-        return self
+class OwonP4305(_ScpiPowerSupply):
+    """OWON P4305 single-channel programmable supply."""
 
-    def __exit__(self, *_) -> None:
-        self.disconnect()
+    def __init__(self, resource: Optional[str] = None):
+        super().__init__(
+            name="OWON P4305",
+            resource=resource,
+            resolver=find_owon_resource,
+            remote_cmd=":SYST:REMOTE",
+            local_cmd=":SYST:LOCAL",
+        )
+
+
+class KikusuiPWR401L(_ScpiPowerSupply):
+    """KIKUSUI PWR401L programmable supply."""
+
+    def __init__(self, resource: Optional[str] = None):
+        super().__init__(
+            name="KIKUSUI PWR401L",
+            resource=resource,
+            resolver=find_kikusui_resource,
+            remote_cmd="SYST:REM",
+            local_cmd="SYST:LOC",
+        )
+
+
+def create_power_supply():
+    """Create a PSU instance based on ``PSU_TYPE`` environment variable."""
+    psu_type = os.getenv("PSU_TYPE", "owon").strip().lower()
+
+    if psu_type == "kikusui":
+        resource = os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None
+        return KikusuiPWR401L(resource=resource)
+
+    if psu_type == "owon":
+        resource = os.getenv("OWON_PSU_RESOURCE", "").strip() or None
+        return OwonP4305(resource=resource)
+
+    raise ValueError(
+        f"Unsupported PSU_TYPE '{psu_type}'. Use 'owon' or 'kikusui'."
+    )

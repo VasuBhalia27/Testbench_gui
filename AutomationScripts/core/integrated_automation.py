@@ -6,16 +6,17 @@ main GUI, handling tab locking/unlocking and reset logic for multiple runs.
 
 import threading
 import time
+import os
 from typing import Callable, Optional
 
 from AutomationScripts.core import hardware_setup, test_sequences, trace32_adapter
 from AutomationScripts.core.timing_profile import TIMING
 from Functional import trace32 as t32
 try:
-    from Functional.power_supply import OwonP4305
+    from Functional.power_supply import create_power_supply
     _PSU_AVAILABLE = True
 except ImportError:
-    OwonP4305 = None
+    create_power_supply = None
     _PSU_AVAILABLE = False
 
 
@@ -41,7 +42,7 @@ class IntegratedAutomationRunner:
         self.is_first_run = True
         self.is_running = False
         self.adapter = None  # Trace32 adapter persists across runs
-        self.psu: OwonP4305 = None  # power supply instance
+        self.psu = None  # power supply instance
         self.consecutive_bat_zero_count = 0  # tracks successive 0.0 mV battery failures
         self._canlin_event = threading.Event()  # set by GUI when user selects CAN/LIN after hw init
 
@@ -68,18 +69,23 @@ class IntegratedAutomationRunner:
         try:
             self._log("Starting automation sequence...")
 
-            # Power cycle the external supply: OFF first, then ON.
-            # This guarantees a clean start regardless of the supply's previous state.
-            self._log("Power cycling supply: turning OFF...")
-            self.power_off_supply()
-            self._log(f"Supply OFF — waiting {TIMING.supply_off_wait:.1f} seconds...")
-            time.sleep(TIMING.supply_off_wait)
-            self._log("Powering supply ON...")
-            self.power_on_supply()
-            self._log(
-                f"Supply ON — waiting {TIMING.supply_on_wait:.1f} seconds for voltage to stabilise..."
-            )
-            time.sleep(TIMING.supply_on_wait)
+            psu_automation_enabled = self._is_psu_automation_enabled()
+
+            if psu_automation_enabled:
+                # Power cycle the external supply: OFF first, then ON.
+                # This guarantees a clean start regardless of the supply's previous state.
+                self._log("Power cycling supply: turning OFF...")
+                self.power_off_supply()
+                self._log(f"Supply OFF — waiting {TIMING.supply_off_wait:.1f} seconds...")
+                time.sleep(TIMING.supply_off_wait)
+                self._log("Powering supply ON...")
+                self.power_on_supply()
+                self._log(
+                    f"Supply ON — waiting {TIMING.supply_on_wait:.1f} seconds for voltage to stabilise..."
+                )
+                time.sleep(TIMING.supply_on_wait)
+            else:
+                self._log("PSU automation disabled — skipping automated power OFF/ON sequence")
 
             # If not first run, reset target and go before hardware setup
             if not self.is_first_run:
@@ -206,8 +212,11 @@ class IntegratedAutomationRunner:
         finally:
             # Turn the power supply OFF after every run (pass or fail) so the
             # PCB is de-energised before the operator removes it from the fixture.
-            self._log("Turning power supply OFF to safe the PCB...")
-            self.power_off_supply()
+            if self._is_psu_automation_enabled():
+                self._log("Turning power supply OFF to safe the PCB...")
+                self.power_off_supply()
+            else:
+                self._log("PSU automation disabled — skipping automated power OFF")
             self._log("\nAutomation complete. Click 'Start' to run again.")
             self.is_running = False
             self.unlock_tabs()
@@ -246,13 +255,15 @@ class IntegratedAutomationRunner:
             self._log(f"CAPA pre-cycle: reset failed — {e}")
 
     def power_on_supply(self) -> None:
-        """Connect to the OWON P4305 and enable its output."""
+        """Connect to configured PSU backend and enable output."""
+        if not self._is_psu_automation_enabled():
+            return
         if not _PSU_AVAILABLE:
-            self._log("⚠ PSU: pyserial not installed — skipping power-on")
+            self._log("⚠ PSU: required library missing (pyvisa) — skipping power-on")
             return
         try:
             if self.psu is None:
-                self.psu = OwonP4305()
+                self.psu = create_power_supply()
                 self.psu.connect()
             self.psu.output_on()
             self._log("PSU: output ON")
@@ -260,12 +271,14 @@ class IntegratedAutomationRunner:
             self._log(f"⚠ PSU power-on failed: {e}")
 
     def power_off_supply(self) -> None:
-        """Disable the OWON P4305 output and close the connection."""
+        """Disable configured PSU output and close the connection."""
+        if not self._is_psu_automation_enabled():
+            return
         if not _PSU_AVAILABLE:
             return
         try:
             if self.psu is None:
-                self.psu = OwonP4305()
+                self.psu = create_power_supply()
                 self.psu.connect()
             self.psu.output_off()
             self._log("PSU: output OFF")
@@ -277,6 +290,11 @@ class IntegratedAutomationRunner:
         except Exception:
             pass
         self.psu = None
+
+    def _is_psu_automation_enabled(self) -> bool:
+        """Read PSU automation toggle from environment (default: enabled)."""
+        raw = os.getenv("PSU_AUTOMATION", "1").strip().lower()
+        return raw not in ("0", "false", "off", "no")
 
     def _log_results(self, results: dict) -> bool:
         """Log results dictionary and return overall pass/fail.

@@ -1,5 +1,6 @@
 lauterbach.trace32.rcl
 pyvisa
+pyvisa-py
 pyserial
 pandas
 openpyxl

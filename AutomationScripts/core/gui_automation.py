@@ -21,6 +21,8 @@ Usage example::
 
 """
 
+import json
+import os
 import tkinter as tk
 from tkinter import ttk, PhotoImage, messagebox
 import time
@@ -28,6 +30,7 @@ import threading
 from pathlib import Path
 
 _ASSETS_DIR = Path(__file__).parent.parent.parent / "assets_GC" / "Page_12(Auto)" / "assets" / "frame0"
+_SETTINGS_FILE = Path(__file__).parent.parent.parent / "AutomationScripts" / "automation_gui_settings.json"
 
 
 class AutomationGUI:
@@ -64,6 +67,24 @@ class AutomationGUI:
         # CAN/LIN enable toggle: 0 = OFF (disabled), 1 = ON (enabled)
         self.canlin_enabled = tk.IntVar(master=self.root, value=0)
         self.waiting_for_canlin = False  # True when hw init done and awaiting user CAN/LIN pick
+        env_psu_type = os.getenv("PSU_TYPE", "").strip().lower()
+        env_psu_automation = os.getenv("PSU_AUTOMATION", "").strip().lower()
+        saved_psu_type = self._load_saved_psu_type()
+        saved_psu_automation = self._load_saved_psu_automation()
+        if env_psu_type in ("owon", "kikusui"):
+            selected_psu_type = env_psu_type
+        elif saved_psu_type in ("owon", "kikusui"):
+            selected_psu_type = saved_psu_type
+        else:
+            selected_psu_type = "owon"
+        if env_psu_automation in ("0", "false", "off", "no"):
+            selected_psu_automation = 0
+        elif env_psu_automation in ("1", "true", "on", "yes"):
+            selected_psu_automation = 1
+        else:
+            selected_psu_automation = 1 if saved_psu_automation else 0
+        self.psu_type = tk.StringVar(master=self.root, value=selected_psu_type.upper())
+        self.psu_automation_enabled = tk.IntVar(master=self.root, value=selected_psu_automation)
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -168,6 +189,28 @@ class AutomationGUI:
         self.canlin_off_cb.state(["!selected"])
         self.canlin_on_cb.state(["!selected"])
 
+        # Power Supply frame (right side — third)
+        self.psu_frame = ttk.Labelframe(self.control_frame, text="Power Supply")
+        self.psu_frame.pack(side="left", padx=(0, 20), fill="x", expand=False)
+
+        self.psu_type_cb = ttk.Combobox(
+            self.psu_frame,
+            textvariable=self.psu_type,
+            values=("OWON", "KIKUSUI"),
+            state="readonly",
+            width=12,
+        )
+        self.psu_type_cb.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+
+        self.psu_automation_cb = ttk.Checkbutton(
+            self.psu_frame,
+            text="Automation ON",
+            variable=self.psu_automation_enabled,
+            onvalue=1,
+            offvalue=0,
+        )
+        self.psu_automation_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+
         # Timer label (right side of control frame)
         self.timer_label = ttk.Label(self.control_frame,
                                      text="Time Elapsed: 00:00",
@@ -242,6 +285,13 @@ class AutomationGUI:
         """Handle Start button click."""
         self.started = True
         self.waiting_for_canlin = False
+        selected_psu = self.psu_type.get().strip().lower()
+        if selected_psu not in ("owon", "kikusui"):
+            selected_psu = "owon"
+        psu_automation_enabled = 1 if self.psu_automation_enabled.get() else 0
+        os.environ["PSU_TYPE"] = selected_psu
+        os.environ["PSU_AUTOMATION"] = str(psu_automation_enabled)
+        self._save_psu_type(selected_psu)
         self.start_button.config(state="disabled")
         # Grid control_frame into main_area row 0 so it appears above status
         try:
@@ -257,6 +307,11 @@ class AutomationGUI:
         self._reset_timer()
         # Pre-select Non-Driver (variant 1) so operator can confirm or change it
         self._sync(1)
+        self.append_status(f"Power Supply selected: {selected_psu.upper()}")
+        self.append_status(
+            "Power Supply automation: "
+            f"{'ENABLED' if psu_automation_enabled == 1 else 'DISABLED'}"
+        )
         self.append_status("Step 1: Non-Driver pre-selected. Change to Driver (NFC) if needed...")
 
     def _sync_canlin(self, value: int) -> None:
@@ -445,6 +500,55 @@ class AutomationGUI:
     def set_automation_runner(self, runner) -> None:
         """Set the automation runner instance."""
         self.automation_runner = runner
+
+    def _load_saved_psu_type(self) -> str:
+        """Load persisted PSU type from local settings file."""
+        try:
+            if not _SETTINGS_FILE.exists():
+                return ""
+            data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+            value = str(data.get("psu_type", "")).strip().lower()
+            if value in ("owon", "kikusui"):
+                return value
+        except Exception:
+            pass
+        return ""
+
+    def _load_saved_psu_automation(self) -> bool:
+        """Load persisted PSU automation state from local settings file."""
+        try:
+            if not _SETTINGS_FILE.exists():
+                return True
+            data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+            value = data.get("psu_automation", True)
+            if isinstance(value, bool):
+                return value
+            if str(value).strip().lower() in ("1", "true", "on", "yes"):
+                return True
+            if str(value).strip().lower() in ("0", "false", "off", "no"):
+                return False
+        except Exception:
+            pass
+        return True
+
+    def _save_psu_type(self, psu_type: str) -> None:
+        """Persist selected PSU type for future app launches."""
+        try:
+            _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            data = {}
+            if _SETTINGS_FILE.exists():
+                try:
+                    data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+                except Exception:
+                    data = {}
+            data["psu_type"] = psu_type
+            data["psu_automation"] = bool(self.psu_automation_enabled.get())
+            _SETTINGS_FILE.write_text(
+                json.dumps(data, indent=2),
+                encoding="utf-8",
+            )
+        except Exception as exc:
+            self.append_status(f"Note: could not persist PSU selection ({exc})")
 
     def run(self) -> int:
         """Run the GUI event loop; returns the selected variant when closed.

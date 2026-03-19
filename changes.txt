@@ -766,3 +766,70 @@ QUICK SUMMARY FOR JAPAN COLLEAGUE
 5. No code changes needed — auto-detection uses OWON VID 0x5345
 
 ================================================================================
+[FIX 51] Added multi-PSU support (OWON + KIKUSUI PWR401L) and installation steps
+================================================================================
+
+Files modified:
+  Functional/power_supply.py
+  AutomationScripts/core/integrated_automation.py
+  requirements.txt
+  AutomationScripts/requirements.txt
+
+What changed:
+  - Added KIKUSUI PWR401L support using VISA/SCPI in Functional/power_supply.py
+  - Added create_power_supply() factory with environment selection:
+      PSU_TYPE=owon     (default)
+      PSU_TYPE=kikusui
+  - Added optional explicit resource variables:
+      OWON_PSU_RESOURCE
+      KIKUSUI_PSU_RESOURCE
+  - Integrated automation now uses the PSU factory instead of hardcoding OWON.
+
+--------------------------------------------------------------------------------
+KIKUSUI PWR401L SETUP STEPS (for Japan colleague)
+--------------------------------------------------------------------------------
+
+STEP 1 - Install instrument driver/runtime (Windows)
+  Install NI-VISA Runtime (recommended):
+    https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html
+
+  Notes:
+    - This provides visa32/visa64 backend required by PyVISA.
+    - Reboot after install if prompted.
+
+STEP 2 - Connect KIKUSUI PSU and verify Device Manager
+  Connect KIKUSUI PWR401L over USB (USBTMC) or configured VISA interface.
+  Confirm it appears under VISA/USB test instrument category without warning icon.
+
+STEP 3 - Install Python libraries
+  From project root run:
+    pip install -r requirements.txt
+
+  Added libraries:
+    - pyvisa
+    - pyvisa-py (fallback backend)
+
+STEP 4 - Verify VISA sees the PSU
+  Run:
+    python -c "import pyvisa; rm=pyvisa.ResourceManager(); print(rm.list_resources())"
+
+  Expected: at least one USB/TCPIP VISA resource for the KIKUSUI unit.
+
+STEP 5 - Select PSU type before running automation
+  PowerShell (same terminal where app is launched):
+    $env:PSU_TYPE = "kikusui"
+
+  Optional explicit resource (if auto-detect picks wrong instrument):
+    $env:KIKUSUI_PSU_RESOURCE = "USB0::....::INSTR"
+
+STEP 6 - Run GUI automation normally
+  The app will now use KIKUSUI backend for ON/OFF and voltage/current SCPI commands.
+
+--------------------------------------------------------------------------------
+OWON selection (for India setup)
+--------------------------------------------------------------------------------
+  PowerShell:
+    $env:PSU_TYPE = "owon"
+
+  Optional explicit resource:
+    $env:OWON_PSU_RESOURCE = "USB0::0x5345::....::INSTR"
