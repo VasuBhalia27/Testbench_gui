@@ -124,6 +124,37 @@ class AutomationGUI:
                                      command=self._on_end)
         self.end_button.pack(side="left", padx=8)
 
+        # Operator acknowledgement: status panel placed just after End button.
+        self.result_frame = tk.Frame(btn_frame, bg="#DFDFDF", bd=1, relief="solid")
+        self.result_frame.pack(side="left", padx=(16, 0), ipadx=8, ipady=4)
+
+        self.result_title = ttk.Label(
+            self.result_frame,
+            text="Test Result Status",
+            font=(None, 9, "bold"),
+        )
+        self.result_title.pack(anchor="w", padx=6, pady=(2, 0))
+
+        self.result_row = tk.Frame(self.result_frame, bg="#DFDFDF")
+        self.result_row.pack(fill="x", padx=6, pady=(0, 3))
+
+        self.result_indicator = tk.Label(
+            self.result_row,
+            text="",
+            font=("Segoe UI Emoji", 20, "bold"),
+            fg="#1A1A1A",
+            bg="#DFDFDF",
+            width=2,
+        )
+        self.result_indicator.pack(side="left")
+
+        self.result_status_text = ttk.Label(
+            self.result_row,
+            text="Pending",
+            font=(None, 10, "bold"),
+        )
+        self.result_status_text.pack(side="left", padx=(6, 0))
+
         # Create a main area that will hold control_frame above status_frame.
         # Using grid inside this area ensures the control frame stays above the
         # expanding status area regardless of widget sizes.
@@ -279,12 +310,14 @@ class AutomationGUI:
         self.canlin_off_cb.state(["!selected"])
         self.canlin_on_cb.state(["!selected"])
         self.waiting_for_canlin = False
+        self.clear_result_indicator()
         self.append_status("\nReady for next PCB. Click 'Start' to begin.")
 
     def _on_start(self):
         """Handle Start button click."""
         self.started = True
         self.waiting_for_canlin = False
+        self.clear_result_indicator()
         selected_psu = self.psu_type.get().strip().lower()
         if selected_psu not in ("owon", "kikusui"):
             selected_psu = "owon"
@@ -496,6 +529,20 @@ class AutomationGUI:
         # Clear start time so any already-queued _update_timer callback
         # exits without rescheduling itself (race-condition guard).
         self.timer_start_time = None
+
+    def set_result_indicator(self, all_passed: bool) -> None:
+        """Set top-right operator acknowledgement icon for test outcome."""
+        if all_passed:
+            self.result_indicator.config(text="\N{THUMBS UP SIGN}", fg="#148A08")
+            self.result_status_text.config(text="Pass test")
+        else:
+            self.result_indicator.config(text="\N{BLACK STAR}", fg="#C62828")
+            self.result_status_text.config(text="Fail test")
+
+    def clear_result_indicator(self) -> None:
+        """Clear top-right operator acknowledgement icon."""
+        self.result_indicator.config(text="")
+        self.result_status_text.config(text="Pending")
 
     def set_automation_runner(self, runner) -> None:
         """Set the automation runner instance."""

@@ -119,6 +119,7 @@ class IntegratedAutomationRunner:
 
             if not success:
                 self._log("\n✗ HARDWARE SETUP FAILED")
+                self.gui.root.after(0, lambda: self.gui.set_result_indicator(False))
                 self.is_running = False
                 self.unlock_tabs()
                 self.gui.root.after(0, self.gui.reset_for_new_run)
@@ -197,6 +198,8 @@ class IntegratedAutomationRunner:
             else:
                 self._log("\n✗ Some tests failed - review results above")
 
+            self.gui.root.after(0, lambda: self.gui.set_result_indicator(all_passed))
+
             # Generate Excel test report from the actual hardware measurements.
             try:
                 from AutomationScripts.report_generator import generate_report
@@ -209,6 +212,7 @@ class IntegratedAutomationRunner:
 
         except Exception as e:
             self._log(f"\n✗ AUTOMATION ERROR: {e}")
+            self.gui.root.after(0, lambda: self.gui.set_result_indicator(False))
         finally:
             # Turn the power supply OFF after every run (pass or fail) so the
             # PCB is de-energised before the operator removes it from the fixture.
