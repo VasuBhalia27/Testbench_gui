@@ -282,12 +282,12 @@ class AutomationGUI:
         # Close the Trace32 debugger connection
         try:
             from Functional import trace32 as t32
-            if t32.dbg and hasattr(t32.dbg, 'cmd'):
-                self.append_status("Closing Trace32 debugger...")
-                t32.QuitTrace32(status_label=None)
-                self.append_status("Trace32 closed.")
-            else:
-                self.append_status("Trace32 not connected — nothing to close.")
+            self.append_status("Closing Trace32 debugger (force cleanup if needed)...")
+            # Always call QuitTrace32: it performs process-level cleanup in
+            # addition to protocol-level disconnect, which is needed when
+            # PowerView is hung and no valid dbg object exists.
+            t32.QuitTrace32(status_label=None)
+            self.append_status("Trace32 closed.")
         except Exception as e:
             self.append_status(f"Note: Trace32 close: {e}")
 

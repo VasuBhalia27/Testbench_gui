@@ -939,3 +939,25 @@ What changed:
 Operator impact:
   - Faster visual confirmation at end of each run without scanning logs.
   - Clear pass/fail acknowledgement near Start/End controls.
+
+================================================================================
+[FIX 58] Improved Trace32 recovery when PowerView hangs or fails to launch
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+  AutomationScripts/core/hardware_setup.py
+
+What changed:
+  - End button now always calls Trace32 cleanup, even when no valid debugger
+    object exists.
+  - Added force-cleanup path for Trace32 startup failures in hardware setup:
+      - if Trace32 launch throws an exception, run QuitTrace32 cleanup first
+      - if breakpoint wait times out, run QuitTrace32 cleanup before returning
+        hardware setup failure
+
+Operator impact:
+  - End button can recover more reliably from "TRACE32 PowerView Not Responding"
+    cases.
+  - Next Start attempt is less likely to be blocked by stale/hung t32marm.exe
+    processes.

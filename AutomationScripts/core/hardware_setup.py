@@ -63,6 +63,12 @@ class HardwareSetupVerifier:
         try:
             t32.Trace32ConnectApp(dummy_entry, dummy_sel, status_label=None)
         except Exception as e:
+            # Best-effort cleanup so the next Start attempt is not blocked by
+            # a half-started or hung PowerView process.
+            try:
+                t32.QuitTrace32(status_label=None)
+            except Exception:
+                pass
             raise HardwareSetupVerificationError(f"Failed to launch Trace32: {e}")
 
         self._log("Waiting for breakpoint...")
@@ -74,10 +80,16 @@ class HardwareSetupVerifier:
                     t32.dbg.fnc("Var.VALUE(TestFw_IsEcuSleeping)")
                     self._log("Connected: stopped at breakpoint")
                     return
-                except:
+                except Exception:
                     pass
             time.sleep(0.5)
 
+        # Timeout usually means PowerView did not fully start/respond.
+        # Force cleanup so End/next Start can recover quickly.
+        try:
+            t32.QuitTrace32(status_label=None)
+        except Exception:
+            pass
         raise HardwareSetupVerificationError("Timeout waiting for Trace32 breakpoint")
 
     def run_code_and_verify(self, timeout: float = 10.0) -> None:
