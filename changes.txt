@@ -911,3 +911,31 @@ What changed:
       Functional, AutomationScripts
   - Updated asset base path to repository root so all asset_GC images load
     correctly when running from Gui_Main_Script.
+
+================================================================================
+[FIX 57] Added Test Result Status indicator in Automation GUI (Pass/Fail ack)
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+  AutomationScripts/core/integrated_automation.py
+
+What changed:
+  - Added a visible result panel labeled:
+      Test Result Status
+    placed immediately after the End button in the Automation tab.
+  - Added operator acknowledgement icons and text:
+      Pass test -> green thumbs-up icon
+      Fail test -> red star icon
+  - Added default/reset state:
+      Pending
+    shown when Start is clicked and when End/reset is triggered.
+  - Runner now updates result status in all key completion paths:
+      - all tests pass
+      - some tests fail
+      - hardware setup failure
+      - automation exception
+
+Operator impact:
+  - Faster visual confirmation at end of each run without scanning logs.
+  - Clear pass/fail acknowledgement near Start/End controls.
