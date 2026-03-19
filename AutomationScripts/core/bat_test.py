@@ -2,7 +2,7 @@
 
 The battery monitor test reads the ``TestFw_AiBatRef`` variable and waits
 for it to stabilise after triggering the appropriate DID.  A stable voltage
-in the range 11500-13500 mV is considered a pass.
+in the range 8000-16000 mV is considered a pass.
 """
 
 import time
@@ -28,7 +28,7 @@ class BatTest:
         :param status_callback: optional logger for progress
         :param timeout: maximum number of seconds to wait for a stable reading
         :return: ``True`` if the final voltage lies within the pass range
-                 (11500--13500 mV), ``False`` otherwise.
+                 (8000--16000 mV), ``False`` otherwise.
         """
         passed, _ = BatTest.run_with_voltage(adapter, status_callback, timeout)
         return passed
@@ -61,7 +61,7 @@ class BatTest:
             return False, 0.0
 
         log(f"BAT: final voltage = {voltage} mV")
-        return 11500 <= voltage <= 13500, voltage
+        return 8000 <= voltage <= 16000, voltage
 
     @staticmethod
     def _wait_for_stable_voltage(

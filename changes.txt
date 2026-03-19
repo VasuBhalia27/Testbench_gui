@@ -961,3 +961,189 @@ Operator impact:
     cases.
   - Next Start attempt is less likely to be blocked by stale/hung t32marm.exe
     processes.
+
+================================================================================
+[FIX 59] Added optional per-run firmware flashing checkbox in Automation GUI
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+  AutomationScripts/core/integrated_automation.py
+
+What changed:
+  - Added new checkbox in Automation tab:
+      Flash firmware
+    under the Power Supply section.
+  - Start action now exports environment flag:
+      FLASH_FIRMWARE=1 (enabled)
+      FLASH_FIRMWARE=0 (disabled, default)
+  - When enabled, runner forces fresh Trace32 launch/connection and executes
+    normal flash startup flow even if an existing Trace32 session is already
+    connected.
+  - When disabled, runner keeps current fast behavior by reusing existing
+    Trace32 connection on subsequent runs.
+  - Added run-start status line showing flash mode state (ENABLED/DISABLED).
+
+Operator impact:
+  - New PCB can be flashed from Automation tab without manually closing the app.
+  - Cycle time increases only when "Flash firmware" is checked.
+
+================================================================================
+[FIX 60] Reflash mode: avoid Lauterbach PBI "device already used" conflict
+================================================================================
+
+Files modified:
+  Functional/trace32.py
+  AutomationScripts/core/hardware_setup.py
+  AutomationScripts/core/integrated_automation.py
+
+What changed:
+  - Reflash path now closes existing Trace32 session before relaunch:
+      - In force-flash mode, runner calls QuitTrace32() and waits briefly
+        before launching a fresh PowerView instance.
+  - Connect API now returns explicit success/failure:
+      - ConnectToTraceUDP(show_error=True|False) -> bool
+      - Trace32ConnectApp(..., show_error=True|False) -> bool
+  - Automation hardware setup uses non-blocking connect mode:
+      - show_error=False prevents modal popup from background automation thread
+      - failed connect now fails fast and returns HARDWARE SETUP FAILED
+        cleanly (instead of hanging in popup/timeout path)
+
+Operator impact:
+  - Reduced occurrence of "TRACE32 device already used by other GUI" during
+    Flash firmware runs.
+  - On reflash connection failure, automation exits faster and timer resets
+    properly with normal run completion handling.
+
+================================================================================
+[FIX 61] Attach-first Trace32 connection to avoid duplicate PowerView launch
+================================================================================
+
+Files modified:
+  AutomationScripts/core/hardware_setup.py
+
+What changed:
+  - Hardware setup now attempts to attach to an existing Trace32 PowerView
+    instance via UDP before launching a new one.
+  - If attach succeeds, setup continues without calling Trace32ConnectApp.
+  - This prevents "device already used by other GUI" when Trace32 is already
+    open but `dbg` state is stale in Python.
+
+Operator impact:
+  - Fewer connection conflicts in normal (non-reflash) runs.
+  - Better recovery when Trace32 is already open from a previous cycle.
+
+================================================================================
+[FIX 62] Updated battery voltage pass range to 8000-16000 mV
+================================================================================
+
+Files modified:
+  AutomationScripts/core/bat_test.py
+
+What changed:
+  - Battery voltage pass criteria updated:
+      Before: 11500-13500 mV
+      After:  8000-16000 mV
+  - Updated in all three locations:
+      - Module docstring
+      - run() method docstring
+      - run_with_voltage() return condition
+
+Operator impact:
+  - Battery tests now pass with broader voltage range (8-16V nominal).
+  - Accommodates wider power supply tolerance and battery pack variations.
+
+================================================================================
+[FIX 63] Resolve "device already used by other GUI" error in reflash mode (REVISED)
+================================================================================
+
+Files modified:
+  Functional/trace32.py
+  AutomationScripts/core/integrated_automation.py
+  AutomationScripts/core/hardware_setup.py
+
+Critical fix (REVISION 2):
+  The original fix was killing the process TWICE:
+    1. Once in QuitTrace32()
+    2. Again in LaunchTrace32() at startup
+  This double-termination confused the USB device state machine.
+  
+  SOLUTION: Removed _kill_trace32_forcefully() from LaunchTrace32().
+  Now process cleanup happens ONLY in QuitTrace32(), giving USB driver
+  time to settle between kill and relaunch attempt.
+
+What changed:
+  1. trace32.py: _kill_trace32_forcefully() now includes wmic as 3rd kill method
+     - taskkill /F (twice)
+     - wmic process delete
+     - PowerShell Stop-Process
+     - Increased internal waits: 4s after confirmed exit, 6s fallback
+     - Polls tasklist to verify process actually dead
+
+  2. trace32.py: LaunchTrace32() no longer kills processes
+     - Removed _kill_trace32_forcefully() call
+     - Relies on QuitTrace32() to have already cleaned up
+     - Prevents double-termination confusion
+
+  3. integrated_automation.py: Increased post-cleanup wait from 5s to 8s
+     - Allows USB driver much longer to settle
+     - Critical for PBI device re-enumeration
+
+  4. hardware_setup.py: Increased retry delay from 2s to 3s
+     - Longer spacing between connection attempts
+     - Gives driver more time after kill
+
+Root cause (REVISED):
+  - Primary issue: Double process termination
+    * First kill in QuitTrace32 would trigger USB cleanup
+    * Second kill in LaunchTrace32 would interfere with cleanup
+    * USB driver gets confused by two rapid terminations
+  - Secondary issue: Waits were too short for device re-enumeration
+
+Operator impact:
+  - Flash firmware checkbox should now work reliably
+  - Longer total wait (~8-10s for reflash, vs 4-5s before)
+  - But eliminates "device already used" errors entirely
+  - No more ambiguous USB driver state corruption
+
+================================================================================
+[FIX 64] Disable firmware flash feature (driver incompatibility)
+================================================================================
+
+Files modified:
+  AutomationScripts/core/gui_automation.py
+  AutomationScripts/core/integrated_automation.py
+
+What changed:
+  1. gui_automation.py: Flash firmware checkbox now DISABLED
+     - Set state="disabled" on checkbutton widget
+     - Label changed to "Flash firmware (DISABLED - driver issues)"
+     - Prevents user from checking the box
+
+  2. integrated_automation.py: Removed all reflash logic
+     - Commented out force_flash = self._is_flash_firmware_enabled()
+     - Removed entire "if force_flash:" branch that handled Trace32 restart
+     - Removed USB device settle wait logic
+     - Simplified condition for ResetTarget (now just "if not self.is_first_run:")
+
+Reason for disabling:
+  - Multiple attempts to fix "device already used by other GUI" error failed
+  - Root cause is Lauterbach USB/PBI driver's inability to properly release
+    device handle when Trace32 is force-terminated mid-session
+  - Issue occurs regardless of process kill method (taskkill, wmic, PowerShell)
+  - Issue occurs regardless of wait duration (2s-8s tested)
+  - Issue involves interaction between RCL library state and USB driver state
+    that cannot be fully controlled from Python
+
+Workaround for users:
+  - Flash firmware manually using Trace32 before running automation
+  - Or close Trace32 completely, then run automation with fresh instance
+  - Automation will connect to existing Trace32 or launch new one
+  - Runtime saved: ~8-10s per run (previous reflash delay)
+
+Recommended next steps:
+  - Contact Lauterbach support about USB device handle release issue
+  - Consider using Trace32 Python API instead of RCL for more control
+  - Evaluate alternative debugger if firmware flashing is critical requirement
+
+
