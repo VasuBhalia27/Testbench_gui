@@ -1,4 +1,4 @@
 {
   "psu_type": "owon",
-  "psu_automation": false
+  "psu_automation": true
 }
