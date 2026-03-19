@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable, Optional, Tuple
 
 from AutomationScripts.core.trace32_adapter import Trace32Interface
+from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
 
@@ -42,7 +43,7 @@ class MotorTest:
         # second; if we leave the request high the hardware keeps toggling
         # repeatedly. mimic that behaviour so the request is only active
         # briefly.
-        time.sleep(1)
+        time.sleep(TIMING.motor_actuate_wait)
         log("MOTOR: clearing DecoupleCouple request")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
 
@@ -50,7 +51,7 @@ class MotorTest:
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
 
         voltage, current, load_error, last_readings = MotorTest._wait_for_stable_values(
-            adapter, timeout=timeout, poll_interval=0.5
+            adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
         )
 
         # If any value failed to stabilize, log the last-read values for debugging
@@ -115,7 +116,7 @@ class MotorTest:
 
         log("MOTOR: setting DecoupleCouple state")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
-        time.sleep(1)
+        time.sleep(TIMING.motor_actuate_wait)
         log("MOTOR: clearing DecoupleCouple request")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
 
@@ -123,7 +124,7 @@ class MotorTest:
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
 
         voltage, current, load_error, _ = MotorTest._wait_for_stable_values(
-            adapter, timeout=timeout, poll_interval=0.5
+            adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
         )
 
         v = voltage if voltage is not None else 0.0
@@ -144,7 +145,7 @@ class MotorTest:
     def _wait_for_stable_values(
         adapter: Trace32Interface,
         timeout: float = 2.0,
-        poll_interval: float = 0.5,
+        poll_interval: float = TIMING.stable_poll_interval,
         tolerance: float = 1.0,
     ):
         """Poll all three motor variables until each is stable.

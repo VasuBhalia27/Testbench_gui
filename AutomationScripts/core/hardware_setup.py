@@ -15,6 +15,7 @@ import time
 from typing import Callable, Optional
 import Functional.trace32 as t32
 from AutomationScripts.core import path_utils
+from AutomationScripts.core.timing_profile import TIMING
 
 
 class HardwareSetupVerificationError(Exception):
@@ -86,8 +87,8 @@ class HardwareSetupVerifier:
         :param timeout: max seconds to wait for running status
         :raises HardwareSetupVerificationError: if verification fails
         """
-        self._log("Waiting 1 second before Go...")
-        time.sleep(1)
+        self._log(f"Waiting {TIMING.before_go_wait:.1f} seconds before Go...")
+        time.sleep(TIMING.before_go_wait)
 
         self._log("Executing Go command...")
         try:

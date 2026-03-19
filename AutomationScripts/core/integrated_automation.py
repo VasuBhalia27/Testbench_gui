@@ -9,6 +9,7 @@ import time
 from typing import Callable, Optional
 
 from AutomationScripts.core import hardware_setup, test_sequences, trace32_adapter
+from AutomationScripts.core.timing_profile import TIMING
 from Functional import trace32 as t32
 try:
     from Functional.power_supply import OwonP4305
@@ -71,12 +72,14 @@ class IntegratedAutomationRunner:
             # This guarantees a clean start regardless of the supply's previous state.
             self._log("Power cycling supply: turning OFF...")
             self.power_off_supply()
-            self._log("Supply OFF — waiting 2 seconds...")
-            time.sleep(2)
+            self._log(f"Supply OFF — waiting {TIMING.supply_off_wait:.1f} seconds...")
+            time.sleep(TIMING.supply_off_wait)
             self._log("Powering supply ON...")
             self.power_on_supply()
-            self._log("Supply ON — waiting 2 seconds for voltage to stabilise...")
-            time.sleep(2)
+            self._log(
+                f"Supply ON — waiting {TIMING.supply_on_wait:.1f} seconds for voltage to stabilise..."
+            )
+            time.sleep(TIMING.supply_on_wait)
 
             # If not first run, reset target and go before hardware setup
             if not self.is_first_run:
@@ -125,8 +128,11 @@ class IntegratedAutomationRunner:
             # in the non-first-run path.  Adding an equivalent delay here makes
             # the first run behave consistently with all further runs.
             if self.is_first_run:
-                self._log("Waiting 10 seconds for firmware peripheral initialisation...")
-                time.sleep(10)
+                self._log(
+                    "Waiting "
+                    f"{TIMING.first_run_fw_init_wait:.1f} seconds for firmware peripheral initialisation..."
+                )
+                time.sleep(TIMING.first_run_fw_init_wait)
 
             # Initialize adapter once on first run, then reuse for all subsequent runs
             if self.adapter is None:

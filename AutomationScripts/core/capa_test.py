@@ -35,6 +35,7 @@ import time
 from typing import Callable, Dict, List, Optional
 
 from Functional.trace32 import TestFunctionCmd
+from AutomationScripts.core.timing_profile import TIMING
 
 
 class CapaTest:
@@ -86,8 +87,8 @@ class CapaTest:
         Retries sending the measurement DID for up to 3 seconds in case the
         sensor activation is detected after the first DID trigger.
         """
-        CAPA1_RETRY_TIMEOUT = 10.0
-        CAPA1_RETRY_INTERVAL = 0.5
+        CAPA1_RETRY_TIMEOUT = TIMING.capa_retry_timeout
+        CAPA1_RETRY_INTERVAL = TIMING.capa_retry_interval
 
         readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
         deadline = time.time() + CAPA1_RETRY_TIMEOUT
@@ -164,8 +165,8 @@ class CapaTest:
         the first reading where all sensor values are > SENSOR_THRESHOLD and
         all status flags equal 1 (same criteria as TC_CAPA_01).
         """
-        CAPA2_RETRY_TIMEOUT = 10.0
-        CAPA2_RETRY_INTERVAL = 0.5
+        CAPA2_RETRY_TIMEOUT = TIMING.capa_retry_timeout
+        CAPA2_RETRY_INTERVAL = TIMING.capa_retry_interval
 
         readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
         deadline = time.time() + CAPA2_RETRY_TIMEOUT
@@ -235,7 +236,10 @@ class CapaTest:
         return result
 
     def _wait_for_stable_variables(
-        self, variables: List[str], timeout: float = 2.0, poll_interval: float = 0.5
+        self,
+        variables: List[str],
+        timeout: float = 2.0,
+        poll_interval: float = TIMING.stable_poll_interval,
     ) -> Dict[str, Optional[float]]:
         """Poll multiple variables until each produces two identical reads.
 

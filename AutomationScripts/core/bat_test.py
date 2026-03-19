@@ -9,6 +9,7 @@ import time
 from typing import Any, Callable, Optional
 
 from AutomationScripts.core.trace32_adapter import Trace32Interface
+from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
 
@@ -51,8 +52,8 @@ class BatTest:
         log("BAT: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e)
 
-        log("BAT: waiting 2 seconds for initial stabilisation")
-        time.sleep(2)
+        log(f"BAT: waiting {TIMING.bat_initial_wait:.1f} seconds for initial stabilisation")
+        time.sleep(TIMING.bat_initial_wait)
 
         voltage = BatTest._wait_for_stable_voltage(adapter, timeout=timeout)
         if voltage is None:
@@ -66,7 +67,7 @@ class BatTest:
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
         timeout: float = 5.0,
-        poll_interval: float = 0.5,
+        poll_interval: float = TIMING.stable_poll_interval,
     ) -> Optional[float]:
         """Poll ``TestFw_AiBatRef`` until a stable reading appears.
 

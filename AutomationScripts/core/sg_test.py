@@ -22,6 +22,7 @@ import time
 from typing import Callable, Dict, List, Optional, Tuple
 
 from Functional.trace32 import TestFunctionCmd
+from AutomationScripts.core.timing_profile import TIMING
 
 
 class SgTest:
@@ -87,8 +88,8 @@ class SgTest:
         self.log("SG1: triggering results DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
 
-        self.log("SG1: waiting 3 seconds for measurement")
-        time.sleep(3)
+        self.log(f"SG1: waiting {TIMING.sg1_measure_wait:.1f} seconds for measurement")
+        time.sleep(TIMING.sg1_measure_wait)
 
         # send DID again before polling in case the firmware uses the DID to
         # latch values into variables (GUI reads immediately after raising flag)
@@ -140,7 +141,7 @@ class SgTest:
         self.adapter.set_variable("TestFw_GetSgResults", 0)
         
         # Wait for flag to take effect
-        time.sleep(1)
+        time.sleep(TIMING.sg2_flag_wait)
         
         # clear any existing displayed values (may have been left by SG1)
         self.log("SG2: clearing entry field")
@@ -152,8 +153,8 @@ class SgTest:
         # manual GUI workflow inserts a 2‑second pause after hitting "Reset Results".
         # The firmware may need time to digest the clearing, so mimic that behaviour
         # before proceeding with the next measurement.
-        self.log("SG2: waiting 1 second after reset")
-        time.sleep(1)
+        self.log(f"SG2: waiting {TIMING.sg2_reset_wait:.1f} seconds after reset")
+        time.sleep(TIMING.sg2_reset_wait)
 
         self.log("SG2: requesting firmware to update SG results")
         self.adapter.set_variable("TestFw_GetSgResults", 1)
@@ -161,8 +162,8 @@ class SgTest:
         self.log("SG2: triggering results DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
 
-        self.log("SG2: waiting 3 seconds for measurement")
-        time.sleep(3)
+        self.log(f"SG2: waiting {TIMING.sg2_measure_wait:.1f} seconds for measurement")
+        time.sleep(TIMING.sg2_measure_wait)
 
         self.log("SG2: triggering measurement DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
@@ -206,7 +207,10 @@ class SgTest:
         return result
 
     def _wait_for_stable_variables(
-        self, variables: List[str], timeout: float = 2.0, poll_interval: float = 0.5
+        self,
+        variables: List[str],
+        timeout: float = 2.0,
+        poll_interval: float = TIMING.stable_poll_interval,
     ) -> Dict[str, Optional[float]]:
         """Poll multiple variables until each produces two identical reads.
 

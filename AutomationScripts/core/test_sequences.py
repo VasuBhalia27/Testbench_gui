@@ -21,6 +21,7 @@ from AutomationScripts.core.motor_test import MotorTest
 from AutomationScripts.core.eos_test import EosTest
 from AutomationScripts.core.sg_test import SgTest
 from AutomationScripts.core.capa_test import CapaTest
+from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
 
@@ -166,10 +167,11 @@ class TestSequenceRunner:
 
         if bat_voltage == 0.0:
             self._log(
-                "BAT: 0.0 mV — ADC not ready yet, waiting 10 s and retrying..."
+                "BAT: 0.0 mV — ADC not ready yet, waiting "
+                f"{TIMING.bat_retry_wait:.1f} s and retrying..."
             )
-            time.sleep(10)
-            bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
+            time.sleep(TIMING.bat_retry_wait)
+            bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=2.0)
             results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:

@@ -12,6 +12,7 @@ import time
 from typing import Any, Callable, Optional
 
 from AutomationScripts.core.trace32_adapter import Trace32Interface
+from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
 
@@ -39,8 +40,8 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log("LED: waiting 2 seconds for voltage to stabilise")
-        time.sleep(2)
+        log(f"LED: waiting {TIMING.led_stabilize_wait:.1f} seconds for voltage to stabilise")
+        time.sleep(TIMING.led_stabilize_wait)
 
         log("LED: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
@@ -73,8 +74,8 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log("LED: waiting 2 seconds for voltage to stabilise")
-        time.sleep(2)
+        log(f"LED: waiting {TIMING.led_stabilize_wait:.1f} seconds for voltage to stabilise")
+        time.sleep(TIMING.led_stabilize_wait)
 
         log("LED: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
@@ -94,7 +95,7 @@ class LedTest:
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
         timeout: float = 3.0,
-        poll_interval: float = 0.5,
+        poll_interval: float = TIMING.stable_poll_interval,
     ) -> Optional[float]:
         """Poll ``TestFw_LedVoltage`` until a stable reading appears.
 
