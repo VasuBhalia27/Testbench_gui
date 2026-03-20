@@ -36,15 +36,16 @@ function Write-Fail {
 }
 
 $script:UsePyLauncher = $false
+$script:LastPythonExitCode = 0
 
 function Invoke-Python {
-    param([string[]]$Args)
+    param([string[]]$PythonArgs)
     if ($script:UsePyLauncher) {
-        & py -3 @Args
+        & py -3 @PythonArgs
     } else {
-        & python @Args
+        & python @PythonArgs
     }
-    return $LASTEXITCODE
+    $script:LastPythonExitCode = [int]$LASTEXITCODE
 }
 
 function Test-Command {
@@ -71,7 +72,8 @@ if (Test-Command "python") {
     exit 1
 }
 
-$pyVersionCode = Invoke-Python -Args @("--version")
+$null = Invoke-Python -PythonArgs @("--version")
+$pyVersionCode = $script:LastPythonExitCode
 if ($pyVersionCode -ne 0) {
     Write-Fail "Unable to execute Python."
     exit 1
@@ -81,7 +83,8 @@ Write-Section "Python Package Installation"
 if ($SkipPip) {
     Write-Warn "Skipping pip install because -SkipPip was provided."
 } else {
-    $pipUpgrade = Invoke-Python -Args @("-m", "pip", "install", "--upgrade", "pip")
+    $null = Invoke-Python -PythonArgs @("-m", "pip", "install", "--upgrade", "pip")
+    $pipUpgrade = $script:LastPythonExitCode
     if ($pipUpgrade -eq 0) {
         Write-Ok "pip upgraded"
     } else {
@@ -90,7 +93,8 @@ if ($SkipPip) {
 
     if (Test-Path $ConfigReq) {
         Write-Info "Installing Config requirements"
-        $rc1 = Invoke-Python -Args @("-m", "pip", "install", "-r", $ConfigReq)
+        $null = Invoke-Python -PythonArgs @("-m", "pip", "install", "-r", $ConfigReq)
+        $rc1 = $script:LastPythonExitCode
         if ($rc1 -eq 0) {
             Write-Ok "Installed Config requirements"
         } else {
@@ -103,7 +107,8 @@ if ($SkipPip) {
 
     if (Test-Path $AutoReq) {
         Write-Info "Installing AutomationScripts requirements"
-        $rc2 = Invoke-Python -Args @("-m", "pip", "install", "-r", $AutoReq)
+        $null = Invoke-Python -PythonArgs @("-m", "pip", "install", "-r", $AutoReq)
+        $rc2 = $script:LastPythonExitCode
         if ($rc2 -eq 0) {
             Write-Ok "Installed AutomationScripts requirements"
         } else {
@@ -140,11 +145,12 @@ import pyvisa
 try:
     rm = pyvisa.ResourceManager()
     resources = rm.list_resources()
-    print("RESOURCES:", resources)
+    print('RESOURCES:', resources)
 except Exception as exc:
-    print("PYVISA_ERROR:", exc)
+    print('PYVISA_ERROR:', exc)
 "@
-$rcPyvisa = Invoke-Python -Args @("-c", $pyvisaCheckCode)
+$null = Invoke-Python -PythonArgs @("-c", $pyvisaCheckCode)
+$rcPyvisa = $script:LastPythonExitCode
 if ($rcPyvisa -eq 0) {
     Write-Ok "PyVISA check executed"
 } else {
