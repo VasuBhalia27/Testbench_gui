@@ -140,6 +140,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
 
 # Create the main window
 window = tk.Tk()
+window.title("SmartBU Testbench GUI")
 
 
 window.geometry("973x670")
@@ -1023,8 +1024,12 @@ canvas9.create_text(73.0, 168.0, anchor="nw", text="IsNfcDetectedCard", fill="#F
 tab9_entry_1 = ttk.Entry(tab9_frame, style ='Background_grey.TEntry')
 tab9_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
 
-nfc_entries = [tab9_entry_1]
-nfc_output_variables = ["TestFw_IsNfcDetectedCard"]
+canvas9.create_text(73.0, 208.0, anchor="nw", text="NfcRxDataLength", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab9_entry_2 = ttk.Entry(tab9_frame, style ='Background_grey.TEntry')
+tab9_entry_2.place(x=306.0, y=208.0, width=95.0, height=20.0)
+
+nfc_entries = [tab9_entry_1, tab9_entry_2]
+nfc_output_variables = ["TestFw_IsNfcDetectedCard", "TestFw_NfcRxDataLength"]
 
 images["tab9_nfc_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab9"))
 run_test_btn = Button(tab9, image=images["tab9_nfc_run"], command=lambda: SendDIDGetVal_multiple_entry(nfc_output_variables, nfc_entries, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e), bd = 0)
@@ -1071,22 +1076,95 @@ images["tile1_tab10"] = PhotoImage(file=relative_to_assets("Tile.png", "tab10"))
 canvas10.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab10"])
 
 canvas10.create_text(61.0, 110.0, anchor="nw", text="CAN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas10.create_text(61.0, 144.0, anchor="nw", text="Transmit CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab10_entry_1 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
-tab10_entry_1.place(x=61.0, y=168.0, width=250.0, height=20.0)
+canvas10.create_text(61.0, 144.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-canvas10.create_text(61.0, 207.0, anchor="nw", text="Receive CAN Message ID", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab10_entry_2 = ttk.Entry(tab10_frame, style ='Background_grey.TEntry')
-tab10_entry_2.place(x=61.0, y=230.0, width=250.0, height=20.0)
+can_tx_entries = []
+can_tx_start_y = 172.0
+can_tx_row_gap = 64.0
+for idx in range(8):
+    x_pos = 61.0 + (idx % 4) * 85.0
+    y_pos = can_tx_start_y + (idx // 4) * can_tx_row_gap
+    canvas10.create_text(x_pos, y_pos - 18.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
+    entry = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+    entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
+    entry.insert(0, "0")
+    can_tx_entries.append(entry)
 
-can_entries = [tab10_entry_1]
-can_output_variables = ["DummyBytes"]
+canvas10.create_text(420.0, 144.0, anchor="nw", text="Local Loopback", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+can_loopback_var = tk.BooleanVar(value=False)
+can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
+can_loopback_chk.place(x=540.0, y=144.0, width=24.0, height=24.0)
+
+canvas10.create_text(61.0, 278.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas10.create_text(61.0, 310.0, anchor="nw", text="CanRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab10_rx_valid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+tab10_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
+
+canvas10.create_text(320.0, 310.0, anchor="nw", text="CanRxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab10_rx_msgid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+tab10_rx_msgid.place(x=470.0, y=310.0, width=110.0, height=24.0)
+
+canvas10.create_text(61.0, 344.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+can_rx_entries = []
+can_rx_start_y = 370.0
+can_rx_row_gap = 56.0
+for idx in range(8):
+    x_pos = 61.0 + (idx % 4) * 85.0
+    y_pos = can_rx_start_y + (idx // 4) * can_rx_row_gap
+    canvas10.create_text(x_pos, y_pos - 16.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 10 * -1))
+    entry = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+    entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
+    can_rx_entries.append(entry)
+
+canvas10.create_text(420.0, 370.0, anchor="nw", text="CanFaultLatch", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab10_fault_latch = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+tab10_fault_latch.place(x=540.0, y=370.0, width=120.0, height=24.0)
+
+can_output_variables = [
+    "TestFw_CanRxDataValid",
+    "TestFw_CanRxMessageId",
+    "TestFw_CanRxBytes.dummy_byte0_U8",
+    "TestFw_CanRxBytes.dummy_byte1_U8",
+    "TestFw_CanRxBytes.dummy_byte2_U8",
+    "TestFw_CanRxBytes.dummy_byte3_U8",
+    "TestFw_CanRxBytes.dummy_byte4_U8",
+    "TestFw_CanRxBytes.dummy_byte5_U8",
+    "TestFw_CanRxBytes.dummy_byte6_U8",
+    "TestFw_CanRxBytes.dummy_byte7_U8",
+    "TestFw_CanFaultLatch",
+]
+can_entries = [tab10_rx_valid, tab10_rx_msgid] + can_rx_entries + [tab10_fault_latch]
+
+def _parse_u8_from_entry(entry_widget, field_name):
+    text = entry_widget.get().strip()
+    try:
+        value = int(text, 0)
+    except ValueError:
+        raise ValueError(f"Invalid value for {field_name}: '{text}'")
+
+    if value < 0 or value > 255:
+        raise ValueError(f"{field_name} out of range: {value} (expected 0..255)")
+
+    return value
+
+def run_can_test():
+    try:
+        loopback_value = 1 if can_loopback_var.get() else 0
+        SendCmdToDbg(f"Var.set TestFw_CanGuiLocalLoopbackEnable = {loopback_value}")
+
+        for idx, entry in enumerate(can_tx_entries):
+            value = _parse_u8_from_entry(entry, f"CAN Tx Byte {idx}")
+            SendCmdToDbg(f"Var.set DummyBytes.dummy_byte{idx}_U8 = {value}")
+
+        SendDIDGetVal_multiple_entry(can_output_variables, can_entries, TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
+    except Exception as exc:
+        messagebox.showerror("CAN Test", str(exc))
 
 images["tab10_can_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab10"))
-run_test_btn = Button(tab10, image=images["tab10_can_run"], command=lambda: SendDIDGetVal_multiple_entry(can_output_variables, can_entries, TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e), bd = 0)
+run_test_btn = Button(tab10, image=images["tab10_can_run"], command=run_can_test, bd = 0)
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: clear_entries(can_entries))
+reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: clear_entries(can_entries + can_tx_entries))
 reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas10.create_text(
@@ -1129,42 +1207,78 @@ canvas11.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab11"])
 
 CapaApproachSensorRawCount = tk.IntVar(value=1)
 
-canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas11.create_text(61.0, 144.0, anchor="nw", text="TxCapaApproachRawCountLinFrame", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab11_entry1 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
-tab11_entry1.place(x=61.0, y=168.0, width=115.0, height=32.0)
+canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test (v2)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
+canvas11.create_text(61.0, 144.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-tab11_entry2 = ttk.Entry(tab11_frame, style = 'Background_grey.TEntry')
-tab11_entry2.place(x=61.0, y=280.0, width=220.0, height=32.0)
+lin_tx_entries = []
+lin_tx_start_y = 172.0
+lin_tx_row_gap = 64.0
+for idx in range(8):
+    x_pos = 61.0 + (idx % 4) * 85.0
+    y_pos = lin_tx_start_y + (idx // 4) * lin_tx_row_gap
+    canvas11.create_text(x_pos, y_pos - 18.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
+    entry = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+    entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
+    entry.insert(0, "0")
+    lin_tx_entries.append(entry)
 
-lin_entry_list = [tab11_entry2]
-lin_output_variables = ["TestFw_CapaApproachSensorRawCount"]
+canvas11.create_text(61.0, 278.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas11.create_text(61.0, 310.0, anchor="nw", text="LinRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab11_rx_valid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+tab11_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
 
-CapaApproachSensorRawCount_cb = tk.Checkbutton(
-    tab11, 
-    text="ReadCapaApproachSensorRawCount", 
-    variable=lin_output_variables, 
-    onvalue=1, 
-    offvalue=0, 
-    command=lambda: SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
-)
-CapaApproachSensorRawCount_cb.place(x=61, y=230, width=220, height=32)
+canvas11.create_text(320.0, 310.0, anchor="nw", text="LinRxPid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab11_rx_pid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+tab11_rx_pid.place(x=430.0, y=310.0, width=90.0, height=24.0)
+
+canvas11.create_text(61.0, 344.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+lin_rx_entries = []
+lin_rx_start_y = 370.0
+lin_rx_row_gap = 56.0
+for idx in range(8):
+    x_pos = 61.0 + (idx % 4) * 85.0
+    y_pos = lin_rx_start_y + (idx // 4) * lin_rx_row_gap
+    canvas11.create_text(x_pos, y_pos - 16.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 10 * -1))
+    entry = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+    entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
+    lin_rx_entries.append(entry)
+
+lin_output_variables = [
+    "TestFw_LinRxDataValid",
+    "TestFw_LinRxPid",
+    "TestFw_LinRxData_aU8[0]",
+    "TestFw_LinRxData_aU8[1]",
+    "TestFw_LinRxData_aU8[2]",
+    "TestFw_LinRxData_aU8[3]",
+    "TestFw_LinRxData_aU8[4]",
+    "TestFw_LinRxData_aU8[5]",
+    "TestFw_LinRxData_aU8[6]",
+    "TestFw_LinRxData_aU8[7]",
+]
+lin_entry_list = [tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
+
+def run_lin_test():
+    try:
+        for idx, entry in enumerate(lin_tx_entries):
+            value = _parse_u8_from_entry(entry, f"LIN Tx Byte {idx}")
+            SendCmdToDbg(f"Var.set TestFw_LinTxByte{idx} = {value}")
+
+        SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
+    except Exception as exc:
+        messagebox.showerror("LIN Test", str(exc))
 
 images["tab11_lin_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab11"))
 tab11_run_btn = Button(
     tab11, 
     image=images["tab11_lin_run"], 
-    command=lambda: [
-    TransmitLinRawCount(tab11_entry1),
-    SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
-    ], 
+    command=run_lin_test,
     bd = 0
 )
-tab11_run_btn.place(x=180, y=168.0, width=34, height=34)
+tab11_run_btn.place(x=225, y=106.0, width=34, height=34)
 
-canvas11.create_text(220.0, 172.0, anchor="nw", text="Transmit", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas11.create_text(266.0, 110.0, anchor="nw", text="Transmit", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: clear_entries(lin_entry_list))
+reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: clear_entries(lin_entry_list + lin_tx_entries))
 reset_entries.place(x=350, y=110, width=115, height=32)
 
 

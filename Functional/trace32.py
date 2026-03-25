@@ -65,9 +65,33 @@ VARIABLE_UNITS_MAP = {
     
     # NFC Test
     "TestFw_IsNfcDetectedCard": "bool",
+    "TestFw_NfcRxDataLength": "bytes",
     
     # CAN Test
     "DummyBytes": "bytes",
+    "TestFw_CanRxDataValid": "bool",
+    "TestFw_CanRxMessageId": "",
+    "TestFw_CanRxBytes.dummy_byte0_U8": "",
+    "TestFw_CanRxBytes.dummy_byte1_U8": "",
+    "TestFw_CanRxBytes.dummy_byte2_U8": "",
+    "TestFw_CanRxBytes.dummy_byte3_U8": "",
+    "TestFw_CanRxBytes.dummy_byte4_U8": "",
+    "TestFw_CanRxBytes.dummy_byte5_U8": "",
+    "TestFw_CanRxBytes.dummy_byte6_U8": "",
+    "TestFw_CanRxBytes.dummy_byte7_U8": "",
+    "TestFw_CanFaultLatch": "",
+
+    # LIN Test
+    "TestFw_LinRxDataValid": "bool",
+    "TestFw_LinRxPid": "",
+    "TestFw_LinRxData_aU8[0]": "",
+    "TestFw_LinRxData_aU8[1]": "",
+    "TestFw_LinRxData_aU8[2]": "",
+    "TestFw_LinRxData_aU8[3]": "",
+    "TestFw_LinRxData_aU8[4]": "",
+    "TestFw_LinRxData_aU8[5]": "",
+    "TestFw_LinRxData_aU8[6]": "",
+    "TestFw_LinRxData_aU8[7]": "",
 }
 
 
