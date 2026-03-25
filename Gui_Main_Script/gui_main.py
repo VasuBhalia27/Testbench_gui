@@ -1095,6 +1095,17 @@ can_loopback_var = tk.BooleanVar(value=False)
 can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
 can_loopback_chk.place(x=540.0, y=144.0, width=24.0, height=24.0)
 
+canvas10.create_text(420.0, 172.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+can_keep_awake_var = tk.BooleanVar(value=False)
+can_keep_awake_chk = ttk.Checkbutton(tab10_frame, variable=can_keep_awake_var)
+can_keep_awake_chk.place(x=540.0, y=172.0, width=24.0, height=24.0)
+
+canvas10.create_text(420.0, 204.0, anchor="nw", text="TxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab10_tx_msgid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+tab10_tx_msgid.place(x=540.0, y=200.0, width=110.0, height=24.0)
+tab10_tx_msgid.insert(0, "0x796")
+tab10_tx_msgid.configure(state="disabled")
+
 canvas10.create_text(61.0, 278.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 canvas10.create_text(61.0, 310.0, anchor="nw", text="CanRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_rx_valid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
@@ -1116,6 +1127,10 @@ for idx in range(8):
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
     can_rx_entries.append(entry)
 
+canvas10.create_text(420.0, 340.0, anchor="nw", text="COM Active", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab10_com_active = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
+tab10_com_active.place(x=540.0, y=340.0, width=120.0, height=24.0)
+
 canvas10.create_text(420.0, 370.0, anchor="nw", text="CanFaultLatch", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_fault_latch = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
 tab10_fault_latch.place(x=540.0, y=370.0, width=120.0, height=24.0)
@@ -1131,9 +1146,10 @@ can_output_variables = [
     "TestFw_CanRxBytes.dummy_byte5_U8",
     "TestFw_CanRxBytes.dummy_byte6_U8",
     "TestFw_CanRxBytes.dummy_byte7_U8",
+    "TestFw_CanIsActiveState",
     "TestFw_CanFaultLatch",
 ]
-can_entries = [tab10_rx_valid, tab10_rx_msgid] + can_rx_entries + [tab10_fault_latch]
+can_entries = [tab10_rx_valid, tab10_rx_msgid] + can_rx_entries + [tab10_com_active, tab10_fault_latch]
 
 def _parse_u8_from_entry(entry_widget, field_name):
     text = entry_widget.get().strip()
@@ -1151,6 +1167,9 @@ def run_can_test():
     try:
         loopback_value = 1 if can_loopback_var.get() else 0
         SendCmdToDbg(f"Var.set TestFw_CanGuiLocalLoopbackEnable = {loopback_value}")
+
+        keep_awake_value = 1 if can_keep_awake_var.get() else 0
+        SendCmdToDbg(f"Var.set TestFw_KeepEcuAwake = {keep_awake_value}")
 
         for idx, entry in enumerate(can_tx_entries):
             value = _parse_u8_from_entry(entry, f"CAN Tx Byte {idx}")

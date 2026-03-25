@@ -70,7 +70,7 @@ VARIABLE_UNITS_MAP = {
     # CAN Test
     "DummyBytes": "bytes",
     "TestFw_CanRxDataValid": "bool",
-    "TestFw_CanRxMessageId": "",
+    "TestFw_CanRxMessageId": "hex",
     "TestFw_CanRxBytes.dummy_byte0_U8": "",
     "TestFw_CanRxBytes.dummy_byte1_U8": "",
     "TestFw_CanRxBytes.dummy_byte2_U8": "",
@@ -111,7 +111,9 @@ def format_value_with_unit(variable_name, value):
     """
     unit = VARIABLE_UNITS_MAP.get(variable_name, "")
     
-    if unit:
+    if unit == "hex":
+        return hex(int(value))
+    elif unit:
         return f"{value} {unit}"
     else:
         return str(value)
