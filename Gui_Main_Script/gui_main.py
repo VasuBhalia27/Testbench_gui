@@ -97,6 +97,7 @@ images = {}
 
 # Base Paths
 OUTPUT_PATH = _REPO_ROOT
+DEFAULT_SMARTBU_PATH = (_REPO_ROOT / "SmartBU") if (_REPO_ROOT / "SmartBU").exists() else _REPO_ROOT
 ASSETS_PATH_TAB1 = OUTPUT_PATH / Path(r"assets_GC\Page_1(Welcome_page)\assets\frame0")
 ASSETS_PATH_TAB2 = OUTPUT_PATH / Path(r"assets_GC\Page_2(Settings)\assets\frame0")
 ASSETS_PATH_TAB3 = OUTPUT_PATH / Path(r"assets_GC\Page_3(Led)\assets\frame0")
@@ -280,7 +281,7 @@ canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Setting ", fill="#F39C1
 
 canvas2.create_text(61.0, 100.0, anchor="nw", text="Select ELF path:  ", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 repo_path_entry = ttk.Entry(tab2, style ='Background_grey.TEntry')
-repo_path_entry.insert(0, r"C:/UShin/Testbench_gui_Charan/SmartBU")
+repo_path_entry.insert(0, DEFAULT_SMARTBU_PATH.as_posix())
 repo_path_entry.place(x=200.0, y=95.0, width=400.0, height=30.0)
 #Brouse button
 repo_browse_button = ttk.Button(tab2, text="Browse", command=browse_repo_path) #browse button to get repo path
@@ -291,7 +292,7 @@ canvas2.create_rectangle(55.0, 150.0, 550.0, 230.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 155.0, anchor="nw", text=" Variant Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
 
 #Non-Nfc version selection
-selected_preset = tk.IntVar(value=1)
+selected_preset = tk.IntVar(value=2)
 selected_preset_relwithdeb = tk.Checkbutton(tab2, text="Non-Nfc Version", variable=selected_preset, onvalue=1, offvalue=0, command=lambda: [preset_realwithdebinfo(selected_preset), update_tab_visibility()])
 selected_preset_relwithdeb.place(x=61, y=180)
 #Nfc version selection
@@ -1349,65 +1350,65 @@ images["tile1_tab10"] = PhotoImage(file=relative_to_assets("Tile.png", "tab10"))
 canvas10.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab10"])
 
 canvas10.create_text(61.0, 110.0, anchor="nw", text="CAN Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas10.create_text(61.0, 144.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas10.create_text(61.0, 138.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
 can_tx_entries = []
 can_tx_start_y = 172.0
-can_tx_row_gap = 64.0
+can_tx_row_gap = 58.0
 can_tx_defaults = [11, 22, 33, 44, 55, 66, 77, 88]
 for idx in range(8):
     x_pos = 61.0 + (idx % 4) * 85.0
     y_pos = can_tx_start_y + (idx // 4) * can_tx_row_gap
-    canvas10.create_text(x_pos, y_pos - 18.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
+    canvas10.create_text(x_pos, y_pos - 14.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
     entry = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
     entry.insert(0, str(can_tx_defaults[idx]))
     can_tx_entries.append(entry)
 
-canvas10.create_text(420.0, 144.0, anchor="nw", text="Local Loopback", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-can_loopback_var = tk.BooleanVar(value=False)
+canvas10.create_text(420.0, 146.0, anchor="nw", text="Local Loopback", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+can_loopback_var = tk.BooleanVar(value=True)
 can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
-can_loopback_chk.place(x=540.0, y=144.0, width=24.0, height=24.0)
+can_loopback_chk.place(x=560.0, y=144.0, width=24.0, height=24.0)
 
-canvas10.create_text(420.0, 172.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(420.0, 178.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 can_keep_awake_var = tk.BooleanVar(value=False)
 can_keep_awake_chk = ttk.Checkbutton(tab10_frame, variable=can_keep_awake_var)
-can_keep_awake_chk.place(x=540.0, y=172.0, width=24.0, height=24.0)
+can_keep_awake_chk.place(x=560.0, y=176.0, width=24.0, height=24.0)
 
-canvas10.create_text(420.0, 204.0, anchor="nw", text="TxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(420.0, 210.0, anchor="nw", text="TxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_tx_msgid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_tx_msgid.place(x=540.0, y=200.0, width=110.0, height=24.0)
+tab10_tx_msgid.place(x=560.0, y=208.0, width=110.0, height=24.0)
 tab10_tx_msgid.insert(0, "0x796")
 tab10_tx_msgid.configure(state="disabled")
 
-canvas10.create_text(61.0, 278.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas10.create_text(61.0, 310.0, anchor="nw", text="CanRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(61.0, 268.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas10.create_text(61.0, 300.0, anchor="nw", text="CanRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_rx_valid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
+tab10_rx_valid.place(x=210.0, y=298.0, width=90.0, height=24.0)
 
-canvas10.create_text(390.0, 310.0, anchor="nw", text="CanRxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(390.0, 300.0, anchor="nw", text="CanRxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_rx_msgid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_rx_msgid.place(x=470.0, y=310.0, width=110.0, height=24.0)
+tab10_rx_msgid.place(x=520.0, y=298.0, width=110.0, height=24.0)
 
-canvas10.create_text(61.0, 344.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(61.0, 340.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 can_rx_entries = []
-can_rx_start_y = 370.0
-can_rx_row_gap = 56.0
+can_rx_start_y = 366.0
+can_rx_row_gap = 50.0
 for idx in range(8):
     x_pos = 61.0 + (idx % 4) * 85.0
     y_pos = can_rx_start_y + (idx // 4) * can_rx_row_gap
-    canvas10.create_text(x_pos, y_pos - 16.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 10 * -1))
+    canvas10.create_text(x_pos, y_pos - 12.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 10 * -1))
     entry = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
     can_rx_entries.append(entry)
 
 canvas10.create_text(420.0, 340.0, anchor="nw", text="COM Active", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_com_active = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_com_active.place(x=540.0, y=340.0, width=120.0, height=24.0)
+tab10_com_active.place(x=560.0, y=338.0, width=120.0, height=24.0)
 
-canvas10.create_text(420.0, 370.0, anchor="nw", text="CanFaultLatch", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(420.0, 372.0, anchor="nw", text="CanFaultLatch", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_fault_latch = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_fault_latch.place(x=540.0, y=370.0, width=120.0, height=24.0)
+tab10_fault_latch.place(x=560.0, y=370.0, width=120.0, height=24.0)
 
 can_output_variables = [
     "TestFw_CanRxDataValid",
@@ -1438,11 +1439,11 @@ def _parse_u8_from_entry(entry_widget, field_name):
     return value
 
 tab10_lbl_rx_valid = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab10_lbl_rx_valid.place(x=305, y=312, height=20)
+tab10_lbl_rx_valid.place(x=305, y=300, height=20)
 tab10_lbl_active   = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab10_lbl_active.place(x=670, y=342, height=20)
+tab10_lbl_active.place(x=690, y=340, height=20)
 tab10_lbl_fault    = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab10_lbl_fault.place(x=670, y=372, height=20)
+tab10_lbl_fault.place(x=690, y=372, height=20)
 tab10_lbl_overall  = tk.Label(tab10_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab10_lbl_overall.place(x=600, y=110, height=26)
 
@@ -1531,43 +1532,43 @@ canvas11.create_image(tablet1_X, tablet1_Y +10, image=images["tile1_tab11"])
 CapaApproachSensorRawCount = tk.IntVar(value=1)
 
 canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test (v2)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas11.create_text(61.0, 144.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas11.create_text(400.0, 144.0, anchor="nw", text="LinTxPid (Hex)", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas11.create_text(61.0, 138.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas11.create_text(460.0, 138.0, anchor="nw", text="LinTxPid (Hex)", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab11_tx_msgid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
-tab11_tx_msgid.place(x=560.0, y=140.0, width=110.0, height=24.0)
+tab11_tx_msgid.place(x=600.0, y=136.0, width=110.0, height=24.0)
 tab11_tx_msgid.insert(0, "0x3A")
 
 lin_tx_entries = []
 lin_tx_start_y = 172.0
-lin_tx_row_gap = 64.0
+lin_tx_row_gap = 58.0
 lin_tx_defaults = [44, 55, 66, 77, 11, 22, 33, 44]
 for idx in range(8):
     x_pos = 61.0 + (idx % 4) * 85.0
     y_pos = lin_tx_start_y + (idx // 4) * lin_tx_row_gap
-    canvas11.create_text(x_pos, y_pos - 18.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
+    canvas11.create_text(x_pos, y_pos - 14.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
     entry = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
     entry.insert(0, str(lin_tx_defaults[idx]))
     lin_tx_entries.append(entry)
 
-canvas11.create_text(61.0, 278.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas11.create_text(61.0, 310.0, anchor="nw", text="LinRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas11.create_text(61.0, 268.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas11.create_text(61.0, 300.0, anchor="nw", text="LinRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab11_rx_valid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
-tab11_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
+tab11_rx_valid.place(x=210.0, y=298.0, width=90.0, height=24.0)
 
-canvas11.create_text(390.0, 310.0, anchor="nw", text="LinRxPid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas11.create_text(390.0, 300.0, anchor="nw", text="LinRxPid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab11_rx_pid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
-tab11_rx_pid.place(x=430.0, y=310.0, width=90.0, height=24.0)
+tab11_rx_pid.place(x=500.0, y=298.0, width=110.0, height=24.0)
 
 
-canvas11.create_text(61.0, 344.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas11.create_text(61.0, 340.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 lin_rx_entries = []
-lin_rx_start_y = 370.0
-lin_rx_row_gap = 56.0
+lin_rx_start_y = 366.0
+lin_rx_row_gap = 50.0
 for idx in range(8):
     x_pos = 61.0 + (idx % 4) * 85.0
     y_pos = lin_rx_start_y + (idx // 4) * lin_rx_row_gap
-    canvas11.create_text(x_pos, y_pos - 16.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 10 * -1))
+    canvas11.create_text(x_pos, y_pos - 12.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 10 * -1))
     entry = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
     lin_rx_entries.append(entry)
@@ -1587,7 +1588,7 @@ lin_output_variables = [
 lin_entry_list = [tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
 
 tab11_lbl_rx_valid = tk.Label(tab11_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab11_lbl_rx_valid.place(x=305, y=312, height=20)
+tab11_lbl_rx_valid.place(x=305, y=300, height=20)
 tab11_lbl_overall  = tk.Label(tab11_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab11_lbl_overall.place(x=530, y=110, height=26)
 
