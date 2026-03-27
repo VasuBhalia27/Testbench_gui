@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
@@ -398,6 +398,31 @@ canvas2.create_text(
     font=("Inter BoldItalic", 24 * -1)
 )
 
+# --- Shared PASS/FAIL helpers (used by all test tabs) ---
+def _set_pf(lbl, passed):
+    if passed:
+        lbl.config(text="PASS", bg="#27AE60", fg="#FFFFFF")
+    else:
+        lbl.config(text="FAIL", bg="#C0392B", fg="#FFFFFF")
+
+def _set_overall(lbl, results):
+    if all(results):
+        lbl.config(text="OVERALL: PASS", bg="#27AE60", fg="#FFFFFF")
+    else:
+        lbl.config(text="OVERALL: FAIL", bg="#C0392B", fg="#FFFFFF")
+
+def _reset_pf_labels(overall_lbl, *field_labels):
+    overall_lbl.config(text="", bg="#DFDFDF", fg="#000000")
+    for lbl in field_labels:
+        lbl.config(text="", bg="#DFDFDF", fg="#000000")
+
+def _parse_num(entry):
+    """Return int from entry text (handles '1234 mV', '0x52', '1 bool', etc.)"""
+    try:
+        return int(entry.get().strip().split()[0], 0)
+    except (ValueError, TypeError, IndexError):
+        return None
+
 # ===================================================================================================================
 # ========== TAB 3 (LED Test) =======================================================================================
 
@@ -447,14 +472,27 @@ tab3_entry_1.place(x=300.0, y=200.0, width=85.0, height=32.0)
 led_output_variables = ["TestFw_LedVoltage"]
 led_entries = [tab3_entry_1]
 
+tab3_lbl_voltage = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab3_lbl_voltage.place(x=394, y=206, height=20)
+tab3_lbl_overall = tk.Label(tab3_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab3_lbl_overall.place(x=430, y=110, height=26)
+
+def _evaluate_led_results():
+    v = _parse_num(tab3_entry_1)
+    if led_input_condition.get() == 2:  # Led_Off: 0–10 mV expected
+        passed = v is not None and 0 <= v <= 10
+    else:  # Led_On: voltage should be > 0
+        passed = v is not None and v > 0
+    _set_pf(tab3_lbl_voltage, passed)
+    _set_overall(tab3_lbl_overall, [passed])
+
 images["tab3_led_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
-# Note: Ensure GetValueVbatt or equivalent is linked if intended
 tab3_run_btn = Button(tab3, image=images["tab3_led_run"],
-                        command=lambda: SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e),
+                        command=lambda: [SendDIDGetVal_multiple_entry(led_output_variables, led_entries, TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e), tab3_frame.after(200, _evaluate_led_results)],
                         bd = 0)
 tab3_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: clear_entries(led_entries))
+reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: [clear_entries(led_entries), _reset_pf_labels(tab3_lbl_overall, tab3_lbl_voltage)])
 reset_entries.place(x=300, y=110, width=85, height=32)
 
 canvas3.create_text(
@@ -505,14 +543,24 @@ tab4_entry_1.place(x=300.0, y=168.0, width=85.0, height=32.0)
 batmot_output_variables = ["TestFw_AiBatRef"]
 batmon_entries = [tab4_entry_1]
 
+tab4_lbl_voltage = tk.Label(tab4_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab4_lbl_voltage.place(x=394, y=174, height=20)
+tab4_lbl_overall = tk.Label(tab4_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab4_lbl_overall.place(x=430, y=110, height=26)
+
+def _evaluate_bat_results():
+    v = _parse_num(tab4_entry_1)
+    passed = v is not None and 8000 <= v <= 16000
+    _set_pf(tab4_lbl_voltage, passed)
+    _set_overall(tab4_lbl_overall, [passed])
+
 images["tab4_motor_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab4"))
-# Note: Ensure GetValueVbatt or equivalent is linked if intended
 tab4_run_btn = Button(tab4, image=images["tab4_motor_run"],
-                        command=lambda: SendDIDGetVal_multiple_entry(batmot_output_variables, batmon_entries, TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e),
+                        command=lambda: [SendDIDGetVal_multiple_entry(batmot_output_variables, batmon_entries, TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e), tab4_frame.after(200, _evaluate_bat_results)],
                         bd = 0)
 tab4_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab4, text="Reset Results", command=lambda: clear_entries(batmon_entries))
+reset_entries = ttk.Button(tab4, text="Reset Results", command=lambda: [clear_entries(batmon_entries), _reset_pf_labels(tab4_lbl_overall, tab4_lbl_voltage)])
 reset_entries.place(x=300, y=106, width=85, height=32)
 
 canvas4.create_text(
@@ -576,6 +624,27 @@ tab5_entry3.place(x=306, y=placement_y_coord + 35*3, width=85, height=32)
 motor_output_variables = ["TestFw_MotorVoltage", "TestFw_MotorCurrentValue", "TestFw_MotorLoadError"]
 motor_entries = [tab5_entry1, tab5_entry2, tab5_entry3]
 
+tab5_lbl_voltage = tk.Label(tab5_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab5_lbl_voltage.place(x=400, y=placement_y_coord+41, height=20)
+tab5_lbl_current = tk.Label(tab5_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab5_lbl_current.place(x=400, y=placement_y_coord+76, height=20)
+tab5_lbl_loaderr = tk.Label(tab5_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab5_lbl_loaderr.place(x=400, y=placement_y_coord+111, height=20)
+tab5_lbl_overall = tk.Label(tab5_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab5_lbl_overall.place(x=460, y=150, height=26)
+
+def _evaluate_mot_results():
+    v_volt = _parse_num(tab5_entry1)
+    v_curr = _parse_num(tab5_entry2)
+    v_err  = _parse_num(tab5_entry3)
+    p_volt    = v_volt is not None and v_volt > 0
+    p_current = v_curr is not None and v_curr > 0
+    p_loaderr = v_err  is not None and v_err  == 0
+    _set_pf(tab5_lbl_voltage,  p_volt)
+    _set_pf(tab5_lbl_current,  p_current)
+    _set_pf(tab5_lbl_loaderr,  p_loaderr)
+    _set_overall(tab5_lbl_overall, [p_volt, p_current, p_loaderr])
+
 motor_decouple_couple_cb = tk.Checkbutton(
     tab5, 
     text="DecoupleCouple", 
@@ -586,7 +655,8 @@ motor_decouple_couple_cb = tk.Checkbutton(
     motor_decouple_couple(selected_motor_state),
     SendDIDGetVal_multiple_entry(motor_output_variables, motor_entries, TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e),
     # Schedule the reset after 1000ms (1 second)
-    window.after(1000, lambda: auto_reset_motor_checkbox(selected_motor_state))
+    window.after(1000, lambda: auto_reset_motor_checkbox(selected_motor_state)),
+    tab5_frame.after(200, _evaluate_mot_results)
     ]
 )
 motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)
@@ -604,7 +674,7 @@ motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)
 #)
 #motor_no_req_cb.place(x=306, y=150, width=85, height=32)
 
-reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: clear_entries(motor_entries))
+reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: [clear_entries(motor_entries), _reset_pf_labels(tab5_lbl_overall, tab5_lbl_voltage, tab5_lbl_current, tab5_lbl_loaderr)])
 reset_entries.place(x=306, y=150, width=85, height=32)
 
 canvas5.create_text(
@@ -655,6 +725,21 @@ eos_value = tk.IntVar(value=2)
 eos_output_variables = ["TestFw_EosDiagVoltage"]
 eos_entries = [tab6_entry1]
 
+tab6_lbl_voltage = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab6_lbl_voltage.place(x=360, y=placement_y_coord+41, height=20)
+tab6_lbl_overall = tk.Label(tab6_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab6_lbl_overall.place(x=430, y=110, height=26)
+
+def _evaluate_eos_results():
+    v = _parse_num(tab6_entry1)
+    # eos_value: 1 = EOS Set (1400–1600 mV), 2 = EOS Reset (2800–3000 mV)
+    if eos_value.get() == 1:
+        passed = v is not None and 1400 <= v <= 1600
+    else:
+        passed = v is not None and 2800 <= v <= 3000
+    _set_pf(tab6_lbl_voltage, passed)
+    _set_overall(tab6_lbl_overall, [passed])
+
 eos_set_cb = tk.Checkbutton(
     tab6, 
     text="EOS Set", 
@@ -663,7 +748,8 @@ eos_set_cb = tk.Checkbutton(
     offvalue=0, 
     command=lambda: [
     eos_set(eos_value),
-    SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
+    SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e),
+    tab6_frame.after(200, _evaluate_eos_results)
     ]
 )
 eos_set_cb.place(x=73.0, y=150, width=125.0, height=32.0)
@@ -677,11 +763,11 @@ eos_reset_cb = tk.Checkbutton(
     command=lambda: [
         eos_reset(eos_value),
         # Schedule the reading after 5000ms (5 seconds)
-        window.after(0, lambda: SendDIDGetVal_multiple_entry(
+        window.after(0, lambda: [SendDIDGetVal_multiple_entry(
             eos_output_variables, 
             eos_entries, 
             TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e
-        ))
+        ), tab6_frame.after(200, _evaluate_eos_results)])
     ]
 )
 eos_reset_cb.place(x=225.0, y=150, width=125.0, height=32.0)
@@ -690,7 +776,7 @@ eos_reset_cb.place(x=225.0, y=150, width=125.0, height=32.0)
 #tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
 #tab6_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: clear_entries(eos_entries))
+reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: [clear_entries(eos_entries), _reset_pf_labels(tab6_lbl_overall, tab6_lbl_voltage)])
 reset_entries.place(x=225, y=110, width=125, height=32)
 
 canvas6.create_text(
@@ -755,17 +841,17 @@ canvas7.create_text(34.0, 156 + 3*40, anchor="nw",text="Sg1Opamp", fill="#FFFFFF
 tab7_entry4 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
 tab7_entry4.place(x=225.0, y=offset_top + 3*40, width=115, height=32)
 
-canvas7.create_text(380.0, 156 + 1*40, anchor="nw",text="Sg2PlusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas7.create_text(435.0, 156 + 1*40, anchor="nw",text="Sg2PlusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry6 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry6.place(x=510.0, y=offset_top + 1*40, width=115.0, height=32.0)
+tab7_entry6.place(x=570.0, y=offset_top + 1*40, width=115.0, height=32.0)
 
-canvas7.create_text(380.0, 156 + 2*40, anchor="nw",text="Sg2MinusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas7.create_text(435.0, 156 + 2*40, anchor="nw",text="Sg2MinusOpamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry7 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry7.place(x=510.0, y=offset_top + 2*40, width=115, height=32)
+tab7_entry7.place(x=570.0, y=offset_top + 2*40, width=115, height=32)
 
-canvas7.create_text(380.0, 156 + 3*40, anchor="nw",text="Sg2Opamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas7.create_text(435.0, 156 + 3*40, anchor="nw",text="Sg2Opamp", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab7_entry8 = ttk.Entry(tab7_frame, style='Background_grey.TEntry')
-tab7_entry8.place(x=510.0, y=offset_top + 3*40, width=115, height=32)
+tab7_entry8.place(x=570.0, y=offset_top + 3*40, width=115, height=32)
 
 def auto_refresh_sg_values():
     """Automatically refresh SG values every 2 seconds"""
@@ -791,7 +877,7 @@ continuous_read_cb = tk.Checkbutton(
     variable=continuous_read,
     command=lambda: toggle_continuous_read(continuous_read.get())
 )
-continuous_read_cb.place(x=365, y=150, width=115, height=32)
+continuous_read_cb.place(x=365, y=75, width=115, height=32)
 
 # Add this function
 def toggle_continuous_read(enabled):
@@ -820,6 +906,34 @@ def stop_continuous_read():
 sg_output_variables = ["TestFw_DoPwrSg", "TestFw_Sg1PlusOpamp", "TestFw_Sg1MinusOpamp", "TestFw_Sg1Opamp", "TestFw_Sg2PlusOpamp", "TestFw_Sg2MinusOpamp", "TestFw_Sg2Opamp"]
 sg_entries = [tab7_entry_1, tab7_entry2, tab7_entry3, tab7_entry4, tab7_entry6, tab7_entry7, tab7_entry8]
 
+tab7_lbl_pwrsg   = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_pwrsg.place(x=350, y=offset_top+6, height=20)
+tab7_lbl_sg1plus = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_sg1plus.place(x=350, y=offset_top+46, height=20)
+tab7_lbl_sg1min  = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_sg1min.place(x=350, y=offset_top+86, height=20)
+tab7_lbl_sg1     = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_sg1.place(x=350, y=offset_top+126, height=20)
+tab7_lbl_sg2plus = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_sg2plus.place(x=695, y=offset_top+46, height=20)
+tab7_lbl_sg2min  = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_sg2min.place(x=695, y=offset_top+86, height=20)
+tab7_lbl_sg2     = tk.Label(tab7_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab7_lbl_sg2.place(x=695, y=offset_top+126, height=20)
+tab7_lbl_overall = tk.Label(tab7_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab7_lbl_overall.place(x=490, y=110, height=26)
+
+sg_pf_labels = [tab7_lbl_pwrsg, tab7_lbl_sg1plus, tab7_lbl_sg1min, tab7_lbl_sg1, tab7_lbl_sg2plus, tab7_lbl_sg2min, tab7_lbl_sg2]
+
+def _evaluate_sg_results():
+    results = []
+    for entry, lbl in zip(sg_entries, sg_pf_labels):
+        v = _parse_num(entry)
+        passed = v is not None and v != 0
+        _set_pf(lbl, passed)
+        results.append(passed)
+    _set_overall(tab7_lbl_overall, results)
+
 sg_results_cb = tk.Checkbutton(
     tab7, 
     text="Sg Results", 
@@ -831,12 +945,13 @@ sg_results_cb = tk.Checkbutton(
     SendDIDGetVal_multiple_entry(sg_output_variables, sg_entries, TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e),
         # Schedule the reset after 1000ms (1 second)
     #window.after(1000, lambda: auto_reset_sg_checkbox(SgValue))
+    tab7_frame.after(200, _evaluate_sg_results)
     ]
 )
-sg_results_cb.place(x=365, y=110, width=115, height=32)
+sg_results_cb.place(x=225, y=75, width=115, height=32)
 
-sg_reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: clear_entries(sg_entries)) #browse button to get repo path
-sg_reset_entries.place(x=510, y=offset_top + 0*40, width=115, height=32)
+sg_reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: [clear_entries(sg_entries), _reset_pf_labels(tab7_lbl_overall, *sg_pf_labels)]) #browse button to get repo path
+sg_reset_entries.place(x=510, y=75, width=115, height=32)
 
 running_status = tk.Label(tab7_frame, text="Running Status: None")
 running_status.config(bg = "#DFDFDF")
@@ -965,18 +1080,53 @@ def start_continuous_read_capa():
     
     read_loop()
 
+tab8_lbl_approach   = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab8_lbl_approach.place(x=475, y=174, height=20)
+tab8_lbl_lock       = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab8_lbl_lock.place(x=475, y=220, height=20)
+tab8_lbl_unlock     = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab8_lbl_unlock.place(x=475, y=266, height=20)
+tab8_lbl_app_raw    = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab8_lbl_app_raw.place(x=475, y=312, height=20)
+tab8_lbl_lock_raw   = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab8_lbl_lock_raw.place(x=475, y=358, height=20)
+tab8_lbl_unlock_raw = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab8_lbl_unlock_raw.place(x=475, y=404, height=20)
+tab8_lbl_overall    = tk.Label(tab8_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab8_lbl_overall.place(x=480, y=65, height=26)
+
+capa_pf_labels = [tab8_lbl_approach, tab8_lbl_lock, tab8_lbl_unlock, tab8_lbl_app_raw, tab8_lbl_lock_raw, tab8_lbl_unlock_raw]
+
+def _evaluate_capa_results():
+    # capa_entries order: [approach_bool, lock_bool, unlock_bool, approach_raw, lock_raw, unlock_raw]
+    thresholds = [
+        lambda v: v == 1,       # CapaApproach bool
+        lambda v: v == 1,       # CapaLock bool
+        lambda v: v == 1,       # CapaUnlock bool
+        lambda v: v > 9000,     # CapaApproachRawValue
+        lambda v: v > 9000,     # CapaLockRawValue
+        lambda v: v > 8900,     # CapaUnlockRawValue
+    ]
+    results = []
+    for entry, lbl, check in zip(capa_entries, capa_pf_labels, thresholds):
+        v = _parse_num(entry)
+        passed = v is not None and check(v)
+        _set_pf(lbl, passed)
+        results.append(passed)
+    _set_overall(tab8_lbl_overall, results)
+
 # Run button
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 run_test_btn = Button(
     tab8, 
     image=images["tile1_run_capa"], 
-    command=lambda: read_capa_values_with_delay(capa_output_variables, capa_entries),
+    command=lambda: [read_capa_values_with_delay(capa_output_variables, capa_entries), tab8_frame.after(200, _evaluate_capa_results)],
     bd=0
 )
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
 # Reset button
-reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: clear_entries(capa_entries))
+reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
 reset_entries.place(x=350, y=65, width=115, height=32)
 
 canvas8.create_text(
@@ -1204,13 +1354,14 @@ canvas10.create_text(61.0, 144.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF
 can_tx_entries = []
 can_tx_start_y = 172.0
 can_tx_row_gap = 64.0
+can_tx_defaults = [11, 22, 33, 44, 55, 66, 77, 88]
 for idx in range(8):
     x_pos = 61.0 + (idx % 4) * 85.0
     y_pos = can_tx_start_y + (idx // 4) * can_tx_row_gap
     canvas10.create_text(x_pos, y_pos - 18.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
     entry = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
-    entry.insert(0, "0")
+    entry.insert(0, str(can_tx_defaults[idx]))
     can_tx_entries.append(entry)
 
 canvas10.create_text(420.0, 144.0, anchor="nw", text="Local Loopback", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
@@ -1234,7 +1385,7 @@ canvas10.create_text(61.0, 310.0, anchor="nw", text="CanRxDataValid", fill="#FFF
 tab10_rx_valid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
 tab10_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
 
-canvas10.create_text(320.0, 310.0, anchor="nw", text="CanRxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(390.0, 310.0, anchor="nw", text="CanRxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_rx_msgid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
 tab10_rx_msgid.place(x=470.0, y=310.0, width=110.0, height=24.0)
 
@@ -1286,6 +1437,35 @@ def _parse_u8_from_entry(entry_widget, field_name):
 
     return value
 
+tab10_lbl_rx_valid = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab10_lbl_rx_valid.place(x=305, y=312, height=20)
+tab10_lbl_active   = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab10_lbl_active.place(x=670, y=342, height=20)
+tab10_lbl_fault    = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab10_lbl_fault.place(x=670, y=372, height=20)
+tab10_lbl_overall  = tk.Label(tab10_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab10_lbl_overall.place(x=600, y=110, height=26)
+
+can_pf_labels = [tab10_lbl_rx_valid, tab10_lbl_active, tab10_lbl_fault]
+
+def _evaluate_can_results():
+    v_rx    = _parse_num(tab10_rx_valid)
+    v_act   = _parse_num(tab10_com_active)
+    v_fault = _parse_num(tab10_fault_latch)
+    p_rx    = v_rx    is not None and v_rx    == 1
+    p_act   = v_act   is not None and v_act   == 1
+    p_fault = v_fault is not None and v_fault == 0
+    _set_pf(tab10_lbl_rx_valid, p_rx)
+    if can_loopback_var.get():
+        # In loopback mode only RxDataValid matters; suppress bus-level indicators
+        _set_pf(tab10_lbl_active, True)
+        _set_pf(tab10_lbl_fault,  True)
+        _set_overall(tab10_lbl_overall, [p_rx])
+    else:
+        _set_pf(tab10_lbl_active, p_act)
+        _set_pf(tab10_lbl_fault,  p_fault)
+        _set_overall(tab10_lbl_overall, [p_rx, p_act, p_fault])
+
 def run_can_test():
     try:
         loopback_value = 1 if can_loopback_var.get() else 0
@@ -1299,6 +1479,7 @@ def run_can_test():
             SendCmdToDbg(f"Var.set DummyBytes.dummy_byte{idx}_U8 = {value}")
 
         SendDIDGetVal_multiple_entry(can_output_variables, can_entries, TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
+        tab10_frame.after(200, _evaluate_can_results)
     except Exception as exc:
         messagebox.showerror("CAN Test", str(exc))
 
@@ -1306,7 +1487,7 @@ images["tab10_can_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button
 run_test_btn = Button(tab10, image=images["tab10_can_run"], command=run_can_test, bd = 0)
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: clear_entries(can_entries + can_tx_entries))
+reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: [clear_entries(can_entries + can_tx_entries), _reset_pf_labels(tab10_lbl_overall, *can_pf_labels)])
 reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas10.create_text(
@@ -1359,13 +1540,14 @@ tab11_tx_msgid.insert(0, "0x3A")
 lin_tx_entries = []
 lin_tx_start_y = 172.0
 lin_tx_row_gap = 64.0
+lin_tx_defaults = [44, 55, 66, 77, 11, 22, 33, 44]
 for idx in range(8):
     x_pos = 61.0 + (idx % 4) * 85.0
     y_pos = lin_tx_start_y + (idx // 4) * lin_tx_row_gap
     canvas11.create_text(x_pos, y_pos - 18.0, anchor="nw", text=f"B{idx}", fill="#FFFFFF", font=("Inter SemiBold", 11 * -1))
     entry = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
     entry.place(x=x_pos, y=y_pos, width=70.0, height=24.0)
-    entry.insert(0, "0")
+    entry.insert(0, str(lin_tx_defaults[idx]))
     lin_tx_entries.append(entry)
 
 canvas11.create_text(61.0, 278.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
@@ -1373,7 +1555,7 @@ canvas11.create_text(61.0, 310.0, anchor="nw", text="LinRxDataValid", fill="#FFF
 tab11_rx_valid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
 tab11_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
 
-canvas11.create_text(320.0, 310.0, anchor="nw", text="LinRxPid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas11.create_text(390.0, 310.0, anchor="nw", text="LinRxPid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab11_rx_pid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
 tab11_rx_pid.place(x=430.0, y=310.0, width=90.0, height=24.0)
 
@@ -1404,6 +1586,22 @@ lin_output_variables = [
 ]
 lin_entry_list = [tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
 
+tab11_lbl_rx_valid = tk.Label(tab11_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab11_lbl_rx_valid.place(x=305, y=312, height=20)
+tab11_lbl_overall  = tk.Label(tab11_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab11_lbl_overall.place(x=530, y=110, height=26)
+
+lin_pf_labels = [tab11_lbl_rx_valid]
+
+def _evaluate_lin_results():
+    v_rx = _parse_num(tab11_rx_valid)
+    p_rx = v_rx is not None and v_rx == 1
+    # Also require at least one Rx byte to be non-zero (all-zero = no real data received)
+    any_byte_nonzero = any(_parse_num(e) not in (None, 0) for e in lin_rx_entries)
+    p_rx = p_rx and any_byte_nonzero
+    _set_pf(tab11_lbl_rx_valid, p_rx)
+    _set_overall(tab11_lbl_overall, [p_rx])
+
 def run_lin_test():
     try:
         msg_id_text = tab11_tx_msgid.get().strip()
@@ -1420,6 +1618,7 @@ def run_lin_test():
             SendCmdToDbg(f"Var.set TestFw_LinTxByte{idx} = {value}")
 
         SendDIDGetVal_multiple_entry(lin_output_variables, lin_entry_list, TestFunctionCmd.TEST_GUI_CMD_LIN_e)
+        tab11_frame.after(200, _evaluate_lin_results)
     except Exception as exc:
         messagebox.showerror("LIN Test", str(exc))
 
@@ -1434,7 +1633,7 @@ tab11_run_btn.place(x=225, y=106.0, width=34, height=34)
 
 canvas11.create_text(266.0, 110.0, anchor="nw", text="Transmit", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 
-reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: clear_entries(lin_entry_list + lin_tx_entries))
+reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: [clear_entries(lin_entry_list + lin_tx_entries), _reset_pf_labels(tab11_lbl_overall, *lin_pf_labels)])
 reset_entries.place(x=350, y=110, width=115, height=32)
 
 
