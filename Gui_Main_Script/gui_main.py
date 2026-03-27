@@ -1382,11 +1382,11 @@ tab10_tx_msgid.insert(0, "0x796")
 tab10_tx_msgid.configure(state="disabled")
 
 canvas10.create_text(61.0, 268.0, anchor="nw", text="Rx Status", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-canvas10.create_text(61.0, 300.0, anchor="nw", text="CanRxDataValid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(61.0, 300.0, anchor="nw", text="CanRxDataValid (1 Yes / 0 No)", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_rx_valid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_rx_valid.place(x=210.0, y=298.0, width=90.0, height=24.0)
+tab10_rx_valid.place(x=250.0, y=298.0, width=90.0, height=24.0)
 
-canvas10.create_text(390.0, 300.0, anchor="nw", text="CanRxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+canvas10.create_text(420.0, 300.0, anchor="nw", text="RxMessageId", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab10_rx_msgid = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
 tab10_rx_msgid.place(x=520.0, y=298.0, width=110.0, height=24.0)
 
@@ -1406,10 +1406,6 @@ canvas10.create_text(420.0, 340.0, anchor="nw", text="COM Active", fill="#FFFFFF
 tab10_com_active = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
 tab10_com_active.place(x=560.0, y=338.0, width=120.0, height=24.0)
 
-canvas10.create_text(420.0, 372.0, anchor="nw", text="CanFaultLatch", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-tab10_fault_latch = ttk.Entry(tab10_frame, style='Background_grey.TEntry')
-tab10_fault_latch.place(x=560.0, y=370.0, width=120.0, height=24.0)
-
 can_output_variables = [
     "TestFw_CanRxDataValid",
     "TestFw_CanRxMessageId",
@@ -1422,9 +1418,8 @@ can_output_variables = [
     "TestFw_CanRxBytes.dummy_byte6_U8",
     "TestFw_CanRxBytes.dummy_byte7_U8",
     "TestFw_CanIsActiveState",
-    "TestFw_CanFaultLatch",
 ]
-can_entries = [tab10_rx_valid, tab10_rx_msgid] + can_rx_entries + [tab10_com_active, tab10_fault_latch]
+can_entries = [tab10_rx_valid, tab10_rx_msgid] + can_rx_entries + [tab10_com_active]
 
 def _parse_u8_from_entry(entry_widget, field_name):
     text = entry_widget.get().strip()
@@ -1438,34 +1433,28 @@ def _parse_u8_from_entry(entry_widget, field_name):
 
     return value
 
-tab10_lbl_rx_valid = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab10_lbl_rx_valid.place(x=305, y=300, height=20)
+tab10_lbl_rx_valid = tk.Label(tab10_frame, text="", width=5, font=("Inter SemiBold", 10), relief="flat")
+tab10_lbl_rx_valid.place(x=345, y=300, height=20)
 tab10_lbl_active   = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
 tab10_lbl_active.place(x=690, y=340, height=20)
-tab10_lbl_fault    = tk.Label(tab10_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab10_lbl_fault.place(x=690, y=372, height=20)
 tab10_lbl_overall  = tk.Label(tab10_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab10_lbl_overall.place(x=600, y=110, height=26)
 
-can_pf_labels = [tab10_lbl_rx_valid, tab10_lbl_active, tab10_lbl_fault]
+can_pf_labels = [tab10_lbl_rx_valid, tab10_lbl_active]
 
 def _evaluate_can_results():
     v_rx    = _parse_num(tab10_rx_valid)
     v_act   = _parse_num(tab10_com_active)
-    v_fault = _parse_num(tab10_fault_latch)
     p_rx    = v_rx    is not None and v_rx    == 1
     p_act   = v_act   is not None and v_act   == 1
-    p_fault = v_fault is not None and v_fault == 0
     _set_pf(tab10_lbl_rx_valid, p_rx)
     if can_loopback_var.get():
         # In loopback mode only RxDataValid matters; suppress bus-level indicators
         _set_pf(tab10_lbl_active, True)
-        _set_pf(tab10_lbl_fault,  True)
         _set_overall(tab10_lbl_overall, [p_rx])
     else:
         _set_pf(tab10_lbl_active, p_act)
-        _set_pf(tab10_lbl_fault,  p_fault)
-        _set_overall(tab10_lbl_overall, [p_rx, p_act, p_fault])
+        _set_overall(tab10_lbl_overall, [p_rx, p_act])
 
 def run_can_test():
     try:

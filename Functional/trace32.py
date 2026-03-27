@@ -120,8 +120,16 @@ def format_value_with_unit(variable_name, value):
     Returns:
         Formatted string with value and unit, e.g., "12.5 mV"
     """
+    if variable_name == "TestFw_CanRxDataValid":
+        val = int(value)
+        if val == 1:
+            return "1 Yes"
+        if val == 0:
+            return "0 No"
+        return str(val)
+
     unit = VARIABLE_UNITS_MAP.get(variable_name, "")
-    
+
     if unit == "hex":
         return hex(int(value))
     elif unit:
