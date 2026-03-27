@@ -1228,6 +1228,10 @@ CapaApproachSensorRawCount = tk.IntVar(value=1)
 
 canvas11.create_text(61.0, 110.0, anchor="nw", text="LIN Test (v2)", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 canvas11.create_text(61.0, 144.0, anchor="nw", text="Tx Bytes (0-255 / 0x00-0xFF)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+canvas11.create_text(400.0, 144.0, anchor="nw", text="LinTxPid (Hex)", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab11_tx_msgid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+tab11_tx_msgid.place(x=560.0, y=140.0, width=110.0, height=24.0)
+tab11_tx_msgid.insert(0, "0x3A")
 
 lin_tx_entries = []
 lin_tx_start_y = 172.0
@@ -1249,6 +1253,7 @@ tab11_rx_valid.place(x=210.0, y=310.0, width=90.0, height=24.0)
 canvas11.create_text(320.0, 310.0, anchor="nw", text="LinRxPid", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 tab11_rx_pid = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
 tab11_rx_pid.place(x=430.0, y=310.0, width=90.0, height=24.0)
+
 
 canvas11.create_text(61.0, 344.0, anchor="nw", text="Rx Bytes", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
 lin_rx_entries = []
@@ -1278,6 +1283,15 @@ lin_entry_list = [tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
 
 def run_lin_test():
     try:
+        msg_id_text = tab11_tx_msgid.get().strip()
+        try:
+            msg_id_value = int(msg_id_text, 0)
+        except ValueError:
+            raise ValueError(f"Invalid LinTxPid: '{msg_id_text}'")
+        if msg_id_value < 0 or msg_id_value > 0xFF:
+            raise ValueError(f"LinTxPid out of range: {msg_id_value} (expected 0x00..0xFF)")
+        SendCmdToDbg(f"Var.set TestFw_LinTxPid = {msg_id_value}")
+
         for idx, entry in enumerate(lin_tx_entries):
             value = _parse_u8_from_entry(entry, f"LIN Tx Byte {idx}")
             SendCmdToDbg(f"Var.set TestFw_LinTxByte{idx} = {value}")

@@ -82,8 +82,9 @@ VARIABLE_UNITS_MAP = {
     "TestFw_CanFaultLatch": "",
 
     # LIN Test
+    "TestFw_LinTxPid": "hex",
     "TestFw_LinRxDataValid": "bool",
-    "TestFw_LinRxPid": "",
+    "TestFw_LinRxPid": "hex",
     "TestFw_LinRxData_aU8[0]": "",
     "TestFw_LinRxData_aU8[1]": "",
     "TestFw_LinRxData_aU8[2]": "",
@@ -474,6 +475,7 @@ def QuitTrace32(status_label=None):
     global dbg
     try:
         if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd("SYStem.Down")  # Properly detach probe before quitting to avoid stuck hardware state on reconnect
             dbg.cmd("QUIT") 
             dbg.exit()
     except:
