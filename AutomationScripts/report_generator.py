@@ -11,13 +11,14 @@ Typical usage (called automatically from ``IntegratedAutomationRunner``)::
     path = generate_report(run_results=results)   # results = run_for_variant()
     print(f"Report saved to: {path}")
 
-NFC, CAN and LIN sheets are left untouched (not applicable for this variant).
+NFC, CAN and LIN sheets are filled when those automated test results are present.
 """
 
 from __future__ import annotations
 
 import os
 import shutil
+from copy import copy
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -46,6 +47,19 @@ _COL_OBS       = 8   # H  Observed Result
 _COL_STATUS    = 9   # I  Status
 
 _WRAP_TOP = Alignment(wrap_text=True, vertical="top")
+
+_GENERATED_HEADERS = [
+    "S No.",
+    "Test Case ID",
+    "Test Case Name",
+    "Pre Action",
+    "Test Steps",
+    "Expected Result",
+    "Post Action",
+    "Observed Result",
+    "Status",
+    "Remark",
+]
 
 # ── Shared automation pre/post actions ────────────────────────────────────────
 _PRE_COMMON = (
@@ -104,6 +118,9 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
         eos_set  : {'pass': bool, 'voltage': float}
         sg1      : {'pass': bool, 'plus': float, 'minus': float, 'opamp': float}
         sg2      : {'pass': bool, 'plus': float, 'minus': float, 'opamp': float}
+        nfc      : {'pass': bool, 'detected': int, 'spi_error': int, ...}
+        can      : {'pass': bool, 'tx_bytes': [...], 'rx_msg_id': int, ...}
+        lin      : {'pass': bool, 'tx_pid': int, 'rx_pid': int, ...}
     """
     by_sheet: Dict[str, List[Dict[str, Any]]] = {}
 
@@ -351,6 +368,105 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
     if capa_rows:
         by_sheet["Capa"] = capa_rows
 
+    # ── NFC ───────────────────────────────────────────────────────────────────
+    nfc = run_results.get("nfc", {})
+    if isinstance(nfc, dict):
+        detected = nfc.get("detected")
+        spi_error = nfc.get("spi_error")
+        hw_ver = nfc.get("hw_ver")
+        rom_ver = nfc.get("rom_ver")
+        fw_ver = nfc.get("fw_ver")
+        by_sheet["NFC"] = [_row(
+            "TC_NFC_01",
+            "Test case to verify NFC transceiver diagnostics and card-detect status",
+            pre_action=(
+                _PRE_COMMON + "\n"
+                "5. NFC hardware connected; card detection is informational in automation"
+            ),
+            test_steps=(
+                "1. Set TestFw_KeepEcuAwake = 1\n"
+                "2. Send DID: TEST_GUI_CMD_NFC_TEST_e\n"
+                "3. Read SPI diagnostic variables\n"
+                "4. Read card-detect status"
+            ),
+            expected=(
+                "TestFw_NfcSpiError = 0\n"
+                "HwVersion, RomVersion and FwVersion are non-zero"
+            ),
+            observed=(
+                f"DetectedCard = {detected}\n"
+                f"SpiError = {spi_error}\n"
+                f"HwVersion = 0x{(int(hw_ver) if hw_ver is not None else 0):X}\n"
+                f"RomVersion = 0x{(int(rom_ver) if rom_ver is not None else 0):X}\n"
+                f"FwVersion = 0x{(int(fw_ver) if fw_ver is not None else 0):X}"
+            ),
+            status=_status(nfc),
+        )]
+
+    # ── CAN ───────────────────────────────────────────────────────────────────
+    can = run_results.get("can", {})
+    if isinstance(can, dict):
+        tx_bytes = can.get("tx_bytes", [])
+        rx_bytes = can.get("rx_bytes", [])
+        tx_msg_id = 0x796
+        rx_msg_id = can.get("rx_msg_id")
+        by_sheet["CAN"] = [_row(
+            "TC_CAN_01",
+            "Test case to verify CAN communication in local loopback",
+            pre_action=(
+                _PRE_COMMON + "\n"
+                "5. CAN local loopback enabled by automation"
+            ),
+            test_steps=(
+                "1. Set TestFw_CanGuiLocalLoopbackEnable = 1\n"
+                "2. Set TestFw_KeepEcuAwake = 1\n"
+                "3. Write CAN Tx bytes into DummyBytes.dummy_byte0_U8..dummy_byte7_U8\n"
+                "4. Send DID: TEST_GUI_CMD_CAN_TEST_e\n"
+                "5. Read CanRxDataValid, CanRxMessageId and Rx bytes"
+            ),
+            expected=(
+                "CanRxDataValid = 1\n"
+                "Rx bytes contain transmitted loopback data"
+            ),
+            observed=(
+                f"TxMessageId = 0x{tx_msg_id:X}\n"
+                f"TxBytes = {tx_bytes}\n"
+                f"RxMessageId = 0x{(int(rx_msg_id) if rx_msg_id is not None else 0):X}\n"
+                f"RxBytes = {rx_bytes}\n"
+                f"CanRxDataValid = {can.get('rx_valid')}"
+            ),
+            status=_status(can),
+        )]
+
+    # ── LIN ───────────────────────────────────────────────────────────────────
+    lin = run_results.get("lin", {})
+    if isinstance(lin, dict):
+        tx_pid = lin.get("tx_pid")
+        rx_pid = lin.get("rx_pid")
+        by_sheet["LIN"] = [_row(
+            "TC_LIN_01",
+            "Test case to verify LIN transmission and reception",
+            pre_action=_PRE_COMMON,
+            test_steps=(
+                "1. Set TestFw_LinTxPid\n"
+                "2. Set TestFw_LinTxByte0..TestFw_LinTxByte7\n"
+                "3. Send DID: TEST_GUI_CMD_LIN_e\n"
+                "4. Read LinRxDataValid, LinRxPid and Rx bytes"
+            ),
+            expected=(
+                "LinRxDataValid = 1\n"
+                "Rx bytes contain transmitted LIN data"
+            ),
+            observed=(
+                f"TxMessageId = 0x{(int(tx_pid) if tx_pid is not None else 0):X}\n"
+                f"TxBytes = {lin.get('tx_bytes', [])}\n"
+                f"RxMessageId = 0x{(int(rx_pid) if rx_pid is not None else 0):X}\n"
+                f"RxBytes = {lin.get('rx_bytes', [])}\n"
+                f"LinRxDataValid = {lin.get('rx_valid')}"
+            ),
+            status=_status(lin),
+        )]
+
     return by_sheet
 
 
@@ -408,6 +524,73 @@ def _fill_sheet(ws, results: List[Dict[str, Any]]) -> None:
         )
 
 
+def _copy_cell_style(source, target) -> None:
+    if source.has_style:
+        target._style = copy(source._style)
+    if source.font:
+        target.font = copy(source.font)
+    if source.fill:
+        target.fill = copy(source.fill)
+    if source.border:
+        target.border = copy(source.border)
+    if source.alignment:
+        target.alignment = copy(source.alignment)
+    if source.protection:
+        target.protection = copy(source.protection)
+    if source.number_format:
+        target.number_format = source.number_format
+
+
+def _create_generated_sheet(wb, sheet_name: str):
+    template_name = "Capa" if "Capa" in wb.sheetnames else wb.sheetnames[0]
+    template_ws = wb[template_name]
+
+    ws = wb.create_sheet(title=sheet_name)
+
+    for col_idx in range(1, len(_GENERATED_HEADERS) + 1):
+        template_cell = template_ws.cell(row=1, column=col_idx)
+        target_cell = ws.cell(row=1, column=col_idx)
+        target_cell.value = _GENERATED_HEADERS[col_idx - 1]
+        _copy_cell_style(template_cell, target_cell)
+        if not target_cell.alignment:
+            target_cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        if not target_cell.font:
+            target_cell.font = Font(bold=True)
+
+        column_letter = openpyxl.utils.get_column_letter(col_idx)
+        ws.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
+
+    ws.row_dimensions[1].height = template_ws.row_dimensions[1].height
+    return ws
+
+
+def _populate_generated_sheet(ws, rows: List[Dict[str, Any]]) -> None:
+    for row_idx, result in enumerate(rows, start=2):
+        values = [
+            row_idx - 1,
+            result.get("TestCaseID", ""),
+            result.get("TestName", ""),
+            result.get("PreAction", ""),
+            result.get("TestSteps", ""),
+            result.get("Expected", ""),
+            result.get("PostAction", ""),
+            result.get("ObservedText", ""),
+            result.get("Status", ""),
+            "",
+        ]
+        for col_idx, value in enumerate(values, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx)
+            cell.value = value
+            cell.alignment = _WRAP_TOP if col_idx not in (1, 9) else Alignment(horizontal="center", vertical="center", wrap_text=True)
+            if col_idx == 9:
+                cell.font = Font(bold=True)
+                cell.fill = (
+                    _PASS_FILL if value == "PASS" else
+                    _FAIL_FILL if value == "FAIL" else
+                    _SKIP_FILL
+                )
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def generate_report(
@@ -451,7 +634,10 @@ def generate_report(
             del wb[sheet_to_remove]
 
     for sheet_name, rows in results_by_sheet.items():
-        if sheet_name in wb.sheetnames and rows:
+        if not rows:
+            continue
+
+        if sheet_name in wb.sheetnames:
             _fill_sheet(wb[sheet_name], rows)
             # Delete any template row whose TC_ID was not executed
             executed_ids = {
@@ -466,6 +652,10 @@ def generate_report(
             ]
             for row_idx in reversed(to_delete):
                 ws.delete_rows(row_idx)
+            continue
+
+        ws = _create_generated_sheet(wb, sheet_name)
+        _populate_generated_sheet(ws, rows)
 
     wb.save(output_path)
     wb.close()

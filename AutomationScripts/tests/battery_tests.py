@@ -42,3 +42,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_battery_tests() -> list:
+    """Execute all battery tab tests."""
+    return run_suite()

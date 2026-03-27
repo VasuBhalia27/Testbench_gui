@@ -338,14 +338,14 @@ class AutomationGUI:
         self.status_text.config(state="disabled")
         # Reset timer
         self._reset_timer()
-        # Pre-select Non-Driver (variant 1) so operator can confirm or change it
-        self._sync(1)
+        # Pre-select Driver (variant 2) so operator can confirm or change it
+        self._sync(2)
         self.append_status(f"Power Supply selected: {selected_psu.upper()}")
         self.append_status(
             "Power Supply automation: "
             f"{'ENABLED' if psu_automation_enabled == 1 else 'DISABLED'}"
         )
-        self.append_status("Step 1: Non-Driver pre-selected. Change to Driver (NFC) if needed...")
+        self.append_status("Step 1: Driver (NFC) pre-selected. Change to Non-Driver if needed...")
 
     def _sync_canlin(self, value: int) -> None:
         """Keep the CAN/LIN OFF/ON checkbuttons mutually exclusive.

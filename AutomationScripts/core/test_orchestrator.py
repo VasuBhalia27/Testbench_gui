@@ -19,15 +19,15 @@ from typing import List, Dict, Any
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from tests.led_tests import execute_all_led_tests
-from tests.battery_tests import execute_all_battery_tests
-from tests.motor_tests import execute_all_motor_tests
-from tests.eos_tests import execute_all_eos_tests
-from tests.sg_tests import execute_all_sg_tests
-from tests.capa_tests import execute_all_capa_tests
-from tests.nfc_tests import execute_all_nfc_tests
-from tests.can_tests import execute_all_can_tests
-from tests.lin_tests import execute_all_lin_tests
+from AutomationScripts.tests.led_tests import execute_all_led_tests
+from AutomationScripts.tests.battery_tests import execute_all_battery_tests
+from AutomationScripts.tests.motor_tests import execute_all_motor_tests
+from AutomationScripts.tests.eos_tests import execute_all_eos_tests
+from AutomationScripts.tests.sg_tests import execute_all_sg_tests
+from AutomationScripts.tests.capa_tests import execute_all_capa_tests
+from AutomationScripts.tests.nfc_tests import execute_all_nfc_tests
+from AutomationScripts.tests.can_tests import execute_all_can_tests
+from AutomationScripts.tests.lin_tests import execute_all_lin_tests
 
 
 class TestOrchestrator:

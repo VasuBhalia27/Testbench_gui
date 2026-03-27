@@ -19,3 +19,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_can_tests() -> list:
+    """Execute all CAN tab tests."""
+    return run_suite()

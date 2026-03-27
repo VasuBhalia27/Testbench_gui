@@ -19,3 +19,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_sg_tests() -> list:
+    """Execute all strain gauge tab tests."""
+    return run_suite()

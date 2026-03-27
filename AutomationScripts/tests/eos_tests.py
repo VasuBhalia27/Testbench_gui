@@ -19,3 +19,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_eos_tests() -> list:
+    """Execute all EOS tab tests."""
+    return run_suite()
