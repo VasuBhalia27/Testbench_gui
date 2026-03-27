@@ -24,7 +24,8 @@ class TestFunctionCmd(IntEnum):
     TEST_GUI_CMD_NFC_TEST_e              = 107  
     TEST_GUI_CMD_CAN_TEST_e              = 108  
     TEST_GUI_CMD_LIN_e                   = 109  
-    TESTFW_GUI_CMD_INVALID_e             = 110
+    TEST_GUI_CMD_NFC_SPI_DIAG_e          = 110
+    TESTFW_GUI_CMD_INVALID_e             = 111
 
 # Mapping of variable names to their units
 VARIABLE_UNITS_MAP = {
@@ -80,6 +81,15 @@ VARIABLE_UNITS_MAP = {
     "TestFw_CanRxBytes.dummy_byte6_U8": "",
     "TestFw_CanRxBytes.dummy_byte7_U8": "",
     "TestFw_CanFaultLatch": "",
+
+    # NFC Test
+    "TestFw_IsNfcDetectedCard": "bool",
+    "TestFw_NfcRxDataLength": "",
+    "TestFw_NfcSpiError": "bool",
+    "TestFw_NfcHwVersion": "hex",
+    "TestFw_NfcRomVersion": "hex",
+    "TestFw_NfcFwVersion": "hex",
+    "TestFw_NfcNtsmState": "",
 
     # LIN Test
     "TestFw_LinTxPid": "hex",

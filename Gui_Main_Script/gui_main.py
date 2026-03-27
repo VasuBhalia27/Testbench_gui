@@ -1020,22 +1020,145 @@ canvas9.create_image(tablet1_X, tablet1_Y +10, image=images["tile_tab9"])
 
 canvas9.create_text(73.0, 113.0, anchor="nw", text="NFC Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
-canvas9.create_text(73.0, 168.0, anchor="nw", text="IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab9_entry_1 = ttk.Entry(tab9_frame, style ='Background_grey.TEntry')
-tab9_entry_1.place(x=306.0, y=168.0, width=95.0, height=20.0)
+# --- Section A: Transceiver SPI Diagnostics (no antenna or card required) ---
+canvas9.create_text(73.0, 148.0, anchor="nw", text="Transceiver SPI Diagnostics", fill="#F39C12", font=("Inter SemiBold", 13 * -1))
+canvas9.create_text(73.0, 174.0, anchor="nw", text="SpiError", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab9_spi_err = ttk.Entry(tab9_frame, style='Background_grey.TEntry')
+tab9_spi_err.place(x=200.0, y=172.0, width=95.0, height=20.0)
 
-canvas9.create_text(73.0, 208.0, anchor="nw", text="NfcRxDataLength", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab9_entry_2 = ttk.Entry(tab9_frame, style ='Background_grey.TEntry')
-tab9_entry_2.place(x=306.0, y=208.0, width=95.0, height=20.0)
+canvas9.create_text(73.0, 204.0, anchor="nw", text="HwVersion", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab9_hw_ver = ttk.Entry(tab9_frame, style='Background_grey.TEntry')
+tab9_hw_ver.place(x=200.0, y=202.0, width=95.0, height=20.0)
 
-nfc_entries = [tab9_entry_1, tab9_entry_2]
-nfc_output_variables = ["TestFw_IsNfcDetectedCard", "TestFw_NfcRxDataLength"]
+canvas9.create_text(73.0, 234.0, anchor="nw", text="RomVersion", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab9_rom_ver = ttk.Entry(tab9_frame, style='Background_grey.TEntry')
+tab9_rom_ver.place(x=200.0, y=232.0, width=95.0, height=20.0)
+
+canvas9.create_text(73.0, 264.0, anchor="nw", text="FwVersion", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab9_fw_ver = ttk.Entry(tab9_frame, style='Background_grey.TEntry')
+tab9_fw_ver.place(x=200.0, y=262.0, width=95.0, height=20.0)
+
+canvas9.create_text(73.0, 294.0, anchor="nw", text="SPI Comm w/ Transceiver", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab9_lbl_spi_comm = tk.Label(tab9_frame, text="", width=10, font=("Inter SemiBold", 10), relief="flat", bg="#DFDFDF")
+tab9_lbl_spi_comm.place(x=305, y=292, height=20)
+
+# --- Section B: Card Detection (requires NFC antenna + card) ---
+canvas9.create_text(73.0, 330.0, anchor="nw", text="Card Detection (requires antenna + card)", fill="#F39C12", font=("Inter SemiBold", 13 * -1))
+canvas9.create_text(73.0, 356.0, anchor="nw", text="IsNfcDetectedCard", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab9_entry_1 = ttk.Entry(tab9_frame, style='Background_grey.TEntry')
+tab9_entry_1.place(x=250.0, y=354.0, width=95.0, height=20.0)
+
+nfc_output_variables = [
+    "TestFw_IsNfcDetectedCard",
+    "TestFw_NfcSpiError",
+    "TestFw_NfcHwVersion",
+    "TestFw_NfcRomVersion",
+    "TestFw_NfcFwVersion",
+]
+nfc_entries = [tab9_entry_1, tab9_spi_err, tab9_hw_ver, tab9_rom_ver, tab9_fw_ver]
+
+# SPI-only diagnostic variables (no antenna or card required)
+nfc_spi_diag_variables = [
+    "TestFw_NfcSpiError",
+    "TestFw_NfcHwVersion",
+    "TestFw_NfcRomVersion",
+    "TestFw_NfcFwVersion",
+]
+nfc_spi_diag_entries = [tab9_spi_err, tab9_hw_ver, tab9_rom_ver, tab9_fw_ver]
+
+# PASS/FAIL indicator labels for each diagnostic field
+tab9_lbl_spi_err  = tk.Label(tab9_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab9_lbl_spi_err.place(x=305, y=172, height=20)
+tab9_lbl_hw_ver   = tk.Label(tab9_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab9_lbl_hw_ver.place(x=305, y=202, height=20)
+tab9_lbl_rom_ver  = tk.Label(tab9_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab9_lbl_rom_ver.place(x=305, y=232, height=20)
+tab9_lbl_fw_ver   = tk.Label(tab9_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab9_lbl_fw_ver.place(x=305, y=262, height=20)
+tab9_lbl_overall  = tk.Label(tab9_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
+tab9_lbl_overall.place(x=480, y=172, height=26)
+
+nfc_diag_labels = [tab9_lbl_spi_err, tab9_lbl_hw_ver, tab9_lbl_rom_ver, tab9_lbl_fw_ver, tab9_lbl_spi_comm]
+
+def _set_result_label(lbl, passed):
+    if passed:
+        lbl.config(text="PASS", bg="#27AE60", fg="#FFFFFF")
+    else:
+        lbl.config(text="FAIL", bg="#C0392B", fg="#FFFFFF")
+
+def run_nfc_test():
+    SendCmdToDbg("Var.set TestFw_KeepEcuAwake = 1")
+    SendDIDGetVal_multiple_entry(nfc_output_variables, nfc_entries, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e)
+    # Allow GUI to update entry values before reading them
+    tab9_frame.after(200, _evaluate_nfc_results)
+
+def _evaluate_nfc_results():
+    results = []
+
+    # SpiError: PASS if value starts with "0" (formatted as "0 bool")
+    spi_val = tab9_spi_err.get().strip()
+    spi_pass = spi_val.startswith("0")
+    tab9_spi_err.delete(0, tk.END)
+    tab9_spi_err.insert(0, "OK" if spi_pass else "Error")
+    _set_result_label(tab9_lbl_spi_err, spi_pass)
+    results.append(spi_pass)
+
+    # HwVersion: PASS if non-zero hex (e.g. "0x3e")
+    hw_val = tab9_hw_ver.get().strip()
+    try:
+        hw_pass = int(hw_val, 0) != 0
+    except (ValueError, TypeError):
+        hw_pass = False
+    _set_result_label(tab9_lbl_hw_ver, hw_pass)
+    results.append(hw_pass)
+
+    # RomVersion: PASS if non-zero hex
+    rom_val = tab9_rom_ver.get().strip()
+    try:
+        rom_pass = int(rom_val, 0) != 0
+    except (ValueError, TypeError):
+        rom_pass = False
+    _set_result_label(tab9_lbl_rom_ver, rom_pass)
+    results.append(rom_pass)
+
+    # FwVersion: PASS if non-zero hex
+    fw_val = tab9_fw_ver.get().strip()
+    try:
+        fw_pass = int(fw_val, 0) != 0
+    except (ValueError, TypeError):
+        fw_pass = False
+    _set_result_label(tab9_lbl_fw_ver, fw_pass)
+    results.append(fw_pass)
+
+    # SPI Comm w/ Transceiver: ACTIVE when HwVersion and RomVersion are both non-zero
+    spi_comm_ok = hw_pass and rom_pass
+    if spi_comm_ok:
+        tab9_lbl_spi_comm.config(text="ACTIVE", bg="#27AE60", fg="#FFFFFF")
+    else:
+        tab9_lbl_spi_comm.config(text="NO LINK", bg="#C0392B", fg="#FFFFFF")
+
+    # IsNfcDetectedCard: reformat "0 bool" -> "No", "1 bool" -> "Yes"
+    card_val = tab9_entry_1.get().strip()
+    tab9_entry_1.delete(0, tk.END)
+    tab9_entry_1.insert(0, "Yes" if card_val.startswith("1") else "No")
+
+    # Overall result
+    if all(results):
+        tab9_lbl_overall.config(text="OVERALL: PASS", bg="#27AE60", fg="#FFFFFF")
+    else:
+        tab9_lbl_overall.config(text="OVERALL: FAIL", bg="#C0392B", fg="#FFFFFF")
+
+def _reset_nfc_results():
+    clear_entries(nfc_entries)
+    for lbl in nfc_diag_labels:
+        lbl.config(text="", bg="#DFDFDF", fg="#000000")
+    tab9_lbl_overall.config(text="", bg="#DFDFDF", fg="#000000")
 
 images["tab9_nfc_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab9"))
-run_test_btn = Button(tab9, image=images["tab9_nfc_run"], command=lambda: SendDIDGetVal_multiple_entry(nfc_output_variables, nfc_entries, TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e), bd = 0)
+run_test_btn = Button(tab9, image=images["tab9_nfc_run"], command=run_nfc_test, bd = 0)
 run_test_btn.place(x=325, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab9, text="Reset Results", command=lambda: clear_entries(nfc_entries))
+reset_entries = ttk.Button(tab9, text="Reset Results", command=_reset_nfc_results)
 reset_entries.place(x=500, y=110, width=85, height=32)
 
 canvas9.create_text(
