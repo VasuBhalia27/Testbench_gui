@@ -76,7 +76,7 @@ class AutomationGUI:
         elif saved_psu_type in ("owon", "kikusui"):
             selected_psu_type = saved_psu_type
         else:
-            selected_psu_type = "owon"
+            selected_psu_type = "kikusui"
         if env_psu_automation in ("0", "false", "off", "no"):
             selected_psu_automation = 0
         elif env_psu_automation in ("1", "true", "on", "yes"):
@@ -320,7 +320,7 @@ class AutomationGUI:
         self.clear_result_indicator()
         selected_psu = self.psu_type.get().strip().lower()
         if selected_psu not in ("owon", "kikusui"):
-            selected_psu = "owon"
+            selected_psu = "kikusui"
         psu_automation_enabled = 1 if self.psu_automation_enabled.get() else 0
         os.environ["PSU_TYPE"] = selected_psu
         os.environ["PSU_AUTOMATION"] = str(psu_automation_enabled)
