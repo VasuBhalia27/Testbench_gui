@@ -61,7 +61,9 @@ class BatTest:
             return False, 0.0
 
         log(f"BAT: final voltage = {voltage} mV")
-        return 8000 <= voltage <= 16000, voltage
+        passed = 8000 <= voltage <= 16000
+        log(f"BAT result: {'✓ PASS' if passed else '✗ FAIL'}")
+        return passed, voltage
 
     @staticmethod
     def _wait_for_stable_voltage(

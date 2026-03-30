@@ -207,7 +207,7 @@ class TestSequenceRunner:
             and fw_ver not in (None, 0)
         )
 
-        self._log(f"NFC result: {'PASS' if passed else 'FAIL'}")
+        self._log(f"NFC result: {'✓ PASS' if passed else '✗ FAIL'}")
         return {
             "pass": passed,
             "detected": detected,
@@ -258,7 +258,7 @@ class TestSequenceRunner:
             and any_rx_nonzero
         )
 
-        self._log(f"CAN result: {'PASS' if passed else 'FAIL'}")
+        self._log(f"CAN result: {'✓ PASS' if passed else '✗ FAIL'}")
         return {
             "pass": passed,
             "tx_bytes": tx_bytes,
@@ -303,7 +303,7 @@ class TestSequenceRunner:
             and rx_pid is not None
         )
 
-        self._log(f"LIN result: {'PASS' if passed else 'FAIL'}")
+        self._log(f"LIN result: {'✓ PASS' if passed else '✗ FAIL'}")
         return {
             "pass": passed,
             "tx_pid": tx_pid,
