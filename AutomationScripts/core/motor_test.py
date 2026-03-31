@@ -21,6 +21,59 @@ class MotorTest:
     """Standalone motor test implementation."""
 
     @staticmethod
+    def _measure_once(adapter: Trace32Interface, timeout: float):
+        """Run one motor actuation + readback cycle."""
+        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
+        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+        # Read while request is still active (manual GUI equivalent).
+        time.sleep(0.5)
+        voltage, current, load_error = MotorTest._read_once(adapter)
+
+        # Auto-reset request after sampling.
+        wait_left = max(TIMING.motor_actuate_wait - 0.5, 0.0)
+        if wait_left > 0:
+            time.sleep(wait_left)
+        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
+
+        # If first read looks like transient/sentinel, take one more quick sample.
+        if current in (None, 65535.0) or voltage in (None, 0.0):
+            time.sleep(0.3)
+            voltage2, current2, load_error2 = MotorTest._read_once(adapter)
+            if voltage2 is not None:
+                voltage = voltage2
+            if current2 is not None:
+                current = current2
+            if load_error2 is not None:
+                load_error = load_error2
+
+        if voltage is None or current is None or load_error is None:
+            return MotorTest._wait_for_stable_values(
+                adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
+            )
+        return (
+            voltage,
+            current,
+            load_error,
+            {"voltage": voltage, "current": current, "load_error": load_error},
+        )
+
+    @staticmethod
+    def _read_once(adapter: Trace32Interface):
+        try:
+            voltage = float(adapter.read_variable("TestFw_MotorVoltage"))
+        except Exception:
+            voltage = None
+        try:
+            current = float(adapter.read_variable("TestFw_MotorCurrentValue"))
+        except Exception:
+            current = None
+        try:
+            load_error = float(adapter.read_variable("TestFw_MotorLoadError"))
+        except Exception:
+            load_error = None
+        return voltage, current, load_error
+
+    @staticmethod
     def run(
         adapter: Trace32Interface,
         status_callback: Optional[Callable[[str], None]] = None,
@@ -36,29 +89,14 @@ class MotorTest:
         """
         log = status_callback or (lambda msg: None)
 
-        # Reset previous outputs so stale values cannot satisfy pass criteria.
-        try:
-            adapter.set_variable("TestFw_MotorVoltage", 0)
-            adapter.set_variable("TestFw_MotorCurrentValue", 0)
-            adapter.set_variable("TestFw_MotorLoadError", 1)
-        except Exception:
-            pass
-
         log("MOTOR: setting DecoupleCouple state")
-        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
+        voltage, current, load_error, last_readings = MotorTest._measure_once(adapter, timeout)
 
-        log("MOTOR: triggering measurement DID")
-        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
-
-        # Match the GUI flow: trigger the DID while the request is still
-        # active, then clear the request shortly afterward.
-        time.sleep(TIMING.motor_actuate_wait)
-        log("MOTOR: clearing DecoupleCouple request")
-        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
-
-        voltage, current, load_error, last_readings = MotorTest._wait_for_stable_values(
-            adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
-        )
+        # Retry once when current saturates at 0xFFFF or values are invalid.
+        if current in (None, 65535.0) or voltage in (None, 0.0):
+            log("MOTOR: transient/sentinel readback, retrying once")
+            time.sleep(0.5)
+            voltage, current, load_error, last_readings = MotorTest._measure_once(adapter, timeout)
 
         # If any value failed to stabilize, log the last-read values for debugging
         if voltage is None:
@@ -120,27 +158,12 @@ class MotorTest:
         """
         log = status_callback or (lambda msg: None)
 
-        # Reset previous outputs so stale values cannot satisfy pass criteria.
-        try:
-            adapter.set_variable("TestFw_MotorVoltage", 0)
-            adapter.set_variable("TestFw_MotorCurrentValue", 0)
-            adapter.set_variable("TestFw_MotorLoadError", 1)
-        except Exception:
-            pass
-
         log("MOTOR: setting DecoupleCouple state")
-        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
-
-        log("MOTOR: triggering measurement DID")
-        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
-
-        time.sleep(TIMING.motor_actuate_wait)
-        log("MOTOR: clearing DecoupleCouple request")
-        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
-
-        voltage, current, load_error, _ = MotorTest._wait_for_stable_values(
-            adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
-        )
+        voltage, current, load_error, _ = MotorTest._measure_once(adapter, timeout)
+        if current in (None, 65535.0) or voltage in (None, 0.0):
+            log("MOTOR: transient/sentinel readback, retrying once")
+            time.sleep(0.5)
+            voltage, current, load_error, _ = MotorTest._measure_once(adapter, timeout)
 
         v = voltage if voltage is not None else 0.0
         i = current if current is not None else 0.0

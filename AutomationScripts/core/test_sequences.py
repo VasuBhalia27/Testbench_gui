@@ -412,6 +412,13 @@ class TestSequenceRunner:
         results['capa1'] = capa_results['capa1']
         results['capa2'] = capa_results['capa2']
 
+        # Keep ECU awake before actuator-driven tests so LED/Motor readbacks
+        # are not sampled while peripherals are transitioning.
+        try:
+            self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+        except Exception:
+            pass
+
         # the LED tests run in both variants
         led_on_passed, led_on_v   = self.run_led_test_with_voltage(on=True)
         led_off_passed, led_off_v = self.run_led_test_with_voltage(on=False)
