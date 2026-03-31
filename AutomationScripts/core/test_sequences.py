@@ -327,6 +327,13 @@ class TestSequenceRunner:
             for i in range(8)
         ]
         frame_status = self._as_int(self.adapter.read_variable("TestFw_LinFrameStatus"))
+        can_active = self._as_int(self.adapter.read_variable("TestFw_CanIsActiveState"))
+
+        # Match manual GUI LIN behavior: if COM is inactive, treat LIN RX as no data.
+        if can_active != 1:
+            rx_valid = 0
+            rx_pid = 0
+            rx_bytes = [0] * 8
 
         self._log(
             "LIN RX data: "
@@ -335,7 +342,9 @@ class TestSequenceRunner:
 
         any_rx_nonzero = any(v not in (None, 0) for v in rx_bytes)
 
-        if canoe_enabled:
+        if can_active != 1:
+            passed = False
+        elif canoe_enabled:
             # When CANoe is expected to drive LIN and is disconnected, RX should remain 0/invalid.
             passed = (
                 rx_valid in (None, 0)
@@ -357,6 +366,7 @@ class TestSequenceRunner:
         return {
             "pass": passed,
             "mode": mode_label,
+            "can_active": can_active,
             "frame_status": frame_status,
             "tx_pid": tx_pid,
             "tx_bytes": tx_bytes,
