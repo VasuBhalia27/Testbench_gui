@@ -47,16 +47,14 @@ class MotorTest:
         log("MOTOR: setting DecoupleCouple state")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
 
-        # the GUI would automatically clear the checkbox after about a
-        # second; if we leave the request high the hardware keeps toggling
-        # repeatedly. mimic that behaviour so the request is only active
-        # briefly.
+        log("MOTOR: triggering measurement DID")
+        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+
+        # Match the GUI flow: trigger the DID while the request is still
+        # active, then clear the request shortly afterward.
         time.sleep(TIMING.motor_actuate_wait)
         log("MOTOR: clearing DecoupleCouple request")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
-
-        log("MOTOR: triggering measurement DID")
-        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
 
         voltage, current, load_error, last_readings = MotorTest._wait_for_stable_values(
             adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
@@ -132,12 +130,13 @@ class MotorTest:
 
         log("MOTOR: setting DecoupleCouple state")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
-        time.sleep(TIMING.motor_actuate_wait)
-        log("MOTOR: clearing DecoupleCouple request")
-        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
 
         log("MOTOR: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+
+        time.sleep(TIMING.motor_actuate_wait)
+        log("MOTOR: clearing DecoupleCouple request")
+        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
 
         voltage, current, load_error, _ = MotorTest._wait_for_stable_values(
             adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval

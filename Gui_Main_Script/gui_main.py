@@ -1574,16 +1574,28 @@ lin_output_variables = [
     "TestFw_LinRxData_aU8[5]",
     "TestFw_LinRxData_aU8[6]",
     "TestFw_LinRxData_aU8[7]",
+    "TestFw_CanIsActiveState",
 ]
 tab11_lin_frame_status = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
-lin_entry_list = [tab11_lin_frame_status, tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
+
+canvas11.create_text(390.0, 340.0, anchor="nw", text="COM Active", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
+tab11_com_active = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+tab11_com_active.place(x=500.0, y=338.0, width=120.0, height=24.0)
+
+lin_entry_list = [tab11_lin_frame_status, tab11_rx_valid, tab11_rx_pid] + lin_rx_entries + [tab11_com_active]
 
 tab11_lbl_rx_valid = tk.Label(tab11_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
 tab11_lbl_rx_valid.place(x=305, y=300, height=20)
+tab11_lbl_com_active = tk.Label(tab11_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab11_lbl_com_active.place(x=625, y=340, height=20)
 tab11_lbl_overall  = tk.Label(tab11_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab11_lbl_overall.place(x=530, y=110, height=26)
 
-lin_pf_labels = [tab11_lbl_rx_valid]
+lin_pf_labels = [tab11_lbl_rx_valid, tab11_lbl_com_active]
+
+def _set_entry_value(entry, value):
+    entry.delete(0, tk.END)
+    entry.insert(0, value)
 
 def _evaluate_lin_results():
     v_frame_status = _parse_num(tab11_lin_frame_status)
@@ -1592,16 +1604,28 @@ def _evaluate_lin_results():
     v_rx_pid = _parse_num(tab11_rx_pid)
     tx_vals = [_parse_num(e) for e in lin_tx_entries]
     rx_vals = [_parse_num(e) for e in lin_rx_entries]
+    # Use TestFw_CanIsActiveState — same indicator CAN uses for COM Active.
+    # Value 1 means the CAN/LIN bus state machine is active (CANoe connected).
+    v_active = _parse_num(tab11_com_active)
+    p_com_active = v_active is not None and v_active == 1
 
     p_frame = v_frame_status is not None and v_frame_status == 1
     p_rx = v_rx is not None and v_rx == 1
     p_pid = v_tx_pid is not None and v_rx_pid is not None and v_tx_pid == v_rx_pid
     p_bytes = all(t is not None and r is not None and t == r for t, r in zip(tx_vals, rx_vals))
     any_byte_nonzero = any(v not in (None, 0) for v in rx_vals)
-
     p_lin = p_frame and p_rx and p_pid and p_bytes and any_byte_nonzero
+
+    if not p_com_active:
+        _set_entry_value(tab11_rx_valid, "0 bool")
+        _set_entry_value(tab11_rx_pid, "0x0")
+        for entry in lin_rx_entries:
+            _set_entry_value(entry, "0")
+        p_lin = False
+
     _set_pf(tab11_lbl_rx_valid, p_lin)
-    _set_overall(tab11_lbl_overall, [p_lin])
+    _set_pf(tab11_lbl_com_active, p_com_active)
+    _set_overall(tab11_lbl_overall, [p_lin, p_com_active])
 
 def run_lin_test():
     try:

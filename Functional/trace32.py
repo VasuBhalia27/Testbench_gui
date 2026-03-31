@@ -369,12 +369,30 @@ def edit_trace32_config_file(filename):
 
 def ConnectToTraceUDP():
     global dbg
-    try:
-        dbg = t32.connect(node='localhost', port=20006,protocol='UDP', packlen=1024, timeout=5.0)
-        dbg.print("Hello")
+    # Close any existing connection before attempting a new one to avoid
+    # stale socket state from a previous session.
+    if dbg and hasattr(dbg, 'exit'):
+        try:
+            dbg.exit()
+        except Exception:
+            pass
+    dbg = ''
 
-    except Exception as e:
-        messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
+    # Retry up to 3 times with a short delay between attempts.
+    # TRACE32 may still be initialising its UDP port right after launch.
+    last_exc = None
+    for attempt in range(3):
+        try:
+            dbg = t32.connect(node='localhost', port=20006, protocol='UDP', packlen=1024, timeout=5.0)
+            dbg.print("Hello")
+            return
+        except Exception as e:
+            last_exc = e
+            dbg = ''
+            if attempt < 2:
+                time.sleep(3)
+
+    messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
 
 
 def SendDIDGetVal(entry_widget, DID, get_val_var):
