@@ -65,7 +65,7 @@ class AutomationGUI:
         # create the variant variable now that a root exists
         self.variant = tk.IntVar(master=self.root, value=0)  # start unchecked; user must select
         # CAN/LIN enable toggle: 0 = OFF (disabled), 1 = ON (enabled)
-        self.canlin_enabled = tk.IntVar(master=self.root, value=0)
+        self.canlin_enabled = tk.IntVar(master=self.root, value=1)
         self.waiting_for_canlin = False  # True when hw init done and awaiting user CAN/LIN pick
         env_psu_type = os.getenv("PSU_TYPE", "").strip().lower()
         env_psu_automation = os.getenv("PSU_AUTOMATION", "").strip().lower()
@@ -216,9 +216,9 @@ class AutomationGUI:
         )
         self.canlin_on_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
-        # initial visual state: both unchecked
+        # initial visual state: CAN/LIN ON pre-selected
         self.canlin_off_cb.state(["!selected"])
-        self.canlin_on_cb.state(["!selected"])
+        self.canlin_on_cb.state(["selected"])
 
         # Power Supply frame (right side — third)
         self.psu_frame = ttk.Labelframe(self.control_frame, text="Power Supply")
@@ -306,10 +306,8 @@ class AutomationGUI:
         self.variant.set(0)
         self.non_nfc_cb.state(["!selected"])
         self.nfc_cb.state(["!selected"])
-        self.canlin_enabled.set(0)
-        self.canlin_off_cb.state(["!selected"])
-        self.canlin_on_cb.state(["!selected"])
         self.waiting_for_canlin = False
+        self._sync_canlin(1)
         self.clear_result_indicator()
         self.append_status("\nReady for next PCB. Click 'Start' to begin.")
 
@@ -429,12 +427,12 @@ class AutomationGUI:
 
     def prompt_canlin_selection(self) -> None:
         """Called by IntegratedAutomationRunner (via root.after) once hardware
-        initialisation is complete. Pre-selects CAN/LIN OFF and shows the prompt.
+        initialisation is complete. Pre-selects CAN/LIN ON and shows the prompt.
         """
         self.waiting_for_canlin = True
-        # Pre-select CAN/LIN OFF so the operator can just confirm or change it
-        self._sync_canlin(0)
-        self.append_status("\nStep 2: CAN/LIN OFF pre-selected. Change to ON if needed...")
+        # Pre-select CAN/LIN ON so the operator can just confirm or change it
+        self._sync_canlin(1)
+        self.append_status("\nStep 2: CAN/LIN ON pre-selected. Change to OFF if needed...")
 
     def append_status(self, message: str) -> None:
         """Append a message to the status text area."""
@@ -494,10 +492,8 @@ class AutomationGUI:
         self.variant.set(0)
         self.non_nfc_cb.state(["!selected"])
         self.nfc_cb.state(["!selected"])
-        self.canlin_enabled.set(0)
-        self.canlin_off_cb.state(["!selected"])
-        self.canlin_on_cb.state(["!selected"])
         self.waiting_for_canlin = False
+        self._sync_canlin(1)
 
     def _reset_timer(self) -> None:
         """Reset timer to 00:00."""

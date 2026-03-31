@@ -349,7 +349,7 @@ canvas2.create_rectangle(55.0, 390.0, 550.0, 480.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 395.0, anchor="nw", text=" CANoe Setting", fill="#F39C12", font=("Inter SemiBold", 10))
 
 # CANoe disable option
-canoe_input_condition = tk.IntVar (value=1)
+canoe_input_condition = tk.IntVar (value=2)
 
 canvas2.create_text(180.0, 422.0, anchor="nw", text="IsCanoeDisable", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 tab2_entry_1 = ttk.Entry(tab2_frame, style ='Background_grey.TEntry')
@@ -1366,12 +1366,12 @@ for idx in range(8):
     can_tx_entries.append(entry)
 
 canvas10.create_text(420.0, 146.0, anchor="nw", text="Local Loopback", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-can_loopback_var = tk.BooleanVar(value=True)
+can_loopback_var = tk.BooleanVar(value=False)
 can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
 can_loopback_chk.place(x=560.0, y=144.0, width=24.0, height=24.0)
 
 canvas10.create_text(420.0, 178.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-can_keep_awake_var = tk.BooleanVar(value=False)
+can_keep_awake_var = tk.BooleanVar(value=True)
 can_keep_awake_chk = ttk.Checkbutton(tab10_frame, variable=can_keep_awake_var)
 can_keep_awake_chk.place(x=560.0, y=176.0, width=24.0, height=24.0)
 
@@ -1563,6 +1563,7 @@ for idx in range(8):
     lin_rx_entries.append(entry)
 
 lin_output_variables = [
+    "TestFw_LinFrameStatus",
     "TestFw_LinRxDataValid",
     "TestFw_LinRxPid",
     "TestFw_LinRxData_aU8[0]",
@@ -1574,7 +1575,8 @@ lin_output_variables = [
     "TestFw_LinRxData_aU8[6]",
     "TestFw_LinRxData_aU8[7]",
 ]
-lin_entry_list = [tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
+tab11_lin_frame_status = ttk.Entry(tab11_frame, style='Background_grey.TEntry')
+lin_entry_list = [tab11_lin_frame_status, tab11_rx_valid, tab11_rx_pid] + lin_rx_entries
 
 tab11_lbl_rx_valid = tk.Label(tab11_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
 tab11_lbl_rx_valid.place(x=305, y=300, height=20)
@@ -1584,16 +1586,26 @@ tab11_lbl_overall.place(x=530, y=110, height=26)
 lin_pf_labels = [tab11_lbl_rx_valid]
 
 def _evaluate_lin_results():
+    v_frame_status = _parse_num(tab11_lin_frame_status)
     v_rx = _parse_num(tab11_rx_valid)
+    v_tx_pid = _parse_num(tab11_tx_msgid)
+    v_rx_pid = _parse_num(tab11_rx_pid)
+    tx_vals = [_parse_num(e) for e in lin_tx_entries]
+    rx_vals = [_parse_num(e) for e in lin_rx_entries]
+
+    p_frame = v_frame_status is not None and v_frame_status == 1
     p_rx = v_rx is not None and v_rx == 1
-    # Also require at least one Rx byte to be non-zero (all-zero = no real data received)
-    any_byte_nonzero = any(_parse_num(e) not in (None, 0) for e in lin_rx_entries)
-    p_rx = p_rx and any_byte_nonzero
-    _set_pf(tab11_lbl_rx_valid, p_rx)
-    _set_overall(tab11_lbl_overall, [p_rx])
+    p_pid = v_tx_pid is not None and v_rx_pid is not None and v_tx_pid == v_rx_pid
+    p_bytes = all(t is not None and r is not None and t == r for t, r in zip(tx_vals, rx_vals))
+    any_byte_nonzero = any(v not in (None, 0) for v in rx_vals)
+
+    p_lin = p_frame and p_rx and p_pid and p_bytes and any_byte_nonzero
+    _set_pf(tab11_lbl_rx_valid, p_lin)
+    _set_overall(tab11_lbl_overall, [p_lin])
 
 def run_lin_test():
     try:
+        clear_entries(lin_entry_list)
         msg_id_text = tab11_tx_msgid.get().strip()
         try:
             msg_id_value = int(msg_id_text, 0)
