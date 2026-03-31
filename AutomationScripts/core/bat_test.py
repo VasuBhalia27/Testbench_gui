@@ -49,6 +49,12 @@ class BatTest:
         """
         log = status_callback or (lambda msg: None)
 
+        # Clear previous reading to reduce stale-value false PASS when measurement is not refreshed.
+        try:
+            adapter.set_variable("TestFw_AiBatRef", 0)
+        except Exception:
+            pass
+
         log("BAT: triggering measurement DID")
         adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_BATT_MONITOR_e)
 

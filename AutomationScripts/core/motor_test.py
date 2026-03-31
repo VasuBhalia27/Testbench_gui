@@ -36,6 +36,14 @@ class MotorTest:
         """
         log = status_callback or (lambda msg: None)
 
+        # Reset previous outputs so stale values cannot satisfy pass criteria.
+        try:
+            adapter.set_variable("TestFw_MotorVoltage", 0)
+            adapter.set_variable("TestFw_MotorCurrentValue", 0)
+            adapter.set_variable("TestFw_MotorLoadError", 1)
+        except Exception:
+            pass
+
         log("MOTOR: setting DecoupleCouple state")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
 
@@ -113,6 +121,14 @@ class MotorTest:
                  numeric values are 0.0 when readings could not be obtained.
         """
         log = status_callback or (lambda msg: None)
+
+        # Reset previous outputs so stale values cannot satisfy pass criteria.
+        try:
+            adapter.set_variable("TestFw_MotorVoltage", 0)
+            adapter.set_variable("TestFw_MotorCurrentValue", 0)
+            adapter.set_variable("TestFw_MotorLoadError", 1)
+        except Exception:
+            pass
 
         log("MOTOR: setting DecoupleCouple state")
         adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
@@ -228,29 +244,10 @@ class MotorTest:
 
             time.sleep(poll_interval)
 
-        # If timeout occurred, but the last-read values already meet pass
-        # criteria (voltage>0, current>0, load_error==0) accept them as a
-        # pragmatic final reading. This reduces intermittent failures due
-        # to noisy sensors near the timeout boundary.
+        # Strict behavior: timeout means measurement is not trustworthy.
         last_readings = {
             "voltage": last_voltage,
             "current": last_current,
             "load_error": last_load_error,
         }
-
-        try:
-            if (
-                last_voltage is not None
-                and last_current is not None
-                and last_load_error is not None
-                and last_voltage > 0
-                and last_current > 0
-                and last_load_error == 0
-            ):
-                # accept last readings as final
-                return (last_voltage, last_current, last_load_error, last_readings)
-        except Exception:
-            pass
-
-        # Otherwise return None to indicate stability not achieved
         return (None, None, None, last_readings)

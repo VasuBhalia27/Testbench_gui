@@ -221,15 +221,33 @@ class TestSequenceRunner:
 
     def _run_can_test_with_logging(self) -> dict:
         """Run CAN test with automatic loopback setup and Tx/Rx logging."""
-        tx_bytes = [11, 22, 33, 44, 55, 66, 77, 88]
+        tx_msg_id = 0x796
+        # Use a changing payload each run so stale Rx data cannot be mistaken as fresh PASS data.
+        seed = int(time.time() * 1000) & 0xFF
+        tx_bytes = [(seed + i * 17) & 0xFF for i in range(8)]
 
-        self._log("CAN: enabling local loopback and awake mode")
-        self.adapter.set_variable("TestFw_CanGuiLocalLoopbackEnable", 1)
+        can_dep_disable = self._as_int(self.adapter.read_variable("TestFw_GuiCanDependencyDisable"))
+        canoe_enabled = (can_dep_disable == 0)
+        loopback_enable = 0 if canoe_enabled else 1
+        mode_label = "CANoe" if canoe_enabled else "LocalLoopback"
+
+        self._log(f"CAN: mode={mode_label}, setting loopback={loopback_enable}, keep-awake=1")
+        self.adapter.set_variable("TestFw_CanGuiLocalLoopbackEnable", loopback_enable)
         self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+
+        # Clear previous Rx values to avoid stale PASS when no new CAN frame is received.
+        try:
+            self.adapter.set_variable("TestFw_CanRxDataValid", 0)
+            self.adapter.set_variable("TestFw_CanRxMessageId", 0)
+            for idx in range(8):
+                self.adapter.set_variable(f"TestFw_CanRxBytes.dummy_byte{idx}_U8", 0)
+        except Exception:
+            # Some firmware builds expose Rx vars as read-only; continue with best effort.
+            pass
 
         for idx, value in enumerate(tx_bytes):
             self.adapter.set_variable(f"DummyBytes.dummy_byte{idx}_U8", value)
-        self._log(f"CAN TX data: msg_id=0x796, bytes={tx_bytes}")
+        self._log(f"CAN TX data: msg_id=0x{tx_msg_id:X}, bytes={tx_bytes}")
 
         self._log("CAN: sending test command")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
@@ -251,16 +269,21 @@ class TestSequenceRunner:
         )
 
         any_rx_nonzero = any(v not in (None, 0) for v in rx_bytes)
-        # Match manual CAN tab loopback behavior: in local loopback mode
-        # only RxDataValid is required; bus-level indicators are suppressed.
+        rx_matches_tx = all(r is not None and r == t for r, t in zip(rx_bytes, tx_bytes))
+        rx_id_ok = rx_msg_id is not None and rx_msg_id == tx_msg_id
         passed = (
             rx_valid == 1
             and any_rx_nonzero
+            and rx_matches_tx
+            and rx_id_ok
+            and fault_latch in (None, 0)
         )
 
         self._log(f"CAN result: {'✓ PASS' if passed else '✗ FAIL'}")
         return {
             "pass": passed,
+            "mode": mode_label,
+            "tx_msg_id": tx_msg_id,
             "tx_bytes": tx_bytes,
             "rx_valid": rx_valid,
             "rx_msg_id": rx_msg_id,
@@ -274,7 +297,20 @@ class TestSequenceRunner:
         tx_pid = 0x3A
         tx_bytes = [44, 55, 66, 77, 11, 22, 33, 44]
 
-        self._log("LIN: setting Tx PID and Tx bytes")
+        can_dep_disable = self._as_int(self.adapter.read_variable("TestFw_GuiCanDependencyDisable"))
+        canoe_enabled = (can_dep_disable == 0)
+        mode_label = "CANoe" if canoe_enabled else "LocalLoopback"
+
+        # Reset previous LIN readback values to avoid stale values affecting verdict.
+        try:
+            self.adapter.set_variable("TestFw_LinRxDataValid", 0)
+            self.adapter.set_variable("TestFw_LinRxPid", 0)
+            for idx in range(8):
+                self.adapter.set_variable(f"TestFw_LinRxData_aU8[{idx}]", 0)
+        except Exception:
+            pass
+
+        self._log(f"LIN: mode={mode_label}, setting Tx PID and Tx bytes")
         self.adapter.set_variable("TestFw_LinTxPid", tx_pid)
         for idx, value in enumerate(tx_bytes):
             self.adapter.set_variable(f"TestFw_LinTxByte{idx}", value)
@@ -290,6 +326,7 @@ class TestSequenceRunner:
             self._as_int(self.adapter.read_variable(f"TestFw_LinRxData_aU8[{i}]"))
             for i in range(8)
         ]
+        frame_status = self._as_int(self.adapter.read_variable("TestFw_LinFrameStatus"))
 
         self._log(
             "LIN RX data: "
@@ -297,15 +334,30 @@ class TestSequenceRunner:
         )
 
         any_rx_nonzero = any(v not in (None, 0) for v in rx_bytes)
-        passed = (
-            rx_valid == 1
-            and any_rx_nonzero
-            and rx_pid is not None
-        )
+
+        if canoe_enabled:
+            # When CANoe is expected to drive LIN and is disconnected, RX should remain 0/invalid.
+            passed = (
+                rx_valid in (None, 0)
+                and rx_pid in (None, 0)
+                and not any_rx_nonzero
+            )
+        else:
+            # Local loopback mode should produce fresh matching RX data.
+            rx_matches_tx = all(r is not None and r == t for r, t in zip(rx_bytes, tx_bytes))
+            passed = (
+                frame_status == 1
+                and rx_valid == 1
+                and rx_pid == tx_pid
+                and rx_matches_tx
+                and any_rx_nonzero
+            )
 
         self._log(f"LIN result: {'✓ PASS' if passed else '✗ FAIL'}")
         return {
             "pass": passed,
+            "mode": mode_label,
+            "frame_status": frame_status,
             "tx_pid": tx_pid,
             "tx_bytes": tx_bytes,
             "rx_valid": rx_valid,
@@ -334,6 +386,7 @@ class TestSequenceRunner:
         # In that case there is no point running further tests; all hardware
         # functions depend on a healthy supply voltage.
         bat_passed, bat_voltage = self.run_battery_test_with_voltage()
+        bat_passed = bool(bat_passed) and (bat_voltage is not None and 8000 <= bat_voltage <= 16000)
         results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:
@@ -343,6 +396,7 @@ class TestSequenceRunner:
             )
             time.sleep(TIMING.bat_retry_wait)
             bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=2.0)
+            bat_passed = bool(bat_passed) and (bat_voltage is not None and 8000 <= bat_voltage <= 16000)
             results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:
@@ -366,6 +420,7 @@ class TestSequenceRunner:
 
         # motor test
         mot_passed, mot_v, mot_i, mot_e = self.run_motor_test_with_values()
+        mot_passed = bool(mot_passed) and (mot_v > 0) and (mot_i > 0) and (mot_i != 65535) and (mot_e == 0)
         results['motor'] = {'pass': mot_passed, 'voltage': mot_v,
                             'current': mot_i, 'load_error': mot_e}
 
