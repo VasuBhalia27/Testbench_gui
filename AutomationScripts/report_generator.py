@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import csv
 from copy import copy
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -31,6 +32,7 @@ _ROOT = os.path.join(_HERE, "..")
 
 TEMPLATE_PATH = os.path.join(_ROOT, "AutomationTest", "Smart_BU_Test Specification.xlsx")
 REPORTS_DIR   = os.path.join(_ROOT, "AutomationTest", "reports")
+SUMMARY_CSV_PATH = os.path.join(REPORTS_DIR, "EOL_summary.csv")
 
 # ── Cell fill colours ─────────────────────────────────────────────────────────
 _PASS_FILL = PatternFill("solid", fgColor="92D050")   # green
@@ -591,11 +593,104 @@ def _populate_generated_sheet(ws, rows: List[Dict[str, Any]]) -> None:
                 )
 
 
+def _add_run_summary_sheet(
+    wb,
+    barcode_payload: Optional[Dict[str, Any]],
+    overall_passed: Optional[bool],
+    run_timestamp: str,
+) -> None:
+    """Add/replace a compact summary sheet for operator traceability."""
+    if "Run_Summary" in wb.sheetnames:
+        del wb["Run_Summary"]
+
+    ws = wb.create_sheet(title="Run_Summary", index=0)
+    ws["A1"] = "Field"
+    ws["B1"] = "Value"
+    ws["A1"].font = Font(bold=True)
+    ws["B1"].font = Font(bold=True)
+    ws.column_dimensions["A"].width = 24
+    ws.column_dimensions["B"].width = 48
+
+    payload = barcode_payload or {}
+    status = "PASS" if overall_passed else "FAIL"
+    rows = [
+        ("Run timestamp", run_timestamp),
+        ("Barcode (19)", payload.get("barcode_19", "")),
+        ("PCB serial (16)", payload.get("pcb_serial_16", "")),
+        ("SAP part (last 4)", payload.get("sap_last4", "")),
+        ("Drawing revision", payload.get("revision", "")),
+        ("Vendor code", payload.get("vendor", "")),
+        ("Supplier assy line", payload.get("assy_line", "")),
+        ("Optimisation index", payload.get("opt_index", "")),
+        ("Year (yy)", payload.get("year", "")),
+        ("Day of year (ddd)", payload.get("day_of_year", "")),
+        ("Unique serial", payload.get("unique_serial", "")),
+        ("Final test result", status),
+    ]
+
+    for idx, (key, value) in enumerate(rows, start=2):
+        ws.cell(row=idx, column=1, value=key)
+        val_cell = ws.cell(row=idx, column=2, value=value)
+        if key == "Final test result":
+            val_cell.font = Font(bold=True)
+            val_cell.fill = _PASS_FILL if status == "PASS" else _FAIL_FILL
+
+
+def _append_summary_csv(
+    csv_path: str,
+    barcode_payload: Optional[Dict[str, Any]],
+    run_timestamp: str,
+    overall_passed: Optional[bool],
+) -> None:
+    """Append one EOL run line to a cumulative CSV summary."""
+    payload = barcode_payload or {}
+    status = "PASS" if overall_passed else "FAIL"
+    fieldnames = [
+        "run_timestamp",
+        "barcode_19",
+        "pcb_serial_16",
+        "sap_last4",
+        "revision",
+        "vendor",
+        "assy_line",
+        "opt_index",
+        "year",
+        "day_of_year",
+        "unique_serial",
+        "result",
+    ]
+
+    write_header = not os.path.exists(csv_path)
+    os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+    with open(csv_path, "a", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        if write_header:
+            writer.writeheader()
+        writer.writerow(
+            {
+                "run_timestamp": run_timestamp,
+                "barcode_19": payload.get("barcode_19", ""),
+                "pcb_serial_16": payload.get("pcb_serial_16", ""),
+                "sap_last4": payload.get("sap_last4", ""),
+                "revision": payload.get("revision", ""),
+                "vendor": payload.get("vendor", ""),
+                "assy_line": payload.get("assy_line", ""),
+                "opt_index": payload.get("opt_index", ""),
+                "year": payload.get("year", ""),
+                "day_of_year": payload.get("day_of_year", ""),
+                "unique_serial": payload.get("unique_serial", ""),
+                "result": status,
+            }
+        )
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def generate_report(
     run_results: Optional[Dict[str, Any]] = None,
     output_path: Optional[str] = None,
+    barcode_payload: Optional[Dict[str, Any]] = None,
+    overall_passed: Optional[bool] = None,
 ) -> str:
     """
     Generate a filled-in Excel test report from the specification template.
@@ -619,9 +714,17 @@ def generate_report(
 
     os.makedirs(REPORTS_DIR, exist_ok=True)
 
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     if output_path is None:
-        ts          = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.xlsx")
+        serial16 = ""
+        if barcode_payload:
+            serial16 = str(barcode_payload.get("pcb_serial_16", "")).strip()
+        if serial16:
+            output_path = os.path.join(REPORTS_DIR, f"{ts}_{serial16}_Test_Report.xlsx")
+        else:
+            output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.xlsx")
 
     output_path = os.path.abspath(output_path)
     shutil.copy2(os.path.abspath(TEMPLATE_PATH), output_path)
@@ -656,6 +759,20 @@ def generate_report(
 
         ws = _create_generated_sheet(wb, sheet_name)
         _populate_generated_sheet(ws, rows)
+
+    _add_run_summary_sheet(
+        wb=wb,
+        barcode_payload=barcode_payload,
+        overall_passed=overall_passed,
+        run_timestamp=run_timestamp,
+    )
+
+    _append_summary_csv(
+        csv_path=SUMMARY_CSV_PATH,
+        barcode_payload=barcode_payload,
+        run_timestamp=run_timestamp,
+        overall_passed=overall_passed,
+    )
 
     wb.save(output_path)
     wb.close()

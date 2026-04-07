@@ -29,6 +29,8 @@ import time
 import threading
 from pathlib import Path
 
+from AutomationScripts.core import barcode_utils
+
 _ASSETS_DIR = Path(__file__).parent.parent.parent / "assets_GC" / "Page_12(Auto)" / "assets" / "frame0"
 _SETTINGS_FILE = Path(__file__).parent.parent.parent / "AutomationScripts" / "automation_gui_settings.json"
 
@@ -48,6 +50,7 @@ class AutomationGUI:
         self.unlock_callback = unlock_callback or (lambda: None)
         self.started = False
         self.automation_runner = None  # will be set by integrated setup
+        self.barcode_payload = {}
         
         # Timer tracking
         self.timer_start_time = None
@@ -242,6 +245,34 @@ class AutomationGUI:
         )
         self.psu_automation_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
+        # Barcode frame (right side — fourth)
+        self.barcode_frame = ttk.Labelframe(self.control_frame, text="PCB Barcode")
+        self.barcode_frame.pack(side="left", padx=(0, 20), fill="x", expand=False)
+
+        self.barcode_var = tk.StringVar(master=self.root, value="")
+        self.barcode_entry = ttk.Entry(
+            self.barcode_frame,
+            textvariable=self.barcode_var,
+            width=28,
+        )
+        self.barcode_entry.grid(row=0, column=0, padx=5, pady=(5, 3), sticky="w")
+        self.barcode_entry.bind("<Return>", self._on_barcode_enter)
+        self.barcode_entry.bind("<FocusOut>", self._on_barcode_focus_out)
+
+        self.barcode_hint = ttk.Label(
+            self.barcode_frame,
+            text="Format: pppprv1qqyydddsssss (19 chars)",
+            font=(None, 8),
+        )
+        self.barcode_hint.grid(row=1, column=0, padx=5, pady=(0, 2), sticky="w")
+
+        self.pcb_serial_label = ttk.Label(
+            self.barcode_frame,
+            text="PCB serial (16): -",
+            font=(None, 8, "bold"),
+        )
+        self.pcb_serial_label.grid(row=2, column=0, padx=5, pady=(0, 5), sticky="w")
+
         # Timer label (right side of control frame)
         self.timer_label = ttk.Label(self.control_frame,
                                      text="Time Elapsed: 00:00",
@@ -313,6 +344,12 @@ class AutomationGUI:
 
     def _on_start(self):
         """Handle Start button click."""
+        valid, error = self._validate_and_store_barcode(show_messagebox=True)
+        if not valid:
+            self.append_status(f"Barcode validation failed: {error}")
+            self.barcode_entry.focus_set()
+            return
+
         self.started = True
         self.waiting_for_canlin = False
         self.clear_result_indicator()
@@ -343,7 +380,53 @@ class AutomationGUI:
             "Power Supply automation: "
             f"{'ENABLED' if psu_automation_enabled == 1 else 'DISABLED'}"
         )
+        self.append_status(
+            "Scanned barcode accepted: "
+            f"{self.barcode_payload.get('barcode_19', '')} | "
+            f"PCB serial (16): {self.barcode_payload.get('pcb_serial_16', '')}"
+        )
         self.append_status("Step 1: Driver (NFC) pre-selected. Change to Non-Driver if needed...")
+
+    def _on_barcode_enter(self, _event=None) -> None:
+        """Validate scanner input when Enter is sent by barcode gun."""
+        valid, error = self._validate_and_store_barcode(show_messagebox=False)
+        if not valid:
+            self.append_status(f"Barcode validation failed: {error}")
+            return
+        self.append_status(
+            "Barcode captured. "
+            f"PCB serial (16): {self.barcode_payload.get('pcb_serial_16', '')}"
+        )
+
+    def _on_barcode_focus_out(self, _event=None) -> None:
+        """Validate input when operator leaves the barcode field."""
+        raw = self.barcode_var.get().strip()
+        if not raw:
+            return
+        self._validate_and_store_barcode(show_messagebox=False)
+
+    def _validate_and_store_barcode(self, show_messagebox: bool) -> tuple:
+        """Parse and store barcode payload for report metadata and file naming."""
+        raw = self.barcode_var.get()
+        valid, error, parsed = barcode_utils.parse_barcode(raw)
+        if not valid:
+            self.barcode_payload = {}
+            self.pcb_serial_label.config(text="PCB serial (16): -")
+            if show_messagebox:
+                messagebox.showerror("Invalid barcode", error)
+            return False, error
+
+        # Normalize entry content after successful parse.
+        self.barcode_var.set(parsed["barcode_19"])
+        self.barcode_payload = parsed
+        self.pcb_serial_label.config(
+            text=f"PCB serial (16): {parsed['pcb_serial_16']}"
+        )
+        return True, ""
+
+    def get_barcode_payload(self) -> dict:
+        """Return latest validated barcode fields for report generation."""
+        return dict(self.barcode_payload)
 
     def _sync_canlin(self, value: int) -> None:
         """Keep the CAN/LIN OFF/ON checkbuttons mutually exclusive.
@@ -492,8 +575,12 @@ class AutomationGUI:
         self.variant.set(0)
         self.non_nfc_cb.state(["!selected"])
         self.nfc_cb.state(["!selected"])
+        self.barcode_var.set("")
+        self.barcode_payload = {}
+        self.pcb_serial_label.config(text="PCB serial (16): -")
         self.waiting_for_canlin = False
         self._sync_canlin(0)
+        self.barcode_entry.focus_set()
 
     def _reset_timer(self) -> None:
         """Reset timer to 00:00."""
