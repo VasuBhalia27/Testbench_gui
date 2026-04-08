@@ -19,9 +19,13 @@ Optional explicit VISA resource env vars:
 
 - ``OWON_PSU_RESOURCE``
 - ``KIKUSUI_PSU_RESOURCE``
+
+KIKUSUI auto-detection supports multiple models (for example PWR401L,
+PWR801ML) and scans USB/TCPIP/ASRL VISA resources.
 """
 
 import os
+import re
 import time
 from typing import Callable, Optional
 
@@ -35,10 +39,22 @@ _OWON_VID = "0x5345"
 _KIKUSUI_VID = "0x0B3E"
 
 
-def _list_usb_resources() -> tuple:
+def _list_candidate_resources() -> tuple:
     try:
         rm = pyvisa.ResourceManager()
-        resources = rm.list_resources("USB?*INSTR")
+        patterns = (
+            "USB?*INSTR",
+            "TCPIP?*INSTR",
+            "ASRL?*INSTR",
+        )
+        merged = []
+        for pattern in patterns:
+            try:
+                merged.extend(rm.list_resources(pattern))
+            except Exception:
+                pass
+        # Preserve order while removing duplicates.
+        resources = tuple(dict.fromkeys(merged))
         rm.close()
         return resources
     except Exception:
@@ -73,7 +89,7 @@ def _probe_idn(resource: str) -> Optional[str]:
 
 def find_owon_resource() -> Optional[str]:
     """Return first OWON VISA USB resource string, or None if not found."""
-    for resource in _list_usb_resources():
+    for resource in _list_candidate_resources():
         if _OWON_VID in resource.lower():
             return resource
         idn = _probe_idn(resource)
@@ -84,11 +100,15 @@ def find_owon_resource() -> Optional[str]:
 
 def find_kikusui_resource() -> Optional[str]:
     """Return first KIKUSUI VISA USB resource string, or None if not found."""
-    for resource in _list_usb_resources():
+    for resource in _list_candidate_resources():
         if _KIKUSUI_VID in resource.lower():
             return resource
         idn = _probe_idn(resource)
-        if idn and ("KIKUSUI" in idn or "PWR401L" in idn):
+        # Support multiple KIKUSUI PWR models (e.g., PWR401L, PWR801ML).
+        if idn and (
+            "KIKUSUI" in idn
+            or re.search(r"\bPWR\d+[A-Z0-9]*\b", idn) is not None
+        ):
             return resource
     return None
 
@@ -115,8 +135,10 @@ class _ScpiPowerSupply:
     def connect(self) -> None:
         resource = self._resource or self._resolver()
         if resource is None:
+            detected = ", ".join(_list_candidate_resources()) or "none"
             raise RuntimeError(
-                f"{self.name} not found on VISA USB resources. "
+                f"{self.name} not found on VISA resources. "
+                f"Detected VISA resources: {detected}. "
                 "Set resource explicitly via environment variable or constructor."
             )
 
@@ -180,17 +202,21 @@ class OwonP4305(_ScpiPowerSupply):
         )
 
 
-class KikusuiPWR401L(_ScpiPowerSupply):
-    """KIKUSUI PWR401L programmable supply."""
+class KikusuiPWR(_ScpiPowerSupply):
+    """KIKUSUI PWR-series programmable supply (for example PWR401L/PWR801ML)."""
 
     def __init__(self, resource: Optional[str] = None):
         super().__init__(
-            name="KIKUSUI PWR401L",
+            name="KIKUSUI PWR",
             resource=resource,
             resolver=find_kikusui_resource,
             remote_cmd="SYST:REM",
             local_cmd="SYST:LOC",
         )
+
+
+# Backward-compatible alias for older imports.
+KikusuiPWR401L = KikusuiPWR
 
 
 def create_power_supply():
@@ -199,7 +225,7 @@ def create_power_supply():
 
     if psu_type == "kikusui":
         resource = os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None
-        return KikusuiPWR401L(resource=resource)
+        return KikusuiPWR(resource=resource)
 
     if psu_type == "owon":
         resource = os.getenv("OWON_PSU_RESOURCE", "").strip() or None

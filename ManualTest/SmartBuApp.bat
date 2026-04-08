@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal EnableExtensions EnableDelayedExpansion
 title SmartBU Manual Test (Quick)
 color 0A
 
@@ -9,8 +9,15 @@ echo ========================================
 echo.
 
 set "SCRIPT_DIR=%~dp0"
-set "APP_ROOT=%SCRIPT_DIR%.."
-cd /d "%APP_ROOT%"
+set "PROJECT_ROOT=%SCRIPT_DIR%.."
+
+cd /d "%PROJECT_ROOT%"
+if %errorlevel% neq 0 (
+    echo [FAIL] Could not resolve project root from script location.
+    echo        Script path: %SCRIPT_DIR%
+    pause
+    exit /b 1
+)
 
 :: Quick essential checks
 echo Checking prerequisites...
@@ -72,13 +79,11 @@ if %errorlevel% equ 0 (
 
 :: Check Repository
 echo.
-if exist "%APP_ROOT%\Gui_Main_Script\gui_main.py" (
-    echo [OK] GUI script found
+if exist "SmartBU" (
+    echo [OK] Repository found
 ) else (
-    echo [FAIL] GUI script not found!
-    echo        Expected: %APP_ROOT%\Gui_Main_Script\gui_main.py
-    pause
-    exit /b 1
+    echo [WARN] Repository folder not found under resolved project root
+    echo        Expected: %CD%\SmartBU
 )
 
 echo.
@@ -88,8 +93,9 @@ echo.
 :: Launch GUI
 echo Starting SmartBU GUI...
 echo.
-python "%APP_ROOT%\Gui_Main_Script\gui_main.py"
+python Gui_Main_Script\gui_main.py
 
 echo.
 echo Application closed.
 pause
+endlocal
