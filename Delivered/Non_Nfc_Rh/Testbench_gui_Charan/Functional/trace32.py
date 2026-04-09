@@ -97,9 +97,20 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     # --- STEP 1: Aggressive Cleanup ---
     try:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Critical wait time for the USB driver to physically reset
-        time.sleep(3) 
-    except:
+        # Poll until t32marm.exe is fully gone from the process list before
+        # launching a new instance.  This ensures the PODBUS USB driver is
+        # released and prevents the "TRACE32 device already used by other GUI"
+        # fatal error.  Up to 15 s is allowed; exits immediately once clear.
+        _deadline = time.time() + 15
+        while time.time() < _deadline:
+            _check = subprocess.run(
+                ["tasklist", "/FI", "IMAGENAME eq t32marm.exe", "/NH"],
+                capture_output=True, text=True
+            )
+            if "t32marm.exe" not in _check.stdout:
+                break
+            time.sleep(0.5)
+    except Exception:
         pass
     # --- STEP 2: Path Validation ---
     repo_path_XNF = repo_path_entry.get() 
