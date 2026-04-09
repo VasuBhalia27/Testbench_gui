@@ -125,20 +125,28 @@ def LaunchTrace32(repo_path_entry, selected_preset):
         messagebox.showerror("Error", "BMW repository not found")
         return  # Stop execution if path is invalid
 
-    # Locate the Trace32 ARM debugger executable under the user's conan2 cache.
-    # The package directory name contains a hash that differs per installation,
-    # so we glob for any 'trace*' directory instead of hardcoding one hash.
+    # Locate the Trace32 ARM debugger executable.
+    # Priority 1: conan2 cache (hash-independent glob).
+    # Priority 2: standard fixed installation at C:\T32.
     trace32_candidates = sorted(
         (Path.home() / ".conan2" / "p").glob("trace*/p/bin/windows64/t32marm.exe")
     )
-    if not trace32_candidates:
-        messagebox.showerror(
-            "Error",
-            "Trace32 ARM debugger not found in ~/.conan2 package cache.\n"
-            "Please verify your Lauterbach Trace32 conan2 installation."
-        )
-        return
-    trace32_path = str(trace32_candidates[-1])
+    if trace32_candidates:
+        trace32_path = str(trace32_candidates[-1])
+    else:
+        _standard = Path(r"C:\T32\bin\windows64\t32marm.exe")
+        if _standard.exists():
+            trace32_path = str(_standard)
+        else:
+            messagebox.showerror(
+                "Error",
+                "Trace32 ARM debugger not found.\n"
+                "Checked:\n"
+                "  - ~/.conan2/p/trace*/p/bin/windows64/t32marm.exe\n"
+                "  - C:\\T32\\bin\\windows64\\t32marm.exe\n\n"
+                "Please verify your Lauterbach Trace32 installation."
+            )
+            return
     
     Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
     Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
@@ -301,12 +309,19 @@ def edit_trace32_config_file(filename):
     target_prefix = "SYS="
     
     # Locate the Trace32 package root directory dynamically.
+    # Priority 1: conan2 cache.
+    # Priority 2: standard fixed installation at C:\T32.
     conan2_candidates = sorted(
         (Path.home() / ".conan2" / "p").glob("trace*/p")
     )
-    if not conan2_candidates:
-        return False
-    new_path = str(conan2_candidates[-1])
+    if conan2_candidates:
+        new_path = str(conan2_candidates[-1])
+    else:
+        _standard = Path(r"C:\T32")
+        if _standard.is_dir():
+            new_path = str(_standard)
+        else:
+            return False
 
     replacement_line = "SYS=" + new_path + "\n"
     
