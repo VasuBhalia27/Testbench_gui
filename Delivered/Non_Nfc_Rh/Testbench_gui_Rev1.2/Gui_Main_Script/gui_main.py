@@ -307,11 +307,28 @@ selected_preset_minsizerel.place(x=450, y=180)
 # --- Group 3: Debugger ---
 canvas2.create_rectangle(55.0, 240.0, 550.0, 380.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
+
+connect_trace32_in_progress = False
+
+
+def on_connect_trace32_click():
+    global connect_trace32_in_progress
+    if connect_trace32_in_progress:
+        return
+
+    connect_trace32_in_progress = True
+    connect_trace32.config(state="disabled")
+    try:
+        Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label)
+    finally:
+        connect_trace32.config(state="normal")
+        connect_trace32_in_progress = False
+
 #Connect Trace32 Button
 canvas2.create_text(61.0, 270.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], 
-                         command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label), 
+                         command=on_connect_trace32_click,
                          bd = 0)
 connect_trace32.place(x=200, y=260, width=34, height=34)
 

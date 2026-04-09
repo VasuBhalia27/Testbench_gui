@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import re
 import io
+import threading
 
 # logs = LogApp()
 
@@ -75,6 +76,70 @@ dbg = ''
 execution_status =''
 TRACE32_ROOT = r"C:\T32"
 TRACE32_EXECUTABLE = os.path.join(TRACE32_ROOT, "bin", "windows64", "t32marm.exe")
+_trace32_launch_lock = threading.Lock()
+
+
+def _is_dbg_connected():
+    """Return True only when the global debugger object is alive and responsive."""
+    global dbg
+    if not dbg or isinstance(dbg, str):
+        return False
+    if not hasattr(dbg, 'fnc'):
+        return False
+    try:
+        # STATE.RUN() is a lightweight TRACE32 expression available without app symbols.
+        dbg.fnc("STATE.RUN()")
+        return True
+    except Exception:
+        return False
+
+
+def _is_trace32_process_running():
+    """Return True when a TRACE32 PowerView process is already present."""
+    try:
+        output = subprocess.check_output(
+            ["tasklist", "/FI", "IMAGENAME eq t32marm.exe", "/FO", "CSV", "/NH"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        return False
+
+    lines = [line.strip().strip('"') for line in output.splitlines() if line.strip()]
+    if not lines:
+        return False
+    # tasklist prints "INFO: No tasks are running..." when there is no match.
+    return any(line.lower().startswith("t32marm.exe,") for line in lines)
+
+
+def _wait_for_trace32_udp(timeout_seconds=20, poll_seconds=1.0, show_error=False):
+    """Wait for TRACE32 UDP API to become available and attach to it."""
+    deadline = time.time() + max(0, timeout_seconds)
+    while time.time() < deadline:
+        if ConnectToTraceUDP(show_error=False):
+            return True
+        time.sleep(poll_seconds)
+
+    if show_error:
+        messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
+    return False
+
+
+def _recover_trace32_with_power_cycle(repo_path_entry, selected_preset, status_label=None):
+    """Perform one non-blocking recovery retry for debugger power instability."""
+
+    if status_label:
+        status_label.config(text="Status: auto-recovery in progress", fg="#D35400")
+
+    # Ensure stale processes are gone before re-launching.
+    QuitTrace32(status_label=None)
+    time.sleep(3)
+
+    launched = LaunchTrace32(repo_path_entry, selected_preset)
+    if not launched:
+        return _wait_for_trace32_udp(timeout_seconds=15, poll_seconds=1.0, show_error=False)
+
+    return _wait_for_trace32_udp(timeout_seconds=35, poll_seconds=1.0, show_error=False)
 
 def format_value_with_unit(variable_name, value):
     """
@@ -96,53 +161,64 @@ def format_value_with_unit(variable_name, value):
 
 
 def LaunchTrace32(repo_path_entry, selected_preset):
-    # --- STEP 1: Aggressive Cleanup ---
+    if _is_dbg_connected():
+        return True
+
+    if not _trace32_launch_lock.acquire(blocking=False):
+        # Another connect attempt is already in progress.
+        return False
+
     try:
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Critical wait time for the USB driver to physically reset
-        time.sleep(3) 
-    except:
-        pass
+    # --- STEP 1: Aggressive Cleanup ---
+        try:
+            os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+            # Critical wait time for the USB driver to physically reset
+            time.sleep(3)
+        except:
+            pass
     # --- STEP 2: Path Validation ---
-    repo_path_XNF = repo_path_entry.get() 
-    if not repo_path_XNF or not os.path.exists(repo_path_XNF):
-        messagebox.showerror("Error", "BMW repository not found")
-        return 
+        repo_path_XNF = repo_path_entry.get()
+        if not repo_path_XNF or not os.path.exists(repo_path_XNF):
+            messagebox.showerror("Error", "BMW repository not found")
+            return False
     # --- STEP 3: Config & Launch ---
-    repo_path_XNF = repo_path_entry.get()
-    if repo_path_XNF and os.path.exists(repo_path_XNF):
-        autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
-    else:
-        messagebox.showerror("Error", "BMW repository not found")
-        return  # Stop execution if path is invalid
+        repo_path_XNF = repo_path_entry.get()
+        if repo_path_XNF and os.path.exists(repo_path_XNF):
+            autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
+        else:
+            messagebox.showerror("Error", "BMW repository not found")
+            return False  # Stop execution if path is invalid
 
-    if not os.path.exists(TRACE32_EXECUTABLE):
-        messagebox.showerror(
-            "Error",
-            f"Trace32 ARM debugger not found at {TRACE32_EXECUTABLE}.\n"
-            "Please verify your Lauterbach Trace32 installation."
-        )
-        return
-    trace32_path = TRACE32_EXECUTABLE
+        if not os.path.exists(TRACE32_EXECUTABLE):
+            messagebox.showerror(
+                "Error",
+                f"Trace32 ARM debugger not found at {TRACE32_EXECUTABLE}.\n"
+                "Please verify your Lauterbach Trace32 installation."
+            )
+            return False
+        trace32_path = TRACE32_EXECUTABLE
     
-    Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
-    Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
-    trace_configfile_path = f"{Automation_repo_path}\\Config\\config.t32"
-    if not os.path.exists(trace_configfile_path):
-        # Backward compatibility for older folder layout.
-        trace_configfile_path = f"{Automation_repo_path}\\config.t32"
+        Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
+        Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
+        trace_configfile_path = f"{Automation_repo_path}\\Config\\config.t32"
+        if not os.path.exists(trace_configfile_path):
+            # Backward compatibility for older folder layout.
+            trace_configfile_path = f"{Automation_repo_path}\\config.t32"
     
 
-    repo_path_XNF = str(repo_path_XNF)
-    repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\") 
-    autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
+        repo_path_XNF = str(repo_path_XNF)
+        repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\")
+        autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
 
-    edit_trace32_config_file(trace_configfile_path)
+        edit_trace32_config_file(trace_configfile_path)
     
-    command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
-    subprocess.Popen(command)
-    # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
-    time.sleep(8) 
+        command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
+        subprocess.Popen(command)
+        # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
+        time.sleep(8)
+        return True
+    finally:
+        _trace32_launch_lock.release()
 
 def autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry):
     autoexec_cmm = "autoexec.cmm"
@@ -312,14 +388,18 @@ def edit_trace32_config_file(filename):
 
 
 
-def ConnectToTraceUDP():
+def ConnectToTraceUDP(show_error=True):
     global dbg
     try:
         dbg = t32.connect(node='localhost', port=20006,protocol='UDP', packlen=1024, timeout=5.0)
         dbg.print("Hello")
+        return True
 
     except Exception as e:
-        messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
+        dbg = ''
+        if show_error:
+            messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
+        return False
 
 
 def SendDIDGetVal(entry_widget, DID, get_val_var):
@@ -395,16 +475,61 @@ def PauseCode(exec_label):
     dbg.cmd("Break")
     UpdateCodeExecLabel_notrunning(exec_label)
 
-def QuitTrace32():
-    dbg.exit()
-
 def Trace32ConnectApp(repo_path_entry, selected_preset, status_label):
-    LaunchTrace32(repo_path_entry, selected_preset)
-    ConnectToTraceUDP()
-    time.sleep(2)
-    # Update status after successful connection and loading
+    # Reuse a healthy session instead of launching a second PowerView GUI.
+    if _is_dbg_connected():
+        if status_label:
+            status_label.config(text="Status: stopped at breakpoint", fg="#D35400")
+        return True
+
+    # Reattach if another part of the app already has a running PowerView.
+    if _wait_for_trace32_udp(timeout_seconds=6, poll_seconds=1.0, show_error=False):
+        if status_label:
+            status_label.config(text="Status: stopped at breakpoint", fg="#D35400")
+        return True
+
+    # If another attempt is already launching, wait briefly and attach.
+    if _trace32_launch_lock.locked():
+        if _wait_for_trace32_udp(timeout_seconds=25, poll_seconds=1.0, show_error=False):
+            if status_label:
+                status_label.config(text="Status: stopped at breakpoint", fg="#D35400")
+            return True
+
+    # If a PowerView process exists, prefer attaching to it instead of spawning another.
+    if _is_trace32_process_running():
+        if _wait_for_trace32_udp(timeout_seconds=20, poll_seconds=1.0, show_error=False):
+            if status_label:
+                status_label.config(text="Status: stopped at breakpoint", fg="#D35400")
+            return True
+        # Stale/hung instance that does not expose UDP; clean and restart once.
+        QuitTrace32(status_label=None)
+
+    launched = LaunchTrace32(repo_path_entry, selected_preset)
+    if not launched:
+        if _wait_for_trace32_udp(timeout_seconds=15, poll_seconds=1.0, show_error=False):
+            if status_label:
+                status_label.config(text="Status: stopped at breakpoint", fg="#D35400")
+            return True
+        if status_label:
+            status_label.config(text="Status: connection failed", fg="red")
+        return False
+
+    if _wait_for_trace32_udp(timeout_seconds=30, poll_seconds=1.0, show_error=False):
+        time.sleep(2)
+        if status_label:
+            status_label.config(text="Status: stopped at breakpoint", fg="#D35400") # Orange color
+        return True
+
+    # Final operator-assisted recovery for USB/power instability.
+    if _recover_trace32_with_power_cycle(repo_path_entry, selected_preset, status_label=status_label):
+        time.sleep(2)
+        if status_label:
+            status_label.config(text="Status: stopped at breakpoint", fg="#D35400")
+        return True
+
     if status_label:
-        status_label.config(text="Status: stopped at breakpoint", fg="#D35400") # Orange color
+        status_label.config(text="Status: connection failed", fg="red")
+    return False
 
 def ResetTarget(status_label):
     global dbg
