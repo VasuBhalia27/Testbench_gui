@@ -279,7 +279,7 @@ canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Setting ", fill="#F39C1
 
 canvas2.create_text(61.0, 100.0, anchor="nw", text="Select ELF path:  ", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 repo_path_entry = ttk.Entry(tab2, style ='Background_grey.TEntry')
-repo_path_entry.insert(0, r"C:/UShin/Testbench_gui_Charan/SmartBU")
+repo_path_entry.insert(0, str(_REPO_ROOT / "SmartBU").replace("\\", "/"))
 repo_path_entry.place(x=200.0, y=95.0, width=400.0, height=30.0)
 #Brouse button
 repo_browse_button = ttk.Button(tab2, text="Browse", command=browse_repo_path) #browse button to get repo path

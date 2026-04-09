@@ -7,7 +7,7 @@ echo    SmartBU Manual Test - Quick Check
 echo ========================================
 echo.
 
-cd /d C:\Ushin\Testbench_gui_Charan
+cd /d "%~dp0.."
 
 :: Quick essential checks
 echo Checking prerequisites...
@@ -69,7 +69,7 @@ if %errorlevel% equ 0 (
 
 :: Check Repository
 echo.
-if exist "C:\Ushin\Testbench_gui_Charan\SmartBU" (
+if exist "%~dp0..\SmartBU" (
     echo [OK] Repository found
 ) else (
     echo [WARN] Repository not found at default location
