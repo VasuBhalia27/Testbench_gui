@@ -63,7 +63,7 @@ class AutomationGUI:
             self.root = parent_widget
 
         # create the variant variable now that a root exists
-        self.variant = tk.IntVar(master=self.root, value=0)  # start unchecked; user must select
+        self.variant = tk.IntVar(master=self.root, value=1)  # default to Non-Driver
         # CAN/LIN enable toggle: 0 = OFF (disabled), 1 = ON (enabled)
         self.canlin_enabled = tk.IntVar(master=self.root, value=0)
         self.waiting_for_canlin = False  # True when hw init done and awaiting user CAN/LIN pick
@@ -76,7 +76,7 @@ class AutomationGUI:
         elif saved_psu_type in ("owon", "kikusui"):
             selected_psu_type = saved_psu_type
         else:
-            selected_psu_type = "owon"
+            selected_psu_type = "kikusui"
         if env_psu_automation in ("0", "false", "off", "no"):
             selected_psu_automation = 0
         elif env_psu_automation in ("1", "true", "on", "yes"):
@@ -184,7 +184,7 @@ class AutomationGUI:
                                       command=lambda: self._sync(2))
         self.nfc_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
-        # ensure checkbutton visual state reflects variable (start unchecked)
+        # ensure checkbutton visual state reflects variable
         if self.variant.get() == 1:
             self.non_nfc_cb.state(["selected"])
         else:
@@ -216,9 +216,15 @@ class AutomationGUI:
         )
         self.canlin_on_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
-        # initial visual state: both unchecked
-        self.canlin_off_cb.state(["!selected"])
-        self.canlin_on_cb.state(["!selected"])
+        # ensure checkbutton visual state reflects current CAN/LIN default
+        if self.canlin_enabled.get() == 0:
+            self.canlin_off_cb.state(["selected"])
+        else:
+            self.canlin_off_cb.state(["!selected"])
+        if self.canlin_enabled.get() == 1:
+            self.canlin_on_cb.state(["selected"])
+        else:
+            self.canlin_on_cb.state(["!selected"])
 
         # Power Supply frame (right side — third)
         self.psu_frame = ttk.Labelframe(self.control_frame, text="Power Supply")
@@ -303,11 +309,11 @@ class AutomationGUI:
         self.timer_start_time = None
         self.started = False
         self.start_button.config(state="normal")
-        self.variant.set(0)
-        self.non_nfc_cb.state(["!selected"])
+        self.variant.set(1)
+        self.non_nfc_cb.state(["selected"])
         self.nfc_cb.state(["!selected"])
         self.canlin_enabled.set(0)
-        self.canlin_off_cb.state(["!selected"])
+        self.canlin_off_cb.state(["selected"])
         self.canlin_on_cb.state(["!selected"])
         self.waiting_for_canlin = False
         self.clear_result_indicator()
@@ -490,12 +496,12 @@ class AutomationGUI:
         self._stop_timer()  # freezes display at final time; clears timer_start_time to stop rescheduling
         # Status text is now cleared only when Start button is clicked,
         # not here, so it persists after automation completes
-        # reset variant to unchecked state
-        self.variant.set(0)
-        self.non_nfc_cb.state(["!selected"])
+        # reset to default selections for next run
+        self.variant.set(1)
+        self.non_nfc_cb.state(["selected"])
         self.nfc_cb.state(["!selected"])
         self.canlin_enabled.set(0)
-        self.canlin_off_cb.state(["!selected"])
+        self.canlin_off_cb.state(["selected"])
         self.canlin_on_cb.state(["!selected"])
         self.waiting_for_canlin = False
 

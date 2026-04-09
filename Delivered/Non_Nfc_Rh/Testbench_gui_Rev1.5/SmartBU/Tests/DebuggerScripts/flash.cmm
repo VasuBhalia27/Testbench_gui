@@ -12,7 +12,7 @@
 ; Flash programming
 
 ; prepare flash programming (declarations)
-DO ~~~~/psoc4 PREPAREONLY
+DO ~~~~\psoc4.cmm PREPAREONLY
 
 ; ReProgram Flash
 FLASH.ReProgram ALL

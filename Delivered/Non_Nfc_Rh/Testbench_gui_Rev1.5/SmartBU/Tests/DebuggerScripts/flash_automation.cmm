@@ -12,12 +12,12 @@
 ; Flash programming
 
 ; prepare flash programming (declarations)
-DO ~~~~/psoc4 PREPAREONLY
+DO ~~~~\psoc4.cmm PREPAREONLY
 
 ; ReProgram Flash
 FLASH.ReProgram ALL
 &ExeFile=OS.ENV("TARGET_EXECUTABLE")
-Data.LOAD.Elf C:\UShin\Testbench_gui_Charan\SmartBU\Non_Nfc_Test\XNF-Handle_NonDriver_C2_App.elf
+Data.LOAD.Elf "C:\UShin\Testbench_gui_Charan\Delivered\Non_Nfc_Rh\Testbench_gui_Rev1.2\SmartBU\Non_Nfc_Test\XNF-Handle_NonDriver_C2_App.elf"
 FLASH.ReProgram OFF
 
 
