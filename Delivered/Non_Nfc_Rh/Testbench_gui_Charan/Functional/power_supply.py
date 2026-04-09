@@ -12,8 +12,9 @@ common API used by automation:
 
 Select the supply type with environment variable ``PSU_TYPE``:
 
-- ``owon`` (default)
-- ``kikusui``
+- ``kikusui`` (default)
+- ``pwr801ml``
+- ``owon``
 
 Optional explicit VISA resource env vars:
 
@@ -89,6 +90,17 @@ def find_kikusui_resource() -> Optional[str]:
             return resource
         idn = _probe_idn(resource)
         if idn and ("KIKUSUI" in idn or "PWR401L" in idn):
+            return resource
+    return None
+
+
+def find_kikusui_pwr801ml_resource() -> Optional[str]:
+    """Return first KIKUSUI PWR801ML VISA USB resource string, or None if not found."""
+    for resource in _list_usb_resources():
+        if _KIKUSUI_VID in resource.lower():
+            return resource
+        idn = _probe_idn(resource)
+        if idn and ("KIKUSUI" in idn or "PWR801ML" in idn):
             return resource
     return None
 
@@ -193,18 +205,35 @@ class KikusuiPWR401L(_ScpiPowerSupply):
         )
 
 
+class KikusuiPWR801ML(_ScpiPowerSupply):
+    """KIKUSUI PWR801ML programmable supply."""
+
+    def __init__(self, resource: Optional[str] = None):
+        super().__init__(
+            name="KIKUSUI PWR801ML",
+            resource=resource,
+            resolver=find_kikusui_pwr801ml_resource,
+            remote_cmd="SYST:REM",
+            local_cmd="SYST:LOC",
+        )
+
+
 def create_power_supply():
     """Create a PSU instance based on ``PSU_TYPE`` environment variable."""
-    psu_type = os.getenv("PSU_TYPE", "owon").strip().lower()
+    psu_type = os.getenv("PSU_TYPE", "kikusui").strip().lower()
 
     if psu_type == "kikusui":
         resource = os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None
         return KikusuiPWR401L(resource=resource)
+
+    if psu_type == "pwr801ml":
+        resource = os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None
+        return KikusuiPWR801ML(resource=resource)
 
     if psu_type == "owon":
         resource = os.getenv("OWON_PSU_RESOURCE", "").strip() or None
         return OwonP4305(resource=resource)
 
     raise ValueError(
-        f"Unsupported PSU_TYPE '{psu_type}'. Use 'owon' or 'kikusui'."
+        f"Unsupported PSU_TYPE '{psu_type}'. Use 'owon', 'kikusui', or 'pwr801ml'."
     )

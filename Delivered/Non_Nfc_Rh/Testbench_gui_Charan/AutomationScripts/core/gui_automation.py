@@ -71,12 +71,12 @@ class AutomationGUI:
         env_psu_automation = os.getenv("PSU_AUTOMATION", "").strip().lower()
         saved_psu_type = self._load_saved_psu_type()
         saved_psu_automation = self._load_saved_psu_automation()
-        if env_psu_type in ("owon", "kikusui"):
+        if env_psu_type in ("owon", "kikusui", "pwr801ml"):
             selected_psu_type = env_psu_type
-        elif saved_psu_type in ("owon", "kikusui"):
+        elif saved_psu_type in ("owon", "kikusui", "pwr801ml"):
             selected_psu_type = saved_psu_type
         else:
-            selected_psu_type = "owon"
+            selected_psu_type = "kikusui"
         if env_psu_automation in ("0", "false", "off", "no"):
             selected_psu_automation = 0
         elif env_psu_automation in ("1", "true", "on", "yes"):
@@ -227,7 +227,7 @@ class AutomationGUI:
         self.psu_type_cb = ttk.Combobox(
             self.psu_frame,
             textvariable=self.psu_type,
-            values=("OWON", "KIKUSUI"),
+            values=("OWON", "KIKUSUI", "PWR801ML"),
             state="readonly",
             width=12,
         )
@@ -319,8 +319,8 @@ class AutomationGUI:
         self.waiting_for_canlin = False
         self.clear_result_indicator()
         selected_psu = self.psu_type.get().strip().lower()
-        if selected_psu not in ("owon", "kikusui"):
-            selected_psu = "owon"
+        if selected_psu not in ("owon", "kikusui", "pwr801ml"):
+            selected_psu = "kikusui"
         psu_automation_enabled = 1 if self.psu_automation_enabled.get() else 0
         os.environ["PSU_TYPE"] = selected_psu
         os.environ["PSU_AUTOMATION"] = str(psu_automation_enabled)
@@ -555,7 +555,7 @@ class AutomationGUI:
                 return ""
             data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
             value = str(data.get("psu_type", "")).strip().lower()
-            if value in ("owon", "kikusui"):
+            if value in ("owon", "kikusui", "pwr801ml"):
                 return value
         except Exception:
             pass
