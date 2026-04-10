@@ -1,11 +1,14 @@
 import lauterbach.trace32.rcl as t32
 import subprocess # module to create an additional process
 import time
+import threading
 import tkinter as tk
 from tkinter import messagebox
 from enum import IntEnum
 from Functional.logging import *
 import os
+import ctypes
+from pathlib import Path
 import shutil
 import tempfile
 import re
@@ -93,41 +96,121 @@ def format_value_with_unit(variable_name, value):
         return str(value)
 
 
-def LaunchTrace32(repo_path_entry, selected_preset):
-    # --- STEP 1: Aggressive Cleanup ---
+def _reset_lauterbach_usb_device():
+    """
+    Performs a software USB unplug/replug of the Lauterbach PODBUS device.
+    Uses device name and VID_0897 to find the correct device, then waits
+    for it to come back OK before continuing.
+    Requires Administrator privileges.
+    """
     try:
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Poll until t32marm.exe is fully gone from the process list before
-        # launching a new instance.  This ensures the PODBUS USB driver is
-        # released and prevents the "TRACE32 device already used by other GUI"
-        # fatal error.  Up to 15 s is allowed; exits immediately once clear.
-        _deadline = time.time() + 15
-        while time.time() < _deadline:
-            _check = subprocess.run(
-                ["tasklist", "/FI", "IMAGENAME eq t32marm.exe", "/NH"],
-                capture_output=True, text=True
-            )
-            if "t32marm.exe" not in _check.stdout:
-                break
-            time.sleep(0.5)
+        if not ctypes.windll.shell32.IsUserAnAdmin():
+            return
+    except Exception:
+        return
+
+    ps_content = """
+$devices = Get-PnpDevice | Where-Object {
+    $_.FriendlyName -like '*Lauterbach*' -or
+    $_.FriendlyName -like '*TRACE32*' -or
+    $_.FriendlyName -like '*PODBUS*' -or
+    ($_.HardwareID -ne $null -and ($_.HardwareID | Where-Object { $_ -like '*VID_0897*' }))
+}
+if ($devices) {
+    foreach ($dev in $devices) {
+        Disable-PnpDevice -InstanceId $dev.InstanceId -Confirm:$false -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Seconds 3
+    foreach ($dev in $devices) {
+        Enable-PnpDevice -InstanceId $dev.InstanceId -Confirm:$false -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Seconds 3
+    foreach ($dev in $devices) {
+        try {
+            $parent = (Get-PnpDeviceProperty -InstanceId $dev.InstanceId -KeyName 'DEVPKEY_Device_Parent').Data
+            if ($parent) {
+                Disable-PnpDevice -InstanceId $parent -Confirm:$false -ErrorAction SilentlyContinue
+                Start-Sleep -Seconds 3
+                Enable-PnpDevice -InstanceId $parent -Confirm:$false -ErrorAction SilentlyContinue
+                Start-Sleep -Seconds 3
+            }
+        } catch {
+        }
+    }
+}
+"""
+    ps1_path = os.path.join(tempfile.gettempdir(), "reset_t32_usb.ps1")
+    try:
+        with open(ps1_path, 'w', encoding='utf-8') as f:
+            f.write(ps_content)
+        subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps1_path],
+            capture_output=True, timeout=25
+        )
     except Exception:
         pass
+    finally:
+        try:
+            os.remove(ps1_path)
+        except Exception:
+            pass
+
+    for _ in range(8):
+        try:
+            result = subprocess.run(
+                ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command",
+                 "Get-PnpDevice | Where-Object { $_.FriendlyName -like '*Lauterbach*' -or $_.FriendlyName -like '*TRACE32*' -or $_.FriendlyName -like '*PODBUS*' -or ($_.HardwareID -ne $null -and ($_.HardwareID | Where-Object { $_ -like '*VID_0897*' })) } | Select-Object -ExpandProperty Status"],
+                capture_output=True, text=True, timeout=10
+            )
+            if "ok" in result.stdout.lower():
+                return
+        except Exception:
+            pass
+        time.sleep(2)
+
+
+def LaunchTrace32(repo_path_entry, selected_preset):
+    # --- STEP 1: Aggressive Cleanup ---
+    _t32_processes = [
+        "t32marm.exe", "t32mwin64.exe", "t32server.exe",
+        "t32rem.exe", "t32rtck.exe", "t32start.exe", "trace32.exe"
+    ]
+    try:
+        for _proc in _t32_processes:
+            os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")
+        _deadline = time.time() + 20
+        while time.time() < _deadline:
+            _tasklist = subprocess.run(
+                ["tasklist"], capture_output=True, text=True
+            ).stdout.lower()
+            if not any(p.lower() in _tasklist for p in _t32_processes):
+                break
+            for _proc in _t32_processes:
+                os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")
+            time.sleep(0.5)
+
+        if ctypes.windll.shell32.IsUserAnAdmin():
+            _reset_lauterbach_usb_device()
+            time.sleep(4)
+        else:
+            messagebox.showwarning(
+                "Warning",
+                "TRACE32 USB reset requires administrator rights.\n"
+                "Run the GUI as Administrator so the driver can be released." 
+            )
+    except Exception:
+        pass
+
     # --- STEP 2: Path Validation ---
-    repo_path_XNF = repo_path_entry.get() 
+    repo_path_XNF = repo_path_entry.get()
     if not repo_path_XNF or not os.path.exists(repo_path_XNF):
         messagebox.showerror("Error", "BMW repository not found")
-        return 
+        return
+
     # --- STEP 3: Config & Launch ---
-    repo_path_XNF = repo_path_entry.get()
-    if repo_path_XNF and os.path.exists(repo_path_XNF):
-        autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
-    else:
-        messagebox.showerror("Error", "BMW repository not found")
-        return  # Stop execution if path is invalid
+    autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
 
     # Locate the Trace32 ARM debugger executable.
-    # Priority 1: conan2 cache (hash-independent glob).
-    # Priority 2: standard fixed installation at C:\T32.
     trace32_candidates = sorted(
         (Path.home() / ".conan2" / "p").glob("trace*/p/bin/windows64/t32marm.exe")
     )
@@ -147,25 +230,22 @@ def LaunchTrace32(repo_path_entry, selected_preset):
                 "Please verify your Lauterbach Trace32 installation."
             )
             return
-    
-    Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
+
+    Automation_repo_path = os.path.dirname(os.path.abspath(__file__))
     Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
     trace_configfile_path = f"{Automation_repo_path}\\Config\\config.t32"
     if not os.path.exists(trace_configfile_path):
-        # Backward compatibility for older folder layout.
         trace_configfile_path = f"{Automation_repo_path}\\config.t32"
-    
 
-    repo_path_XNF = str(repo_path_XNF)
-    repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\") 
+    repo_path_XNF_cleaned = repo_path_XNF.replace('/', "\\")
     autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
 
     edit_trace32_config_file(trace_configfile_path)
-    
+
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     subprocess.Popen(command)
-    # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
-    time.sleep(8) 
+    time.sleep(8)
+
 
 def autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry):
     autoexec_cmm = "autoexec.cmm"
@@ -238,23 +318,36 @@ def edit_cmm_path_name(changed_cmm):
 
 def edit_flash_cmm(filepath, selected_preset, repo_path_entry) -> None:
     """
-    Replace the line starting with Data.LOAD.Elf in the file at filepath
-    with `new_line` (exactly). Other lines stay the _same.
+    Write flash_automation.cmm that loads ELF symbols only (/NoCODE).
+    No flash reprogramming, no psoc41x9s.bin dependency.
+    Firmware must already be programmed on the target device.
+    This is identical to what the main project generates, which is why
+    the main project works without psoc41x9s.bin on any T32 version.
     """
-    new_line = get_select_preset(selected_preset, repo_path_entry)
-    #messagebox.showinfo(
-        #"Repository Path",
-        #f"new_line:\n{new_line}"
-    #)
+    elf_path = get_select_preset(selected_preset, repo_path_entry).rstrip('\r\n')
+
+    content = (
+        "; Flash automation - loads ELF symbols only, no flash reprogramming\n"
+        "; Firmware must already be programmed on the target device\n"
+        f"Data.LOAD.Elf {elf_path} /NoCODE\n"
+        "\n"
+        "Go.direct main\n"
+        "WAIT !STATE.RUN()\n"
+        "\n"
+        "GLOBAL &lowAddr &highAddr &magicPattern\n"
+        "&lowAddr=ADDRESS.OFFSET(__StackLimit)\n"
+        "&highAddr=ADDRESS.OFFSET(__stack)-1\n"
+        "&magicPattern=0xCCCCCCCC\n"
+        "Data.Set &lowAddr--&highAddr %Long &magicPattern\n"
+        "\n"
+        "ENDDO\n"
+    )
+
     dirn = os.path.dirname(filepath) or "."
     fd, tmpname = tempfile.mkstemp(dir=dirn)
     try:
-        with os.fdopen(fd, 'w', encoding='utf-8') as fout, open(filepath, 'r', encoding='utf-8', errors='ignore') as fin:
-            for line in fin:
-                if re.match(r'^\s*Data\.LOAD\.Elf\b', line):
-                    fout.write("Data.LOAD.Elf " + new_line.rstrip('\r\n') + "\n")
-                else:
-                    fout.write(line)
+        with os.fdopen(fd, 'w', encoding='utf-8') as fout:
+            fout.write(content)
         os.replace(tmpname, filepath)
     except Exception:
         os.remove(tmpname)
@@ -472,17 +565,43 @@ def RunCode(exec_label):
 
 def QuitTrace32(status_label=None):
     global dbg
-    try:
-        if dbg and hasattr(dbg, 'cmd'):
-            dbg.cmd("QUIT") 
-            dbg.exit()
-    except:
-        pass
-    finally:
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        dbg = ''
+    _dbg = dbg
+    globals()['dbg'] = ''
+    if status_label:
+        status_label.config(text="Status: Disconnecting...", fg="orange")
+
+    def _disconnect_worker():
+        try:
+            if _dbg and hasattr(_dbg, 'cmd'):
+                _dbg.cmd("QUIT")
+        except:
+            pass
+        try:
+            if _dbg and hasattr(_dbg, 'exit'):
+                _dbg.exit()
+        except:
+            pass
+        for _line in subprocess.run(["tasklist"], capture_output=True, text=True).stdout.splitlines():
+            lowered = _line.lower()
+            if "t32" in lowered or "trace" in lowered:
+                proc_name = _line.split()[0]
+                os.system(f"taskkill /F /IM {proc_name} /T >nul 2>&1")
+        _deadline = time.time() + 20
+        while time.time() < _deadline:
+            _tasklist = subprocess.run(
+                ["tasklist"], capture_output=True, text=True
+            ).stdout.lower()
+            if "t32" not in _tasklist and "trace" not in _tasklist:
+                break
+            for _line in _tasklist.splitlines():
+                if "t32" in _line or "trace" in _line:
+                    proc_name = _line.split()[0]
+                    os.system(f"taskkill /F /IM {proc_name} /T >nul 2>&1")
+            time.sleep(0.5)
         if status_label:
-            status_label.config(text="Status: Disconnected", fg="red")
+            status_label.after(0, lambda: status_label.config(text="Status: Disconnected", fg="red"))
+
+    threading.Thread(target=_disconnect_worker, daemon=True).start()
 
 def motor_decouple_couple(selected_motor_state):
     if selected_motor_state.get() == 1:
