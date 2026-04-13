@@ -110,11 +110,7 @@ class IntegratedAutomationRunner:
                 status_callback=self._log
             )
             # determine whether a Trace32 connection already exists (persisted from previous run or manual connect)
-            health_check = getattr(t32, '_is_dbg_connected', None)
-            if callable(health_check):
-                already_connected = health_check()
-            else:
-                already_connected = bool(getattr(t32, 'dbg', None))
+            already_connected = bool(getattr(t32, 'dbg', None))
             if already_connected:
                 self._log("Using existing Trace32 connection")
             else:

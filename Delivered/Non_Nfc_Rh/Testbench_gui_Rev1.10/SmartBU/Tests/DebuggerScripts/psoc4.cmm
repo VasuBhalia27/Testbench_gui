@@ -226,12 +226,7 @@ FlashDeclaration:
   )  
   ELSE IF CPUIS(CY8C4??7????BL*) 
   (
-     ; Trace32 releases may ship either psoc4xx7.bin or psoc4xx7bl.bin.
-     ; Prefer the available file to avoid "...bin not found" at FLASH.TARGET.
-     IF OS.FILE("~~/demo/arm/flash/long/psoc4xx7bl.bin")
-       &FlashDriver="psoc4xx7bl.bin"
-     ELSE
-       &FlashDriver="psoc4xx7.bin"
+     &FlashDriver="psoc4xx7.bin"
      &FlashSize=0x20000
      &SectorSize=0x80
   )

@@ -88,18 +88,6 @@ def browse_repo_path():
         repo_path_entry.xview_moveto(1)   # scroll so long paths stay visible
 
 
-def _resolve_default_smartbu_path() -> str:
-    """Resolve SmartBU path relative to project location (drive-independent)."""
-    current = Path(__file__).resolve()
-    for parent in current.parents:
-        candidate = parent / "SmartBU"
-        if candidate.is_dir():
-            return str(candidate)
-
-    # Fallback for layouts where SmartBU is directly under project root.
-    return str((_REPO_ROOT / "SmartBU").resolve())
-
-
 
 # ===================================================================================================================
 # ========== Initializations ========================================================================================
@@ -291,7 +279,7 @@ canvas2.create_text(60.0, 65.0, anchor="nw", text=" Path Setting ", fill="#F39C1
 
 canvas2.create_text(61.0, 100.0, anchor="nw", text="Select ELF path:  ", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 repo_path_entry = ttk.Entry(tab2, style ='Background_grey.TEntry')
-repo_path_entry.insert(0, _resolve_default_smartbu_path())
+repo_path_entry.insert(0, r"C:/UShin/Testbench_gui_Charan/SmartBU")
 repo_path_entry.place(x=200.0, y=95.0, width=400.0, height=30.0)
 #Brouse button
 repo_browse_button = ttk.Button(tab2, text="Browse", command=browse_repo_path) #browse button to get repo path
@@ -319,28 +307,11 @@ selected_preset_minsizerel.place(x=450, y=180)
 # --- Group 3: Debugger ---
 canvas2.create_rectangle(55.0, 240.0, 550.0, 380.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
-
-connect_trace32_in_progress = False
-
-
-def on_connect_trace32_click():
-    global connect_trace32_in_progress
-    if connect_trace32_in_progress:
-        return
-
-    connect_trace32_in_progress = True
-    connect_trace32.config(state="disabled")
-    try:
-        Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label)
-    finally:
-        connect_trace32.config(state="normal")
-        connect_trace32_in_progress = False
-
 #Connect Trace32 Button
 canvas2.create_text(61.0, 270.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], 
-                         command=on_connect_trace32_click,
+                         command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label), 
                          bd = 0)
 connect_trace32.place(x=200, y=260, width=34, height=34)
 

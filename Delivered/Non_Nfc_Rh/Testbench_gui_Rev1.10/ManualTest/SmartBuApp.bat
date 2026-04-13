@@ -1,5 +1,4 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
 title SmartBU Manual Test (Quick)
 color 0A
 
@@ -8,16 +7,7 @@ echo    SmartBU Manual Test - Quick Check
 echo ========================================
 echo.
 
-set "SCRIPT_DIR=%~dp0"
-set "PROJECT_ROOT=%SCRIPT_DIR%.."
-
-cd /d "%PROJECT_ROOT%"
-if %errorlevel% neq 0 (
-    echo [FAIL] Could not resolve project root from script location.
-    echo        Script path: %SCRIPT_DIR%
-    pause
-    exit /b 1
-)
+cd /d C:\Ushin\Testbench_gui_Charan
 
 :: Quick essential checks
 echo Checking prerequisites...
@@ -79,11 +69,10 @@ if %errorlevel% equ 0 (
 
 :: Check Repository
 echo.
-if exist "SmartBU" (
+if exist "C:\Ushin\Testbench_gui_Charan\SmartBU" (
     echo [OK] Repository found
 ) else (
-    echo [WARN] Repository folder not found under resolved project root
-    echo        Expected: %CD%\SmartBU
+    echo [WARN] Repository not found at default location
 )
 
 echo.
@@ -98,4 +87,3 @@ python Gui_Main_Script\gui_main.py
 echo.
 echo Application closed.
 pause
-endlocal
