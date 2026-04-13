@@ -576,6 +576,11 @@ class AutomationGUI:
             value = str(data.get("psu_type", "")).strip().lower()
             if value in ("owon", "kikusui"):
                 return value
+            # Tolerate common typos (e.g. "kikusi", "kikusu")
+            if value.startswith("kik"):
+                return "kikusui"
+            if value.startswith("owo"):
+                return "owon"
         except Exception:
             pass
         return ""
