@@ -12,8 +12,8 @@ common API used by automation:
 
 Select the supply type with environment variable ``PSU_TYPE``:
 
-- ``owon`` (default)
-- ``kikusui``
+- ``kikusui`` (default)
+- ``owon``
 
 Optional explicit VISA resource env vars:
 
@@ -88,7 +88,7 @@ def find_kikusui_resource() -> Optional[str]:
         if _KIKUSUI_VID in resource.lower():
             return resource
         idn = _probe_idn(resource)
-        if idn and ("KIKUSUI" in idn or "PWR401L" in idn):
+        if idn and ("KIKUSUI" in idn or "PWR801ML" in idn):
             return resource
     return None
 
@@ -180,12 +180,12 @@ class OwonP4305(_ScpiPowerSupply):
         )
 
 
-class KikusuiPWR401L(_ScpiPowerSupply):
-    """KIKUSUI PWR401L programmable supply."""
+class KikusuiPWR801ML(_ScpiPowerSupply):
+    """KIKUSUI PWR801ML programmable supply."""
 
     def __init__(self, resource: Optional[str] = None):
         super().__init__(
-            name="KIKUSUI PWR401L",
+            name="KIKUSUI PWR801ML",
             resource=resource,
             resolver=find_kikusui_resource,
             remote_cmd="SYST:REM",
@@ -195,11 +195,11 @@ class KikusuiPWR401L(_ScpiPowerSupply):
 
 def create_power_supply():
     """Create a PSU instance based on ``PSU_TYPE`` environment variable."""
-    psu_type = os.getenv("PSU_TYPE", "owon").strip().lower()
+    psu_type = os.getenv("PSU_TYPE", "kikusui").strip().lower()
 
     if psu_type == "kikusui":
         resource = os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None
-        return KikusuiPWR401L(resource=resource)
+        return KikusuiPWR801ML(resource=resource)
 
     if psu_type == "owon":
         resource = os.getenv("OWON_PSU_RESOURCE", "").strip() or None
