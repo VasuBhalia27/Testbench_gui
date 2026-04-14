@@ -40,15 +40,39 @@ _FAIL_FILL = PatternFill("solid", fgColor="FF4C4C")   # red
 _SKIP_FILL = PatternFill("solid", fgColor="FFFF00")   # yellow (not run)
 
 # ── Column indices (1-based) in the template ──────────────────────────────────
+_COL_SNO       = 1   # A  S No.
 _COL_TC_ID     = 2   # B  Test Case ID
+_COL_NAME      = 3   # C  Test Case Name
 _COL_PRE_ACT   = 4   # D  Pre Action
 _COL_STEPS     = 5   # E  Test Steps
 _COL_EXPECTED  = 6   # F  Expected Result
 _COL_POST_ACT  = 7   # G  Post Action
 _COL_OBS       = 8   # H  Observed Result
 _COL_STATUS    = 9   # I  Status
+_COL_REMARK    = 10  # J  Remark
 
-_WRAP_TOP = Alignment(wrap_text=True, vertical="top")
+_WRAP_TOP    = Alignment(wrap_text=True, vertical="top")
+_TOP_ONLY    = Alignment(vertical="top")
+_CENTER_BOTH = Alignment(horizontal="center", vertical="center")
+
+# ── Fonts and fills for the fallback workbook ──────────────────────────────────
+_CALIBRI_11  = Font(name="Calibri", size=11)
+_CALIBRI_11B = Font(name="Calibri", size=11, bold=True)
+_HEADER_FILL = PatternFill("solid", fgColor="FFC000")   # amber
+
+# ── Column widths matching the reference report ────────────────────────────────
+_COL_WIDTHS = {
+    1:  6.63,   # A  S No.
+    2: 12.09,   # B  Test Case ID
+    3: 28.63,   # C  Test Case Name
+    4: 58.54,   # D  Pre Action
+    5: 62.63,   # E  Test Steps
+    6: 55.91,   # F  Expected Result
+    7: 19.45,   # G  Post Action
+    8: 18.54,   # H  Observed Result
+    9: 20.00,   # I  Status
+    10:  8.63,  # J  Remark
+}
 
 # ── Shared automation pre/post actions ────────────────────────────────────────
 _PRE_COMMON = (
@@ -402,8 +426,8 @@ def _fill_sheet(ws, results: List[Dict[str, Any]]) -> None:
         status    = result.get("Status", "")
         stat_cell = ws.cell(row=row_idx, column=_COL_STATUS)
         stat_cell.value     = status
-        stat_cell.font      = Font(bold=True)
-        stat_cell.alignment = Alignment(horizontal="center", vertical="center")
+        stat_cell.font      = _CALIBRI_11B
+        stat_cell.alignment = _CENTER_BOTH
         stat_cell.fill = (
             _PASS_FILL if status == "PASS" else
             _FAIL_FILL if status == "FAIL" else
@@ -414,15 +438,16 @@ def _fill_sheet(ws, results: List[Dict[str, Any]]) -> None:
 # ── Fallback workbook builder (used when the Excel template is absent) ─────────
 
 _HEADERS = [
-    "",              # A – unused
-    "Test Case ID",  # B
-    "",              # C – unused
-    "Pre Action",    # D
-    "Test Steps",    # E
-    "Expected Result",  # F
-    "Post Action",   # G
-    "Observed Result",  # H
-    "Status",        # I
+    "S No.",             # A
+    "Test Case ID",      # B
+    "Test Case Name",    # C
+    "Pre Action",        # D
+    "Test Steps",        # E
+    "Expected Result ",  # F
+    "Post Action ",      # G
+    "Observed Result ",  # H
+    "Status ",           # I
+    "Remark ",           # J
 ]
 
 
@@ -435,42 +460,95 @@ def _create_report_workbook(
     template file cannot be found so the automation never fails silently
     with an empty or missing report.
     """
+    from openpyxl.utils import get_column_letter
+
     wb = openpyxl.Workbook()
     wb.remove(wb.active)  # discard the default blank sheet
-
-    header_font = Font(bold=True)
 
     for sheet_name, rows in results_by_sheet.items():
         ws = wb.create_sheet(title=sheet_name.strip() or "Results")
 
-        # Header row
+        # ── Column widths ─────────────────────────────────────────────────────
+        for col_idx, width in _COL_WIDTHS.items():
+            ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+        # ── Header row (row 1) ────────────────────────────────────────────────
+        ws.row_dimensions[1].height = 14.25
         for col_idx, header in enumerate(_HEADERS, start=1):
             c = ws.cell(row=1, column=col_idx)
             c.value = header
-            c.font  = header_font
+            c.font  = _CALIBRI_11B
+            c.fill  = _HEADER_FILL
 
-        # Data rows
-        for data_row_idx, row_data in enumerate(rows, start=2):
-            ws.cell(row=data_row_idx, column=_COL_TC_ID).value   = row_data.get("TestCaseID",   "")
-            ws.cell(row=data_row_idx, column=_COL_PRE_ACT).value = row_data.get("PreAction",    "")
-            ws.cell(row=data_row_idx, column=_COL_STEPS).value   = row_data.get("TestSteps",    "")
-            ws.cell(row=data_row_idx, column=_COL_EXPECTED).value= row_data.get("Expected",     "")
-            ws.cell(row=data_row_idx, column=_COL_POST_ACT).value= row_data.get("PostAction",   "")
+        # ── Data rows ─────────────────────────────────────────────────────────
+        for row_offset, row_data in enumerate(rows):
+            data_row_idx = row_offset + 2
+            ws.row_dimensions[data_row_idx].height = 150
 
-            obs_cell        = ws.cell(row=data_row_idx, column=_COL_OBS)
-            obs_cell.value  = row_data.get("ObservedText", "")
-            obs_cell.alignment = _WRAP_TOP
+            # A – S No.
+            c = ws.cell(row=data_row_idx, column=_COL_SNO)
+            c.value     = row_offset + 1
+            c.font      = _CALIBRI_11
+            c.alignment = _TOP_ONLY
 
+            # B – Test Case ID
+            c = ws.cell(row=data_row_idx, column=_COL_TC_ID)
+            c.value     = row_data.get("TestCaseID", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _TOP_ONLY
+
+            # C – Test Case Name
+            c = ws.cell(row=data_row_idx, column=_COL_NAME)
+            c.value     = row_data.get("TestName", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _WRAP_TOP
+
+            # D – Pre Action
+            c = ws.cell(row=data_row_idx, column=_COL_PRE_ACT)
+            c.value     = row_data.get("PreAction", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _WRAP_TOP
+
+            # E – Test Steps
+            c = ws.cell(row=data_row_idx, column=_COL_STEPS)
+            c.value     = row_data.get("TestSteps", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _WRAP_TOP
+
+            # F – Expected Result
+            c = ws.cell(row=data_row_idx, column=_COL_EXPECTED)
+            c.value     = row_data.get("Expected", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _WRAP_TOP
+
+            # G – Post Action
+            c = ws.cell(row=data_row_idx, column=_COL_POST_ACT)
+            c.value     = row_data.get("PostAction", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _WRAP_TOP
+
+            # H – Observed Result
+            c = ws.cell(row=data_row_idx, column=_COL_OBS)
+            c.value     = row_data.get("ObservedText", "")
+            c.font      = _CALIBRI_11
+            c.alignment = _WRAP_TOP
+
+            # I – Status
             status    = row_data.get("Status", "")
             stat_cell = ws.cell(row=data_row_idx, column=_COL_STATUS)
             stat_cell.value     = status
-            stat_cell.font      = Font(bold=True)
-            stat_cell.alignment = Alignment(horizontal="center", vertical="center")
+            stat_cell.font      = _CALIBRI_11B
+            stat_cell.alignment = _CENTER_BOTH
             stat_cell.fill = (
                 _PASS_FILL if status == "PASS" else
                 _FAIL_FILL if status == "FAIL" else
                 _SKIP_FILL
             )
+
+            # J – Remark (intentionally left blank)
+            c = ws.cell(row=data_row_idx, column=_COL_REMARK)
+            c.font      = _CALIBRI_11
+            c.alignment = _TOP_ONLY
 
     if not wb.sheetnames:
         wb.create_sheet("Results")
