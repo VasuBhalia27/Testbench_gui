@@ -25,8 +25,11 @@ import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
+# Paths are always resolved relative to this source file so the report
+# generator works regardless of the current working directory or where
+# the project folder is located on disk.
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.join(_HERE, "..")
+_ROOT = os.path.normpath(os.path.join(_HERE, ".."))
 
 TEMPLATE_PATH = os.path.join(_ROOT, "AutomationTest", "Smart_BU_Test Specification.xlsx")
 REPORTS_DIR   = os.path.join(_ROOT, "AutomationTest", "reports")
@@ -408,6 +411,73 @@ def _fill_sheet(ws, results: List[Dict[str, Any]]) -> None:
         )
 
 
+# ── Fallback workbook builder (used when the Excel template is absent) ─────────
+
+_HEADERS = [
+    "",              # A – unused
+    "Test Case ID",  # B
+    "",              # C – unused
+    "Pre Action",    # D
+    "Test Steps",    # E
+    "Expected Result",  # F
+    "Post Action",   # G
+    "Observed Result",  # H
+    "Status",        # I
+]
+
+
+def _create_report_workbook(
+    results_by_sheet: Dict[str, List[Dict[str, Any]]],
+) -> "openpyxl.Workbook":
+    """Build a fresh Excel workbook from *results_by_sheet*.
+
+    Called automatically by :func:`generate_report` when the Excel
+    template file cannot be found so the automation never fails silently
+    with an empty or missing report.
+    """
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # discard the default blank sheet
+
+    header_font = Font(bold=True)
+
+    for sheet_name, rows in results_by_sheet.items():
+        ws = wb.create_sheet(title=sheet_name.strip() or "Results")
+
+        # Header row
+        for col_idx, header in enumerate(_HEADERS, start=1):
+            c = ws.cell(row=1, column=col_idx)
+            c.value = header
+            c.font  = header_font
+
+        # Data rows
+        for data_row_idx, row_data in enumerate(rows, start=2):
+            ws.cell(row=data_row_idx, column=_COL_TC_ID).value   = row_data.get("TestCaseID",   "")
+            ws.cell(row=data_row_idx, column=_COL_PRE_ACT).value = row_data.get("PreAction",    "")
+            ws.cell(row=data_row_idx, column=_COL_STEPS).value   = row_data.get("TestSteps",    "")
+            ws.cell(row=data_row_idx, column=_COL_EXPECTED).value= row_data.get("Expected",     "")
+            ws.cell(row=data_row_idx, column=_COL_POST_ACT).value= row_data.get("PostAction",   "")
+
+            obs_cell        = ws.cell(row=data_row_idx, column=_COL_OBS)
+            obs_cell.value  = row_data.get("ObservedText", "")
+            obs_cell.alignment = _WRAP_TOP
+
+            status    = row_data.get("Status", "")
+            stat_cell = ws.cell(row=data_row_idx, column=_COL_STATUS)
+            stat_cell.value     = status
+            stat_cell.font      = Font(bold=True)
+            stat_cell.alignment = Alignment(horizontal="center", vertical="center")
+            stat_cell.fill = (
+                _PASS_FILL if status == "PASS" else
+                _FAIL_FILL if status == "FAIL" else
+                _SKIP_FILL
+            )
+
+    if not wb.sheetnames:
+        wb.create_sheet("Results")
+
+    return wb
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def generate_report(
@@ -440,32 +510,38 @@ def generate_report(
         ts          = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.xlsx")
 
-    output_path = os.path.abspath(output_path)
-    shutil.copy2(os.path.abspath(TEMPLATE_PATH), output_path)
+    output_path  = os.path.abspath(output_path)
+    template_abs = os.path.abspath(TEMPLATE_PATH)
 
-    wb = openpyxl.load_workbook(output_path)
+    if os.path.isfile(template_abs):
+        # ── Template-based path ───────────────────────────────────────────────
+        shutil.copy2(template_abs, output_path)
+        wb = openpyxl.load_workbook(output_path)
 
-    # Remove sheets not relevant to automated testing
-    for sheet_to_remove in ("Voltage_Check", "Common Operations_Preconditions"):
-        if sheet_to_remove in wb.sheetnames:
-            del wb[sheet_to_remove]
+        # Remove sheets not relevant to automated testing
+        for sheet_to_remove in ("Voltage_Check", "Common Operations_Preconditions"):
+            if sheet_to_remove in wb.sheetnames:
+                del wb[sheet_to_remove]
 
-    for sheet_name, rows in results_by_sheet.items():
-        if sheet_name in wb.sheetnames and rows:
-            _fill_sheet(wb[sheet_name], rows)
-            # Delete any template row whose TC_ID was not executed
-            executed_ids = {
-                str(r.get("TestCaseID", "")).strip()
-                for r in rows if r.get("TestCaseID")
-            }
-            ws = wb[sheet_name]
-            to_delete = [
-                row_idx
-                for row_idx in range(2, ws.max_row + 1)
-                if str(ws.cell(row=row_idx, column=_COL_TC_ID).value or "").strip() not in ("", *executed_ids)
-            ]
-            for row_idx in reversed(to_delete):
-                ws.delete_rows(row_idx)
+        for sheet_name, rows in results_by_sheet.items():
+            if sheet_name in wb.sheetnames and rows:
+                _fill_sheet(wb[sheet_name], rows)
+                # Delete any template row whose TC_ID was not executed
+                executed_ids = {
+                    str(r.get("TestCaseID", "")).strip()
+                    for r in rows if r.get("TestCaseID")
+                }
+                ws = wb[sheet_name]
+                to_delete = [
+                    row_idx
+                    for row_idx in range(2, ws.max_row + 1)
+                    if str(ws.cell(row=row_idx, column=_COL_TC_ID).value or "").strip() not in ("", *executed_ids)
+                ]
+                for row_idx in reversed(to_delete):
+                    ws.delete_rows(row_idx)
+    else:
+        # ── Fallback: build report from scratch when template is absent ────────
+        wb = _create_report_workbook(results_by_sheet)
 
     wb.save(output_path)
     wb.close()
