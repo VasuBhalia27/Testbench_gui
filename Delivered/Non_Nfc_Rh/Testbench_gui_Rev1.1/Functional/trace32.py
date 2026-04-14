@@ -136,8 +136,16 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     # --- STEP 1: Aggressive Cleanup ---
     try:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Critical wait time for the USB driver to physically reset
-        time.sleep(3) 
+        # Wait until t32marm.exe is fully gone (up to 15 seconds)
+        # so the USB/PODBUS driver has time to physically release the device
+        for _ in range(30):
+            result = subprocess.run(
+                ['tasklist', '/FI', 'IMAGENAME eq t32marm.exe'],
+                capture_output=True, text=True
+            )
+            if 't32marm.exe' not in result.stdout:
+                break
+            time.sleep(0.5)
     except:
         pass
     # --- STEP 2: Path Validation ---
@@ -490,6 +498,16 @@ def QuitTrace32(status_label=None):
         pass
     finally:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        # Wait until the process is actually gone so the USB driver releases cleanly
+        for _ in range(20):
+            result = subprocess.run(
+                ['tasklist', '/FI', 'IMAGENAME eq t32marm.exe'],
+                capture_output=True, text=True
+            )
+            if 't32marm.exe' not in result.stdout:
+                break
+            time.sleep(0.5)
+        time.sleep(1)
         dbg = ''
         if status_label:
             status_label.config(text="Status: Disconnected", fg="red")
