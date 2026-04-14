@@ -1,0 +1,21 @@
+PRIVATE &lowAddr &highAddr &pattern &addr
+ENTRY   &lowAddr &highAddr &pattern
+
+IF ("&lowAddr"=="")||("&highAddr"=="")||("&pattern "=="")
+(
+    PRINT %ERROR "At least one of the 3 required parameters is missing"
+    ENDDO
+)
+VAR.NEWGLOBAL int \stacksize=0
+VAR.NEWGLOBAL int \stackusage=0
+
+&addr=&lowAddr   
+WHILE (Data.LONG(D:&addr)==&pattern)&&(&addr<&highAddr)
+    &addr=&addr+4
+
+Var.Set %SPaces \stacksize = (&highAddr - &lowAddr) + 1
+Var.Set %SPaces \stackusage = (&highAddr - &addr) + 1
+Var.View \stacksize \stackusage (100*\stackusage)/\stacksize    // Show result
+ENDDO
+
+; Call with DO Tests/DebuggerScripts/stackcheck.cmm &lowAddr &highAddr &magicPattern
