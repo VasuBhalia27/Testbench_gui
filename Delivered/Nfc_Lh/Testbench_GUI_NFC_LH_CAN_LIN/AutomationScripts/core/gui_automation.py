@@ -76,7 +76,7 @@ class AutomationGUI:
         elif saved_psu_type in ("owon", "kikusui"):
             selected_psu_type = saved_psu_type
         else:
-            selected_psu_type = "owon"
+            selected_psu_type = "kikusui"
         if env_psu_automation in ("0", "false", "off", "no"):
             selected_psu_automation = 0
         elif env_psu_automation in ("1", "true", "on", "yes"):

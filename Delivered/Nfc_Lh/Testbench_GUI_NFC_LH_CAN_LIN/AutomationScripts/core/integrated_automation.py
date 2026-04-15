@@ -317,7 +317,7 @@ class IntegratedAutomationRunner:
             else:
                 passed = bool(result)
 
-            icon   = "✓" if passed else "✗"
+            icon   = "✅" if passed else "❌"
             status = "PASS" if passed else "FAIL"
             self._log(f"  {icon} {name}: {status}")
 

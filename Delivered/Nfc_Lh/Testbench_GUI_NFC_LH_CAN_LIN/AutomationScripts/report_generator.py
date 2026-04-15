@@ -38,15 +38,39 @@ _FAIL_FILL = PatternFill("solid", fgColor="FF4C4C")   # red
 _SKIP_FILL = PatternFill("solid", fgColor="FFFF00")   # yellow (not run)
 
 # ── Column indices (1-based) in the template ──────────────────────────────────
+_COL_SNO       = 1   # A  S No.
 _COL_TC_ID     = 2   # B  Test Case ID
+_COL_NAME      = 3   # C  Test Case Name
 _COL_PRE_ACT   = 4   # D  Pre Action
 _COL_STEPS     = 5   # E  Test Steps
 _COL_EXPECTED  = 6   # F  Expected Result
 _COL_POST_ACT  = 7   # G  Post Action
 _COL_OBS       = 8   # H  Observed Result
 _COL_STATUS    = 9   # I  Status
+_COL_REMARK    = 10  # J  Remark
 
-_WRAP_TOP = Alignment(wrap_text=True, vertical="top")
+_WRAP_TOP    = Alignment(wrap_text=True, vertical="top")
+_TOP_ONLY    = Alignment(vertical="top")
+_CENTER_BOTH = Alignment(horizontal="center", vertical="center")
+
+# ── Fonts and fills for generated sheets ──────────────────────────────────────
+_CALIBRI_11  = Font(name="Calibri", size=11)
+_CALIBRI_11B = Font(name="Calibri", size=11, bold=True)
+_HEADER_FILL = PatternFill("solid", fgColor="FFC000")   # amber
+
+# ── Column widths matching the reference report ───────────────────────────────
+_COL_WIDTHS = {
+    1:  6.63,   # A  S No.
+    2: 12.09,   # B  Test Case ID
+    3: 28.63,   # C  Test Case Name
+    4: 58.54,   # D  Pre Action
+    5: 62.63,   # E  Test Steps
+    6: 55.91,   # F  Expected Result
+    7: 19.45,   # G  Post Action
+    8: 18.54,   # H  Observed Result
+    9: 20.00,   # I  Status
+    10:  8.63,  # J  Remark
+}
 
 _GENERATED_HEADERS = [
     "S No.",
@@ -54,10 +78,11 @@ _GENERATED_HEADERS = [
     "Test Case Name",
     "Pre Action",
     "Test Steps",
-    "Expected Result",
-    "Post Action",
-    "Observed Result",
-    "Status",
+    "Expected Result ",
+    "Post Action ",
+    "Observed Result ",
+    "Status ",
+    "Remark ",
     "Remark",
 ]
 
@@ -515,8 +540,8 @@ def _fill_sheet(ws, results: List[Dict[str, Any]]) -> None:
         status    = result.get("Status", "")
         stat_cell = ws.cell(row=row_idx, column=_COL_STATUS)
         stat_cell.value     = status
-        stat_cell.font      = Font(bold=True)
-        stat_cell.alignment = Alignment(horizontal="center", vertical="center")
+        stat_cell.font      = _CALIBRI_11B
+        stat_cell.alignment = _CENTER_BOTH
         stat_cell.fill = (
             _PASS_FILL if status == "PASS" else
             _FAIL_FILL if status == "FAIL" else
@@ -542,53 +567,129 @@ def _copy_cell_style(source, target) -> None:
 
 
 def _create_generated_sheet(wb, sheet_name: str):
-    template_name = "Capa" if "Capa" in wb.sheetnames else wb.sheetnames[0]
-    template_ws = wb[template_name]
-
     ws = wb.create_sheet(title=sheet_name)
 
-    for col_idx in range(1, len(_GENERATED_HEADERS) + 1):
-        template_cell = template_ws.cell(row=1, column=col_idx)
-        target_cell = ws.cell(row=1, column=col_idx)
-        target_cell.value = _GENERATED_HEADERS[col_idx - 1]
-        _copy_cell_style(template_cell, target_cell)
-        if not target_cell.alignment:
-            target_cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        if not target_cell.font:
-            target_cell.font = Font(bold=True)
+    # Apply column widths
+    for col_idx, width in _COL_WIDTHS.items():
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col_idx)].width = width
 
-        column_letter = openpyxl.utils.get_column_letter(col_idx)
-        ws.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
+    # Header row
+    ws.row_dimensions[1].height = 14.25
+    for col_idx, header in enumerate(_GENERATED_HEADERS, start=1):
+        c = ws.cell(row=1, column=col_idx)
+        c.value = header
+        c.font  = _CALIBRI_11B
+        c.fill  = _HEADER_FILL
 
-    ws.row_dimensions[1].height = template_ws.row_dimensions[1].height
     return ws
 
 
 def _populate_generated_sheet(ws, rows: List[Dict[str, Any]]) -> None:
-    for row_idx, result in enumerate(rows, start=2):
-        values = [
-            row_idx - 1,
-            result.get("TestCaseID", ""),
-            result.get("TestName", ""),
-            result.get("PreAction", ""),
-            result.get("TestSteps", ""),
-            result.get("Expected", ""),
-            result.get("PostAction", ""),
-            result.get("ObservedText", ""),
-            result.get("Status", ""),
-            "",
-        ]
-        for col_idx, value in enumerate(values, start=1):
-            cell = ws.cell(row=row_idx, column=col_idx)
-            cell.value = value
-            cell.alignment = _WRAP_TOP if col_idx not in (1, 9) else Alignment(horizontal="center", vertical="center", wrap_text=True)
-            if col_idx == 9:
-                cell.font = Font(bold=True)
-                cell.fill = (
-                    _PASS_FILL if value == "PASS" else
-                    _FAIL_FILL if value == "FAIL" else
-                    _SKIP_FILL
-                )
+    for row_offset, result in enumerate(rows):
+        row_idx = row_offset + 2
+        ws.row_dimensions[row_idx].height = 150
+
+        # A – S No.
+        c = ws.cell(row=row_idx, column=_COL_SNO)
+        c.value     = row_offset + 1
+        c.font      = _CALIBRI_11
+        c.alignment = _TOP_ONLY
+
+        # B – Test Case ID
+        c = ws.cell(row=row_idx, column=_COL_TC_ID)
+        c.value     = result.get("TestCaseID", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _TOP_ONLY
+
+        # C – Test Case Name
+        c = ws.cell(row=row_idx, column=_COL_NAME)
+        c.value     = result.get("TestName", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # D – Pre Action
+        c = ws.cell(row=row_idx, column=_COL_PRE_ACT)
+        c.value     = result.get("PreAction", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # E – Test Steps
+        c = ws.cell(row=row_idx, column=_COL_STEPS)
+        c.value     = result.get("TestSteps", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # F – Expected Result
+        c = ws.cell(row=row_idx, column=_COL_EXPECTED)
+        c.value     = result.get("Expected", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # G – Post Action
+        c = ws.cell(row=row_idx, column=_COL_POST_ACT)
+        c.value     = result.get("PostAction", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # H – Observed Result
+        c = ws.cell(row=row_idx, column=_COL_OBS)
+        c.value     = result.get("ObservedText", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # I – Status
+        status    = result.get("Status", "")
+        stat_cell = ws.cell(row=row_idx, column=_COL_STATUS)
+        stat_cell.value     = status
+        stat_cell.font      = _CALIBRI_11B
+        stat_cell.alignment = _CENTER_BOTH
+        stat_cell.fill = (
+            _PASS_FILL if status == "PASS" else
+            _FAIL_FILL if status == "FAIL" else
+            _SKIP_FILL
+        )
+
+        # J – Remark (intentionally blank)
+        c = ws.cell(row=row_idx, column=_COL_REMARK)
+        c.font      = _CALIBRI_11
+        c.alignment = _TOP_ONLY
+
+
+# ── Fallback workbook builder (used when the Excel template is absent) ─────────
+
+def _create_report_workbook(
+    results_by_sheet: Dict[str, List[Dict[str, Any]]],
+) -> "openpyxl.Workbook":
+    """Build a fresh Excel workbook from *results_by_sheet*.
+
+    Called automatically by :func:`generate_report` when the Excel
+    template file cannot be found so the automation never fails silently
+    with an empty or missing report.
+    """
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # discard the default blank sheet
+
+    for sheet_name, rows in results_by_sheet.items():
+        ws = wb.create_sheet(title=sheet_name.strip() or "Results")
+        _create_generated_sheet_into(ws)
+        _populate_generated_sheet(ws, rows)
+
+    if not wb.sheetnames:
+        wb.create_sheet("Results")
+
+    return wb
+
+
+def _create_generated_sheet_into(ws) -> None:
+    """Apply column widths and header row formatting to *ws* in-place."""
+    for col_idx, width in _COL_WIDTHS.items():
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col_idx)].width = width
+    ws.row_dimensions[1].height = 14.25
+    for col_idx, header in enumerate(_GENERATED_HEADERS, start=1):
+        c = ws.cell(row=1, column=col_idx)
+        c.value = header
+        c.font  = _CALIBRI_11B
+        c.fill  = _HEADER_FILL
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -623,39 +724,45 @@ def generate_report(
         ts          = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.xlsx")
 
-    output_path = os.path.abspath(output_path)
-    shutil.copy2(os.path.abspath(TEMPLATE_PATH), output_path)
+    output_path  = os.path.abspath(output_path)
+    template_abs = os.path.abspath(TEMPLATE_PATH)
 
-    wb = openpyxl.load_workbook(output_path)
+    if os.path.isfile(template_abs):
+        # ── Template-based path ───────────────────────────────────────────────
+        shutil.copy2(template_abs, output_path)
+        wb = openpyxl.load_workbook(output_path)
 
-    # Remove sheets not relevant to automated testing
-    for sheet_to_remove in ("Voltage_Check", "Common Operations_Preconditions"):
-        if sheet_to_remove in wb.sheetnames:
-            del wb[sheet_to_remove]
+        # Remove sheets not relevant to automated testing
+        for sheet_to_remove in ("Voltage_Check", "Common Operations_Preconditions"):
+            if sheet_to_remove in wb.sheetnames:
+                del wb[sheet_to_remove]
 
-    for sheet_name, rows in results_by_sheet.items():
-        if not rows:
-            continue
+        for sheet_name, rows in results_by_sheet.items():
+            if not rows:
+                continue
 
-        if sheet_name in wb.sheetnames:
-            _fill_sheet(wb[sheet_name], rows)
-            # Delete any template row whose TC_ID was not executed
-            executed_ids = {
-                str(r.get("TestCaseID", "")).strip()
-                for r in rows if r.get("TestCaseID")
-            }
-            ws = wb[sheet_name]
-            to_delete = [
-                row_idx
-                for row_idx in range(2, ws.max_row + 1)
-                if str(ws.cell(row=row_idx, column=_COL_TC_ID).value or "").strip() not in ("", *executed_ids)
-            ]
-            for row_idx in reversed(to_delete):
-                ws.delete_rows(row_idx)
-            continue
+            if sheet_name in wb.sheetnames:
+                _fill_sheet(wb[sheet_name], rows)
+                # Delete any template row whose TC_ID was not executed
+                executed_ids = {
+                    str(r.get("TestCaseID", "")).strip()
+                    for r in rows if r.get("TestCaseID")
+                }
+                ws = wb[sheet_name]
+                to_delete = [
+                    row_idx
+                    for row_idx in range(2, ws.max_row + 1)
+                    if str(ws.cell(row=row_idx, column=_COL_TC_ID).value or "").strip() not in ("", *executed_ids)
+                ]
+                for row_idx in reversed(to_delete):
+                    ws.delete_rows(row_idx)
+                continue
 
-        ws = _create_generated_sheet(wb, sheet_name)
-        _populate_generated_sheet(ws, rows)
+            ws = _create_generated_sheet(wb, sheet_name)
+            _populate_generated_sheet(ws, rows)
+    else:
+        # ── Fallback: build report from scratch when template is absent ────────
+        wb = _create_report_workbook(results_by_sheet)
 
     wb.save(output_path)
     wb.close()

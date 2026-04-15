@@ -402,9 +402,9 @@ canvas2.create_text(
 # --- Shared PASS/FAIL helpers (used by all test tabs) ---
 def _set_pf(lbl, passed):
     if passed:
-        lbl.config(text="PASS", bg="#27AE60", fg="#FFFFFF")
+        lbl.config(text="✓ PASS", bg="#27AE60", fg="#FFFFFF")
     else:
-        lbl.config(text="FAIL", bg="#C0392B", fg="#FFFFFF")
+        lbl.config(text="✗ FAIL", bg="#C0392B", fg="#FFFFFF")
 
 def _set_overall(lbl, results):
     if all(results):

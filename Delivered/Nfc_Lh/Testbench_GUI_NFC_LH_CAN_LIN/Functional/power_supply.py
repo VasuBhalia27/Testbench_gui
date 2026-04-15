@@ -12,8 +12,8 @@ common API used by automation:
 
 Select the supply type with environment variable ``PSU_TYPE``:
 
-- ``owon`` (default)
-- ``kikusui``
+- ``kikusui`` (default)
+- ``owon``
 
 Optional explicit VISA resource env vars:
 
@@ -88,7 +88,7 @@ def find_kikusui_resource() -> Optional[str]:
         if _KIKUSUI_VID in resource.lower():
             return resource
         idn = _probe_idn(resource)
-        if idn and ("KIKUSUI" in idn or "PWR401L" in idn):
+        if idn and ("KIKUSUI" in idn or "PWR801ML" in idn):
             return resource
     return None
 
@@ -180,12 +180,12 @@ class OwonP4305(_ScpiPowerSupply):
         )
 
 
-class KikusuiPWR401L(_ScpiPowerSupply):
-    """KIKUSUI PWR401L programmable supply."""
+class KikusuiPWR801ML(_ScpiPowerSupply):
+    """KIKUSUI PWR801ML programmable supply."""
 
     def __init__(self, resource: Optional[str] = None):
         super().__init__(
-            name="KIKUSUI PWR401L",
+            name="KIKUSUI PWR801ML",
             resource=resource,
             resolver=find_kikusui_resource,
             remote_cmd="SYST:REM",
@@ -194,17 +194,40 @@ class KikusuiPWR401L(_ScpiPowerSupply):
 
 
 def create_power_supply():
-    """Create a PSU instance based on ``PSU_TYPE`` environment variable."""
-    psu_type = os.getenv("PSU_TYPE", "owon").strip().lower()
+    """Create a PSU instance based on ``PSU_TYPE`` environment variable.
 
+    If the requested PSU is not physically found on USB/VISA, the function
+    automatically tries the other supported model before giving up.  This
+    allows the test to continue even when a different supply than configured
+    is connected.
+    """
+    psu_type = os.getenv("PSU_TYPE", "kikusui").strip().lower()
+
+    # Build the preferred supply first, then the alternative.
     if psu_type == "kikusui":
-        resource = os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None
-        return KikusuiPWR401L(resource=resource)
+        preferred = KikusuiPWR801ML(resource=os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None)
+        alternative = OwonP4305(resource=os.getenv("OWON_PSU_RESOURCE", "").strip() or None)
+        alt_name = "OWON"
+    elif psu_type == "owon":
+        preferred = OwonP4305(resource=os.getenv("OWON_PSU_RESOURCE", "").strip() or None)
+        alternative = KikusuiPWR801ML(resource=os.getenv("KIKUSUI_PSU_RESOURCE", "").strip() or None)
+        alt_name = "KIKUSUI"
+    else:
+        raise ValueError(
+            f"Unsupported PSU_TYPE '{psu_type}'. Use 'owon' or 'kikusui'."
+        )
 
-    if psu_type == "owon":
-        resource = os.getenv("OWON_PSU_RESOURCE", "").strip() or None
-        return OwonP4305(resource=resource)
+    # Probe preferred supply: if its USB resource is visible, return it.
+    if preferred._resource or preferred._resolver() is not None:
+        return preferred
 
-    raise ValueError(
-        f"Unsupported PSU_TYPE '{psu_type}'. Use 'owon' or 'kikusui'."
-    )
+    # Preferred not found - try the alternative.
+    if alternative._resource or alternative._resolver() is not None:
+        print(f"[PSU] {psu_type.upper()} not detected; falling back to {alt_name}.")
+        return alternative
+
+    # Neither found: return the preferred instance anyway so the caller can
+    # surface a meaningful error message rather than raising here.
+    print(f"[PSU] No supported power supply detected on USB. "
+          f"Test will continue without PSU control.")
+    return preferred
