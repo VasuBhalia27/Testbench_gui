@@ -109,6 +109,45 @@ VARIABLE_UNITS_MAP = {
 dbg = ''
 execution_status =''
 
+# ---------------------------------------------------------------------------
+# Trace32 executable discovery
+# ---------------------------------------------------------------------------
+_STANDARD_T32_EXE = Path(r"C:\T32\bin\windows64\t32marm.exe")
+
+def find_trace32():
+    """Return (exe_path_str, sys_dir_str) for the installed Trace32 package.
+
+    Search order:
+      1. Conan2 package cache  (~/.conan2/p/trace*/p/bin/windows64/t32marm.exe)
+      2. Standard Lauterbach installation  (C:\\T32\\bin\\windows64\\t32marm.exe)
+      3. System PATH  (shutil.which)
+
+    The SYS directory is derived as three levels up from the executable
+    (…/bin/windows64/t32marm.exe  →  SYS=…).
+    Returns (None, None) if Trace32 cannot be located.
+    """
+    # 1 — Conan2 cache
+    conan2_hits = sorted(
+        (Path.home() / ".conan2" / "p").glob("trace*/p/bin/windows64/t32marm.exe")
+    )
+    if conan2_hits:
+        exe = conan2_hits[-1]
+        return str(exe), str(exe.parent.parent.parent)
+
+    # 2 — Standard installation
+    if _STANDARD_T32_EXE.is_file():
+        exe = _STANDARD_T32_EXE
+        return str(exe), str(exe.parent.parent.parent)
+
+    # 3 — System PATH
+    on_path = shutil.which("t32marm.exe")
+    if on_path:
+        exe = Path(on_path)
+        return str(exe), str(exe.parent.parent.parent)
+
+    return None, None
+# ---------------------------------------------------------------------------
+
 def format_value_with_unit(variable_name, value):
     """
     Format a value with its corresponding unit.
@@ -142,8 +181,16 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     # --- STEP 1: Aggressive Cleanup ---
     try:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Critical wait time for the USB driver to physically reset
-        time.sleep(3) 
+        # Wait until t32marm.exe is fully gone (up to 15 seconds)
+        # so the USB/PODBUS driver has time to physically release the device
+        for _ in range(30):
+            result = subprocess.run(
+                ['tasklist', '/FI', 'IMAGENAME eq t32marm.exe'],
+                capture_output=True, text=True
+            )
+            if 't32marm.exe' not in result.stdout:
+                break
+            time.sleep(0.5)
     except:
         pass
     # --- STEP 2: Path Validation ---
@@ -159,20 +206,19 @@ def LaunchTrace32(repo_path_entry, selected_preset):
         messagebox.showerror("Error", "BMW repository not found")
         return  # Stop execution if path is invalid
 
-    # Locate the Trace32 ARM debugger executable under the user's conan2 cache.
-    # The package directory name contains a hash that differs per installation,
-    # so we glob for any 'trace*' directory instead of hardcoding one hash.
-    trace32_candidates = sorted(
-        (Path.home() / ".conan2" / "p").glob("trace*/p/bin/windows64/t32marm.exe")
-    )
-    if not trace32_candidates:
+    # Locate the Trace32 ARM debugger executable (Conan2, standard install, or PATH).
+    trace32_path, _ = find_trace32()
+    if not trace32_path:
         messagebox.showerror(
             "Error",
-            "Trace32 ARM debugger not found in ~/.conan2 package cache.\n"
-            "Please verify your Lauterbach Trace32 conan2 installation."
+            "Trace32 ARM debugger (t32marm.exe) not found.\n"
+            "Checked:\n"
+            "  \u2022 Conan2 cache  (~/.conan2/p/trace*/p/)\n"
+            "  \u2022 Standard install  (C:\\T32\\bin\\windows64\\)\n"
+            "  \u2022 System PATH\n\n"
+            "Please install Lauterbach Trace32 and try again."
         )
         return
-    trace32_path = str(trace32_candidates[-1])
     
     Automation_repo_path = os.path.dirname(os.path.abspath(__file__)) #to get the path of user being currently used.
     Automation_repo_path = Automation_repo_path.replace('\\Functional', "")
@@ -333,14 +379,12 @@ def get_select_preset(selected_preset, repo_path_entry):
 def edit_trace32_config_file(filename):
 
     target_prefix = "SYS="
-    
-    # Locate the Trace32 package root directory dynamically.
-    conan2_candidates = sorted(
-        (Path.home() / ".conan2" / "p").glob("trace*/p")
-    )
-    if not conan2_candidates:
+
+    # Locate the Trace32 SYS directory (Conan2, standard install, or PATH).
+    _, sys_dir = find_trace32()
+    if not sys_dir:
         return False
-    new_path = str(conan2_candidates[-1])
+    new_path = sys_dir
 
     replacement_line = "SYS=" + new_path + "\n"
     

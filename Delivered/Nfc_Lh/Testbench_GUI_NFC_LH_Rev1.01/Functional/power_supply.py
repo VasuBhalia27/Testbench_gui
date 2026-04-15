@@ -221,7 +221,7 @@ def create_power_supply():
     if preferred._resource or preferred._resolver() is not None:
         return preferred
 
-    # Preferred not found — try the alternative.
+    # Preferred not found - try the alternative.
     if alternative._resource or alternative._resolver() is not None:
         print(f"[PSU] {psu_type.upper()} not detected; falling back to {alt_name}.")
         return alternative
