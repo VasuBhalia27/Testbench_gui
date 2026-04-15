@@ -24,7 +24,8 @@ class TestFunctionCmd(IntEnum):
     TEST_GUI_CMD_NFC_TEST_e              = 107  
     TEST_GUI_CMD_CAN_TEST_e              = 108  
     TEST_GUI_CMD_LIN_e                   = 109  
-    TESTFW_GUI_CMD_INVALID_e             = 110
+    TEST_GUI_CMD_NFC_SPI_DIAG_e          = 110
+    TESTFW_GUI_CMD_INVALID_e             = 111
 
 # Mapping of variable names to their units
 VARIABLE_UNITS_MAP = {
@@ -65,9 +66,43 @@ VARIABLE_UNITS_MAP = {
     
     # NFC Test
     "TestFw_IsNfcDetectedCard": "bool",
+    "TestFw_NfcRxDataLength": "bytes",
     
     # CAN Test
     "DummyBytes": "bytes",
+    "TestFw_CanRxDataValid": "bool",
+    "TestFw_CanRxMessageId": "hex",
+    "TestFw_CanRxBytes.dummy_byte0_U8": "",
+    "TestFw_CanRxBytes.dummy_byte1_U8": "",
+    "TestFw_CanRxBytes.dummy_byte2_U8": "",
+    "TestFw_CanRxBytes.dummy_byte3_U8": "",
+    "TestFw_CanRxBytes.dummy_byte4_U8": "",
+    "TestFw_CanRxBytes.dummy_byte5_U8": "",
+    "TestFw_CanRxBytes.dummy_byte6_U8": "",
+    "TestFw_CanRxBytes.dummy_byte7_U8": "",
+    "TestFw_CanFaultLatch": "",
+
+    # NFC Test
+    "TestFw_IsNfcDetectedCard": "bool",
+    "TestFw_NfcRxDataLength": "",
+    "TestFw_NfcSpiError": "bool",
+    "TestFw_NfcHwVersion": "hex",
+    "TestFw_NfcRomVersion": "hex",
+    "TestFw_NfcFwVersion": "hex",
+    "TestFw_NfcNtsmState": "",
+
+    # LIN Test
+    "TestFw_LinTxPid": "hex",
+    "TestFw_LinRxDataValid": "bool",
+    "TestFw_LinRxPid": "hex",
+    "TestFw_LinRxData_aU8[0]": "",
+    "TestFw_LinRxData_aU8[1]": "",
+    "TestFw_LinRxData_aU8[2]": "",
+    "TestFw_LinRxData_aU8[3]": "",
+    "TestFw_LinRxData_aU8[4]": "",
+    "TestFw_LinRxData_aU8[5]": "",
+    "TestFw_LinRxData_aU8[6]": "",
+    "TestFw_LinRxData_aU8[7]": "",
 }
 
 
@@ -124,9 +159,19 @@ def format_value_with_unit(variable_name, value):
     Returns:
         Formatted string with value and unit, e.g., "12.5 mV"
     """
+    if variable_name == "TestFw_CanRxDataValid":
+        val = int(value)
+        if val == 1:
+            return "1 Yes"
+        if val == 0:
+            return "0 No"
+        return str(val)
+
     unit = VARIABLE_UNITS_MAP.get(variable_name, "")
-    
-    if unit:
+
+    if unit == "hex":
+        return hex(int(value))
+    elif unit:
         return f"{value} {unit}"
     else:
         return str(value)
@@ -168,9 +213,9 @@ def LaunchTrace32(repo_path_entry, selected_preset):
             "Error",
             "Trace32 ARM debugger (t32marm.exe) not found.\n"
             "Checked:\n"
-            "  • Conan2 cache  (~/.conan2/p/trace*/p/)\n"
-            "  • Standard install  (C:\\T32\\bin\\windows64\\)\n"
-            "  • System PATH\n\n"
+            "  \u2022 Conan2 cache  (~/.conan2/p/trace*/p/)\n"
+            "  \u2022 Standard install  (C:\\T32\\bin\\windows64\\)\n"
+            "  \u2022 System PATH\n\n"
             "Please install Lauterbach Trace32 and try again."
         )
         return
@@ -368,12 +413,30 @@ def edit_trace32_config_file(filename):
 
 def ConnectToTraceUDP():
     global dbg
-    try:
-        dbg = t32.connect(node='localhost', port=20006,protocol='UDP', packlen=1024, timeout=5.0)
-        dbg.print("Hello")
+    # Close any existing connection before attempting a new one to avoid
+    # stale socket state from a previous session.
+    if dbg and hasattr(dbg, 'exit'):
+        try:
+            dbg.exit()
+        except Exception:
+            pass
+    dbg = ''
 
-    except Exception as e:
-        messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
+    # Retry up to 3 times with a short delay between attempts.
+    # TRACE32 may still be initialising its UDP port right after launch.
+    last_exc = None
+    for attempt in range(3):
+        try:
+            dbg = t32.connect(node='localhost', port=20006, protocol='UDP', packlen=1024, timeout=5.0)
+            dbg.print("Hello")
+            return
+        except Exception as e:
+            last_exc = e
+            dbg = ''
+            if attempt < 2:
+                time.sleep(3)
+
+    messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
 
 
 def SendDIDGetVal(entry_widget, DID, get_val_var):
@@ -492,22 +555,13 @@ def QuitTrace32(status_label=None):
     global dbg
     try:
         if dbg and hasattr(dbg, 'cmd'):
+            dbg.cmd("SYStem.Down")  # Properly detach probe before quitting to avoid stuck hardware state on reconnect
             dbg.cmd("QUIT") 
             dbg.exit()
     except:
         pass
     finally:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Wait until the process is actually gone so the USB driver releases cleanly
-        for _ in range(20):
-            result = subprocess.run(
-                ['tasklist', '/FI', 'IMAGENAME eq t32marm.exe'],
-                capture_output=True, text=True
-            )
-            if 't32marm.exe' not in result.stdout:
-                break
-            time.sleep(0.5)
-        time.sleep(1)
         dbg = ''
         if status_label:
             status_label.config(text="Status: Disconnected", fg="red")

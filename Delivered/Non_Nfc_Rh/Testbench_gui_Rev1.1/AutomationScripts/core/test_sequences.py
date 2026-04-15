@@ -10,7 +10,7 @@ added later as the automation coverage expands.
 """
 
 import time
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from AutomationScripts.core.trace32_adapter import Trace32Interface
 
@@ -142,6 +142,177 @@ class TestSequenceRunner:
         capa = CapaTest(self.adapter, status_callback=self._log)
         return capa.run()
 
+    @staticmethod
+    def _as_number(value: Any) -> Optional[float]:
+        """Convert a debugger value to float, returning None on parse failure."""
+        if value is None:
+            return None
+        try:
+            return float(str(value).strip())
+        except Exception:
+            return None
+
+    @staticmethod
+    def _as_int(value: Any) -> Optional[int]:
+        """Convert a debugger value to int, returning None on parse failure."""
+        number = TestSequenceRunner._as_number(value)
+        if number is None:
+            return None
+        try:
+            return int(number)
+        except Exception:
+            return None
+
+    def _run_nfc_test_with_logging(self) -> dict:
+        """Run NFC test, log fetched data, and evaluate strict pass/fail."""
+        self._log("NFC: preparing test variables")
+        self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+
+        self._log("NFC: sending test command")
+        self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e)
+        time.sleep(2)
+
+        nfc_vars = {
+            "detected": self.adapter.read_variable("TestFw_IsNfcDetectedCard"),
+            "spi_error": self.adapter.read_variable("TestFw_NfcSpiError"),
+            "rx_len": self.adapter.read_variable("TestFw_NfcRxDataLength"),
+            "hw_ver": self.adapter.read_variable("TestFw_NfcHwVersion"),
+            "rom_ver": self.adapter.read_variable("TestFw_NfcRomVersion"),
+            "fw_ver": self.adapter.read_variable("TestFw_NfcFwVersion"),
+            "ntsm_state": self.adapter.read_variable("TestFw_NfcNtsmState"),
+        }
+
+        self._log(
+            "NFC data: "
+            f"detected={nfc_vars['detected']}, "
+            f"spi_error={nfc_vars['spi_error']}, "
+            f"hw=0x{(self._as_int(nfc_vars['hw_ver']) or 0):X}, "
+            f"rom=0x{(self._as_int(nfc_vars['rom_ver']) or 0):X}, "
+            f"fw=0x{(self._as_int(nfc_vars['fw_ver']) or 0):X}"
+        )
+
+        detected = self._as_int(nfc_vars["detected"])
+        spi_error = self._as_int(nfc_vars["spi_error"])
+        rx_len = self._as_int(nfc_vars["rx_len"])
+        hw_ver = self._as_int(nfc_vars["hw_ver"])
+        rom_ver = self._as_int(nfc_vars["rom_ver"])
+        fw_ver = self._as_int(nfc_vars["fw_ver"])
+
+        # Match manual NFC tab behavior: overall PASS is based on SPI
+        # diagnostics, while card-detect is informational only.
+        passed = (
+            spi_error == 0
+            and hw_ver not in (None, 0)
+            and rom_ver not in (None, 0)
+            and fw_ver not in (None, 0)
+        )
+
+        self._log(f"NFC result: {'✓ PASS' if passed else '✗ FAIL'}")
+        return {
+            "pass": passed,
+            "detected": detected,
+            "spi_error": spi_error,
+            "rx_len": rx_len,
+            "hw_ver": hw_ver,
+            "rom_ver": rom_ver,
+            "fw_ver": fw_ver,
+            "ntsm_state": self._as_int(nfc_vars["ntsm_state"]),
+        }
+
+    def _run_can_test_with_logging(self) -> dict:
+        """Run CAN test with automatic loopback setup and Tx/Rx logging."""
+        tx_bytes = [11, 22, 33, 44, 55, 66, 77, 88]
+
+        self._log("CAN: enabling local loopback and awake mode")
+        self.adapter.set_variable("TestFw_CanGuiLocalLoopbackEnable", 1)
+        self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+
+        for idx, value in enumerate(tx_bytes):
+            self.adapter.set_variable(f"DummyBytes.dummy_byte{idx}_U8", value)
+        self._log(f"CAN TX data: msg_id=0x796, bytes={tx_bytes}")
+
+        self._log("CAN: sending test command")
+        self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
+        time.sleep(2)
+
+        rx_valid = self._as_int(self.adapter.read_variable("TestFw_CanRxDataValid"))
+        rx_msg_id = self._as_int(self.adapter.read_variable("TestFw_CanRxMessageId"))
+        rx_bytes = [
+            self._as_int(self.adapter.read_variable(f"TestFw_CanRxBytes.dummy_byte{i}_U8"))
+            for i in range(8)
+        ]
+        can_active = self._as_int(self.adapter.read_variable("TestFw_CanIsActiveState"))
+        fault_latch = self._as_int(self.adapter.read_variable("TestFw_CanFaultLatch"))
+
+        self._log(
+            "CAN RX data: "
+            f"valid={rx_valid}, msg_id=0x{(rx_msg_id or 0):X}, bytes={rx_bytes}, "
+            f"active={can_active}"
+        )
+
+        any_rx_nonzero = any(v not in (None, 0) for v in rx_bytes)
+        # Match manual CAN tab loopback behavior: in local loopback mode
+        # only RxDataValid is required; bus-level indicators are suppressed.
+        passed = (
+            rx_valid == 1
+            and any_rx_nonzero
+        )
+
+        self._log(f"CAN result: {'✓ PASS' if passed else '✗ FAIL'}")
+        return {
+            "pass": passed,
+            "tx_bytes": tx_bytes,
+            "rx_valid": rx_valid,
+            "rx_msg_id": rx_msg_id,
+            "rx_bytes": rx_bytes,
+            "can_active": can_active,
+            "fault_latch": fault_latch,
+        }
+
+    def _run_lin_test_with_logging(self) -> dict:
+        """Run LIN test with automatic Tx setup and Tx/Rx logging."""
+        tx_pid = 0x3A
+        tx_bytes = [44, 55, 66, 77, 11, 22, 33, 44]
+
+        self._log("LIN: setting Tx PID and Tx bytes")
+        self.adapter.set_variable("TestFw_LinTxPid", tx_pid)
+        for idx, value in enumerate(tx_bytes):
+            self.adapter.set_variable(f"TestFw_LinTxByte{idx}", value)
+        self._log(f"LIN TX data: msg_id=0x{tx_pid:X}, bytes={tx_bytes}")
+
+        self._log("LIN: sending test command")
+        self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_LIN_e)
+        time.sleep(2)
+
+        rx_valid = self._as_int(self.adapter.read_variable("TestFw_LinRxDataValid"))
+        rx_pid = self._as_int(self.adapter.read_variable("TestFw_LinRxPid"))
+        rx_bytes = [
+            self._as_int(self.adapter.read_variable(f"TestFw_LinRxData_aU8[{i}]"))
+            for i in range(8)
+        ]
+
+        self._log(
+            "LIN RX data: "
+            f"valid={rx_valid}, msg_id=0x{(rx_pid or 0):X}, bytes={rx_bytes}"
+        )
+
+        any_rx_nonzero = any(v not in (None, 0) for v in rx_bytes)
+        passed = (
+            rx_valid == 1
+            and any_rx_nonzero
+            and rx_pid is not None
+        )
+
+        self._log(f"LIN result: {'✓ PASS' if passed else '✗ FAIL'}")
+        return {
+            "pass": passed,
+            "tx_pid": tx_pid,
+            "tx_bytes": tx_bytes,
+            "rx_valid": rx_valid,
+            "rx_pid": rx_pid,
+            "rx_bytes": rx_bytes,
+        }
+
     # ------------------------------------------------------------------
     def run_for_variant(self, variant: int) -> dict:
         """Execute all applicable tests for the selected variant.
@@ -210,27 +381,23 @@ class TestSequenceRunner:
 
         # placeholder logic for other tests; vary by variant
         if variant == 2:
-            # NFC test: trigger the NFC DID and check whether a card is detected.
-            self._log("NFC: sending test command")
-            self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_NFC_TEST_e)
-            time.sleep(2)
             try:
-                nfc_val = self.adapter.read_variable("TestFw_IsNfcDetectedCard")
-                results['nfc'] = (nfc_val is not None and int(float(str(nfc_val))) == 1)
-            except Exception:
-                results['nfc'] = False
-                self._log("NFC: variable read failed")
+                results['nfc'] = self._run_nfc_test_with_logging()
+            except Exception as exc:
+                self._log(f"NFC: test failed with exception: {exc}")
+                results['nfc'] = {'pass': False}
 
-            # CAN test: trigger the CAN DID and verify frames were transferred.
-            self._log("CAN: sending test command")
-            self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
-            time.sleep(2)
             try:
-                can_val = self.adapter.read_variable("DummyBytes")
-                results['can'] = (can_val is not None and float(str(can_val)) > 0)
-            except Exception:
-                results['can'] = False
-                self._log("CAN: variable read failed")
+                results['can'] = self._run_can_test_with_logging()
+            except Exception as exc:
+                self._log(f"CAN: test failed with exception: {exc}")
+                results['can'] = {'pass': False}
+
+            try:
+                results['lin'] = self._run_lin_test_with_logging()
+            except Exception as exc:
+                self._log(f"LIN: test failed with exception: {exc}")
+                results['lin'] = {'pass': False}
 
         # the remaining tests will eventually be added here
         return results

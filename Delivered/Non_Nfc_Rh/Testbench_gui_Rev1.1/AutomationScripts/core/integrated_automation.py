@@ -272,8 +272,7 @@ class IntegratedAutomationRunner:
             self.psu.output_on()
             self._log("PSU: output ON")
         except Exception as e:
-            self._log(f"⚠ PSU power-on failed (continuing without PSU): {e}")
-            self.psu = None
+            self._log(f"⚠ PSU power-on failed: {e}")
 
     def power_off_supply(self) -> None:
         """Disable configured PSU output and close the connection."""
@@ -288,8 +287,7 @@ class IntegratedAutomationRunner:
             self.psu.output_off()
             self._log("PSU: output OFF")
         except Exception as e:
-            self._log(f"⚠ PSU output-off failed (continuing without PSU): {e}")
-            self.psu = None
+            self._log(f"⚠ PSU output-off failed: {e}")
         try:
             if self.psu is not None:
                 self.psu.disconnect()
@@ -319,8 +317,9 @@ class IntegratedAutomationRunner:
             else:
                 passed = bool(result)
 
+            icon   = "✅" if passed else "❌"
             status = "PASS" if passed else "FAIL"
-            self._log(f"  {name}: {status}")
+            self._log(f"  {icon} {name}: {status}")
 
             if not passed:
                 all_passed = False

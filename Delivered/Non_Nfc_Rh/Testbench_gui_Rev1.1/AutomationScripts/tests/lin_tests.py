@@ -19,3 +19,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_lin_tests() -> list:
+    """Execute all LIN tab tests."""
+    return run_suite()

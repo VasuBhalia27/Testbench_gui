@@ -38,3 +38,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_motor_tests() -> list:
+    """Execute all motor tab tests."""
+    return run_suite()

@@ -91,57 +91,43 @@ class AutomationGUI:
 
     def _build_ui(self, container):
         """Construct the GUI layout."""
-        # ---- Company logo (upper-left, matching Settings tab style) ----
-        logo_bar = tk.Frame(container, bg="#DFDFDF")
-        logo_bar.pack(fill="x", padx=0, pady=(4, 0))
+        # ---- Top section: two-column layout ----
+        # Left panel: logo + Test Result Status box
+        # Right panel: header text + welcome + buttons + PSU
+        top_section = tk.Frame(container, bg="#DFDFDF")
+        top_section.pack(fill="x", padx=0, pady=(4, 4))
+
+        # --- LEFT PANEL ---
+        left_panel = tk.Frame(top_section, bg="#DFDFDF", width=320)
+        left_panel.pack(side="left", fill="y", padx=(8, 0))
+        left_panel.pack_propagate(False)  # keep fixed width
+
+        # Company logo
         try:
             self._logo_image = PhotoImage(file=str(_ASSETS_DIR / "minebea_logo_12.png"))
-            logo_label = tk.Label(logo_bar, image=self._logo_image, bg="#DFDFDF")
-            logo_label.pack(side="left", padx=10)
+            logo_label = tk.Label(left_panel, image=self._logo_image, bg="#DFDFDF")
+            logo_label.pack(anchor="w", padx=6, pady=(4, 6))
         except Exception:
             self._logo_image = None  # logo file missing — skip silently
 
-        # Welcome header
-        header = ttk.Label(container, text="SmartBU Test Automation",
-                           font=(None, 16, "bold"))
-        header.pack(pady=10)
-
-        welcome = ttk.Label(container,
-                            text="Welcome to SmartBU Test Automation\n"
-                                 "Click 'Start' to begin the setup and test sequence.",
-                            font=(None, 10), justify="center")
-        welcome.pack(pady=5)
-
-        # Button row: Start and End side by side
-        btn_frame = ttk.Frame(container)
-        btn_frame.pack(pady=10)
-
-        self.start_button = ttk.Button(btn_frame, text="Start",
-                                       command=self._on_start)
-        self.start_button.pack(side="left", padx=8)
-
-        self.end_button = ttk.Button(btn_frame, text="End",
-                                     command=self._on_end)
-        self.end_button.pack(side="left", padx=8)
-
-        # Operator acknowledgement: status panel placed just after End button.
-        self.result_frame = tk.Frame(btn_frame, bg="#DFDFDF", bd=1, relief="solid")
-        self.result_frame.pack(side="left", padx=(16, 0), ipadx=8, ipady=4)
+        # Test Result Status box occupies the rest of the left panel
+        self.result_frame = tk.Frame(left_panel, bg="#DFDFDF", bd=2, relief="groove")
+        self.result_frame.pack(fill="both", expand=True, padx=6, pady=(0, 6))
 
         self.result_title = ttk.Label(
             self.result_frame,
             text="Test Result Status",
-            font=(None, 9, "bold"),
+            font=(None, 13, "bold"),
         )
-        self.result_title.pack(anchor="w", padx=6, pady=(2, 0))
+        self.result_title.pack(anchor="w", padx=10, pady=(8, 4))
 
         self.result_row = tk.Frame(self.result_frame, bg="#DFDFDF")
-        self.result_row.pack(fill="x", padx=6, pady=(0, 3))
+        self.result_row.pack(anchor="w", padx=10, pady=(0, 8))
 
         self.result_indicator = tk.Label(
             self.result_row,
             text="",
-            font=("Segoe UI Emoji", 20, "bold"),
+            font=("Segoe UI Emoji", 28, "bold"),
             fg="#1A1A1A",
             bg="#DFDFDF",
             width=2,
@@ -151,9 +137,58 @@ class AutomationGUI:
         self.result_status_text = ttk.Label(
             self.result_row,
             text="Pending",
-            font=(None, 10, "bold"),
+            font=(None, 16, "bold"),
         )
-        self.result_status_text.pack(side="left", padx=(6, 0))
+        self.result_status_text.pack(side="left", padx=(8, 0))
+
+        # --- RIGHT PANEL ---
+        right_panel = tk.Frame(top_section, bg="#DFDFDF")
+        right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
+
+        # Welcome header
+        header = ttk.Label(right_panel, text="SmartBU Test Automation",
+                           font=(None, 16, "bold"))
+        header.pack(pady=(10, 4))
+
+        welcome = ttk.Label(right_panel,
+                            text="Welcome to SmartBU Test Automation\n"
+                                 "Click 'Start' to begin the setup and test sequence.",
+                            font=(None, 10), justify="center")
+        welcome.pack(pady=(0, 6))
+
+        # Button row: Start / End / Power Supply
+        btn_frame = ttk.Frame(right_panel)
+        btn_frame.pack(pady=(0, 8))
+
+        self.start_button = ttk.Button(btn_frame, text="Start",
+                                       command=self._on_start)
+        self.start_button.pack(side="left", padx=8)
+
+        self.end_button = ttk.Button(btn_frame, text="End",
+                                     command=self._on_end)
+        self.end_button.pack(side="left", padx=8)
+
+        # Power Supply frame — always visible so it can be changed before Start.
+        self.psu_frame = ttk.Labelframe(btn_frame, text="Power Supply")
+        self.psu_frame.pack(side="left", padx=(16, 0))
+
+        self.psu_type_cb = ttk.Combobox(
+            self.psu_frame,
+            textvariable=self.psu_type,
+            values=("OWON", "KIKUSUI"),
+            state="readonly",
+            width=12,
+        )
+        self.psu_type_cb.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+
+        self.psu_automation_cb = ttk.Checkbutton(
+            self.psu_frame,
+            text="Automation ON",
+            variable=self.psu_automation_enabled,
+            onvalue=1,
+            offvalue=0,
+        )
+        self.psu_automation_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
         # Create a main area that will hold control_frame above status_frame.
         # Using grid inside this area ensures the control frame stays above the
@@ -220,28 +255,6 @@ class AutomationGUI:
         self.canlin_off_cb.state(["!selected"])
         self.canlin_on_cb.state(["!selected"])
 
-        # Power Supply frame (right side — third)
-        self.psu_frame = ttk.Labelframe(self.control_frame, text="Power Supply")
-        self.psu_frame.pack(side="left", padx=(0, 20), fill="x", expand=False)
-
-        self.psu_type_cb = ttk.Combobox(
-            self.psu_frame,
-            textvariable=self.psu_type,
-            values=("OWON", "KIKUSUI"),
-            state="readonly",
-            width=12,
-        )
-        self.psu_type_cb.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-
-        self.psu_automation_cb = ttk.Checkbutton(
-            self.psu_frame,
-            text="Automation ON",
-            variable=self.psu_automation_enabled,
-            onvalue=1,
-            offvalue=0,
-        )
-        self.psu_automation_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-
         # Timer label (right side of control frame)
         self.timer_label = ttk.Label(self.control_frame,
                                      text="Time Elapsed: 00:00",
@@ -303,6 +316,8 @@ class AutomationGUI:
         self.timer_start_time = None
         self.started = False
         self.start_button.config(state="normal")
+        self.psu_type_cb.config(state="readonly")
+        self.psu_automation_cb.config(state="normal")
         self.variant.set(0)
         self.non_nfc_cb.state(["!selected"])
         self.nfc_cb.state(["!selected"])
@@ -326,6 +341,8 @@ class AutomationGUI:
         os.environ["PSU_AUTOMATION"] = str(psu_automation_enabled)
         self._save_psu_type(selected_psu)
         self.start_button.config(state="disabled")
+        self.psu_type_cb.config(state="disabled")
+        self.psu_automation_cb.config(state="disabled")
         # Grid control_frame into main_area row 0 so it appears above status
         try:
             self.control_frame.grid(in_=self.main_area, row=0, column=0, sticky="ew", pady=(0,5))
@@ -485,6 +502,8 @@ class AutomationGUI:
         """Reset GUI to allow another automation run."""
         self.started = False
         self.start_button.config(state="normal")
+        self.psu_type_cb.config(state="readonly")
+        self.psu_automation_cb.config(state="normal")
         # keep control_frame visible so handle selection and timer remain
         # available for the user after a run completes
         self._stop_timer()  # freezes display at final time; clears timer_start_time to stop rescheduling
@@ -557,6 +576,11 @@ class AutomationGUI:
             value = str(data.get("psu_type", "")).strip().lower()
             if value in ("owon", "kikusui"):
                 return value
+            # Tolerate common typos (e.g. "kikusi", "kikusu")
+            if value.startswith("kik"):
+                return "kikusui"
+            if value.startswith("owo"):
+                return "owon"
         except Exception:
             pass
         return ""

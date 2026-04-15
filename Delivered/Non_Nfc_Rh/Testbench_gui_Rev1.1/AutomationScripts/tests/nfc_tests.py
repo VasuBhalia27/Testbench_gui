@@ -19,3 +19,8 @@ def run_suite():
             "Details": details,
         })
     return results
+
+
+def execute_all_nfc_tests() -> list:
+    """Execute all NFC tab tests."""
+    return run_suite()

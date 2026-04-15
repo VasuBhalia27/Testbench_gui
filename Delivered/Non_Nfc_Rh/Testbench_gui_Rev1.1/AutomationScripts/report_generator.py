@@ -11,13 +11,14 @@ Typical usage (called automatically from ``IntegratedAutomationRunner``)::
     path = generate_report(run_results=results)   # results = run_for_variant()
     print(f"Report saved to: {path}")
 
-NFC, CAN and LIN sheets are left untouched (not applicable for this variant).
+NFC, CAN and LIN sheets are filled when those automated test results are present.
 """
 
 from __future__ import annotations
 
 import os
 import shutil
+from copy import copy
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -25,11 +26,8 @@ import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-# Paths are always resolved relative to this source file so the report
-# generator works regardless of the current working directory or where
-# the project folder is located on disk.
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.normpath(os.path.join(_HERE, ".."))
+_ROOT = os.path.join(_HERE, "..")
 
 TEMPLATE_PATH = os.path.join(_ROOT, "AutomationTest", "Smart_BU_Test Specification.xlsx")
 REPORTS_DIR   = os.path.join(_ROOT, "AutomationTest", "reports")
@@ -55,12 +53,12 @@ _WRAP_TOP    = Alignment(wrap_text=True, vertical="top")
 _TOP_ONLY    = Alignment(vertical="top")
 _CENTER_BOTH = Alignment(horizontal="center", vertical="center")
 
-# ── Fonts and fills for the fallback workbook ──────────────────────────────────
+# ── Fonts and fills for generated sheets ──────────────────────────────────────
 _CALIBRI_11  = Font(name="Calibri", size=11)
 _CALIBRI_11B = Font(name="Calibri", size=11, bold=True)
 _HEADER_FILL = PatternFill("solid", fgColor="FFC000")   # amber
 
-# ── Column widths matching the reference report ────────────────────────────────
+# ── Column widths matching the reference report ───────────────────────────────
 _COL_WIDTHS = {
     1:  6.63,   # A  S No.
     2: 12.09,   # B  Test Case ID
@@ -73,6 +71,20 @@ _COL_WIDTHS = {
     9: 20.00,   # I  Status
     10:  8.63,  # J  Remark
 }
+
+_GENERATED_HEADERS = [
+    "S No.",
+    "Test Case ID",
+    "Test Case Name",
+    "Pre Action",
+    "Test Steps",
+    "Expected Result ",
+    "Post Action ",
+    "Observed Result ",
+    "Status ",
+    "Remark ",
+    "Remark",
+]
 
 # ── Shared automation pre/post actions ────────────────────────────────────────
 _PRE_COMMON = (
@@ -131,6 +143,9 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
         eos_set  : {'pass': bool, 'voltage': float}
         sg1      : {'pass': bool, 'plus': float, 'minus': float, 'opamp': float}
         sg2      : {'pass': bool, 'plus': float, 'minus': float, 'opamp': float}
+        nfc      : {'pass': bool, 'detected': int, 'spi_error': int, ...}
+        can      : {'pass': bool, 'tx_bytes': [...], 'rx_msg_id': int, ...}
+        lin      : {'pass': bool, 'tx_pid': int, 'rx_pid': int, ...}
     """
     by_sheet: Dict[str, List[Dict[str, Any]]] = {}
 
@@ -378,6 +393,105 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
     if capa_rows:
         by_sheet["Capa"] = capa_rows
 
+    # ── NFC ───────────────────────────────────────────────────────────────────
+    nfc = run_results.get("nfc", {})
+    if isinstance(nfc, dict):
+        detected = nfc.get("detected")
+        spi_error = nfc.get("spi_error")
+        hw_ver = nfc.get("hw_ver")
+        rom_ver = nfc.get("rom_ver")
+        fw_ver = nfc.get("fw_ver")
+        by_sheet["NFC"] = [_row(
+            "TC_NFC_01",
+            "Test case to verify NFC transceiver diagnostics and card-detect status",
+            pre_action=(
+                _PRE_COMMON + "\n"
+                "5. NFC hardware connected; card detection is informational in automation"
+            ),
+            test_steps=(
+                "1. Set TestFw_KeepEcuAwake = 1\n"
+                "2. Send DID: TEST_GUI_CMD_NFC_TEST_e\n"
+                "3. Read SPI diagnostic variables\n"
+                "4. Read card-detect status"
+            ),
+            expected=(
+                "TestFw_NfcSpiError = 0\n"
+                "HwVersion, RomVersion and FwVersion are non-zero"
+            ),
+            observed=(
+                f"DetectedCard = {detected}\n"
+                f"SpiError = {spi_error}\n"
+                f"HwVersion = 0x{(int(hw_ver) if hw_ver is not None else 0):X}\n"
+                f"RomVersion = 0x{(int(rom_ver) if rom_ver is not None else 0):X}\n"
+                f"FwVersion = 0x{(int(fw_ver) if fw_ver is not None else 0):X}"
+            ),
+            status=_status(nfc),
+        )]
+
+    # ── CAN ───────────────────────────────────────────────────────────────────
+    can = run_results.get("can", {})
+    if isinstance(can, dict):
+        tx_bytes = can.get("tx_bytes", [])
+        rx_bytes = can.get("rx_bytes", [])
+        tx_msg_id = 0x796
+        rx_msg_id = can.get("rx_msg_id")
+        by_sheet["CAN"] = [_row(
+            "TC_CAN_01",
+            "Test case to verify CAN communication in local loopback",
+            pre_action=(
+                _PRE_COMMON + "\n"
+                "5. CAN local loopback enabled by automation"
+            ),
+            test_steps=(
+                "1. Set TestFw_CanGuiLocalLoopbackEnable = 1\n"
+                "2. Set TestFw_KeepEcuAwake = 1\n"
+                "3. Write CAN Tx bytes into DummyBytes.dummy_byte0_U8..dummy_byte7_U8\n"
+                "4. Send DID: TEST_GUI_CMD_CAN_TEST_e\n"
+                "5. Read CanRxDataValid, CanRxMessageId and Rx bytes"
+            ),
+            expected=(
+                "CanRxDataValid = 1\n"
+                "Rx bytes contain transmitted loopback data"
+            ),
+            observed=(
+                f"TxMessageId = 0x{tx_msg_id:X}\n"
+                f"TxBytes = {tx_bytes}\n"
+                f"RxMessageId = 0x{(int(rx_msg_id) if rx_msg_id is not None else 0):X}\n"
+                f"RxBytes = {rx_bytes}\n"
+                f"CanRxDataValid = {can.get('rx_valid')}"
+            ),
+            status=_status(can),
+        )]
+
+    # ── LIN ───────────────────────────────────────────────────────────────────
+    lin = run_results.get("lin", {})
+    if isinstance(lin, dict):
+        tx_pid = lin.get("tx_pid")
+        rx_pid = lin.get("rx_pid")
+        by_sheet["LIN"] = [_row(
+            "TC_LIN_01",
+            "Test case to verify LIN transmission and reception",
+            pre_action=_PRE_COMMON,
+            test_steps=(
+                "1. Set TestFw_LinTxPid\n"
+                "2. Set TestFw_LinTxByte0..TestFw_LinTxByte7\n"
+                "3. Send DID: TEST_GUI_CMD_LIN_e\n"
+                "4. Read LinRxDataValid, LinRxPid and Rx bytes"
+            ),
+            expected=(
+                "LinRxDataValid = 1\n"
+                "Rx bytes contain transmitted LIN data"
+            ),
+            observed=(
+                f"TxMessageId = 0x{(int(tx_pid) if tx_pid is not None else 0):X}\n"
+                f"TxBytes = {lin.get('tx_bytes', [])}\n"
+                f"RxMessageId = 0x{(int(rx_pid) if rx_pid is not None else 0):X}\n"
+                f"RxBytes = {lin.get('rx_bytes', [])}\n"
+                f"LinRxDataValid = {lin.get('rx_valid')}"
+            ),
+            status=_status(lin),
+        )]
+
     return by_sheet
 
 
@@ -435,21 +549,113 @@ def _fill_sheet(ws, results: List[Dict[str, Any]]) -> None:
         )
 
 
+def _copy_cell_style(source, target) -> None:
+    if source.has_style:
+        target._style = copy(source._style)
+    if source.font:
+        target.font = copy(source.font)
+    if source.fill:
+        target.fill = copy(source.fill)
+    if source.border:
+        target.border = copy(source.border)
+    if source.alignment:
+        target.alignment = copy(source.alignment)
+    if source.protection:
+        target.protection = copy(source.protection)
+    if source.number_format:
+        target.number_format = source.number_format
+
+
+def _create_generated_sheet(wb, sheet_name: str):
+    ws = wb.create_sheet(title=sheet_name)
+
+    # Apply column widths
+    for col_idx, width in _COL_WIDTHS.items():
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col_idx)].width = width
+
+    # Header row
+    ws.row_dimensions[1].height = 14.25
+    for col_idx, header in enumerate(_GENERATED_HEADERS, start=1):
+        c = ws.cell(row=1, column=col_idx)
+        c.value = header
+        c.font  = _CALIBRI_11B
+        c.fill  = _HEADER_FILL
+
+    return ws
+
+
+def _populate_generated_sheet(ws, rows: List[Dict[str, Any]]) -> None:
+    for row_offset, result in enumerate(rows):
+        row_idx = row_offset + 2
+        ws.row_dimensions[row_idx].height = 150
+
+        # A – S No.
+        c = ws.cell(row=row_idx, column=_COL_SNO)
+        c.value     = row_offset + 1
+        c.font      = _CALIBRI_11
+        c.alignment = _TOP_ONLY
+
+        # B – Test Case ID
+        c = ws.cell(row=row_idx, column=_COL_TC_ID)
+        c.value     = result.get("TestCaseID", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _TOP_ONLY
+
+        # C – Test Case Name
+        c = ws.cell(row=row_idx, column=_COL_NAME)
+        c.value     = result.get("TestName", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # D – Pre Action
+        c = ws.cell(row=row_idx, column=_COL_PRE_ACT)
+        c.value     = result.get("PreAction", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # E – Test Steps
+        c = ws.cell(row=row_idx, column=_COL_STEPS)
+        c.value     = result.get("TestSteps", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # F – Expected Result
+        c = ws.cell(row=row_idx, column=_COL_EXPECTED)
+        c.value     = result.get("Expected", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # G – Post Action
+        c = ws.cell(row=row_idx, column=_COL_POST_ACT)
+        c.value     = result.get("PostAction", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # H – Observed Result
+        c = ws.cell(row=row_idx, column=_COL_OBS)
+        c.value     = result.get("ObservedText", "")
+        c.font      = _CALIBRI_11
+        c.alignment = _WRAP_TOP
+
+        # I – Status
+        status    = result.get("Status", "")
+        stat_cell = ws.cell(row=row_idx, column=_COL_STATUS)
+        stat_cell.value     = status
+        stat_cell.font      = _CALIBRI_11B
+        stat_cell.alignment = _CENTER_BOTH
+        stat_cell.fill = (
+            _PASS_FILL if status == "PASS" else
+            _FAIL_FILL if status == "FAIL" else
+            _SKIP_FILL
+        )
+
+        # J – Remark (intentionally blank)
+        c = ws.cell(row=row_idx, column=_COL_REMARK)
+        c.font      = _CALIBRI_11
+        c.alignment = _TOP_ONLY
+
+
 # ── Fallback workbook builder (used when the Excel template is absent) ─────────
-
-_HEADERS = [
-    "S No.",             # A
-    "Test Case ID",      # B
-    "Test Case Name",    # C
-    "Pre Action",        # D
-    "Test Steps",        # E
-    "Expected Result ",  # F
-    "Post Action ",      # G
-    "Observed Result ",  # H
-    "Status ",           # I
-    "Remark ",           # J
-]
-
 
 def _create_report_workbook(
     results_by_sheet: Dict[str, List[Dict[str, Any]]],
@@ -460,100 +666,30 @@ def _create_report_workbook(
     template file cannot be found so the automation never fails silently
     with an empty or missing report.
     """
-    from openpyxl.utils import get_column_letter
-
     wb = openpyxl.Workbook()
     wb.remove(wb.active)  # discard the default blank sheet
 
     for sheet_name, rows in results_by_sheet.items():
         ws = wb.create_sheet(title=sheet_name.strip() or "Results")
-
-        # ── Column widths ─────────────────────────────────────────────────────
-        for col_idx, width in _COL_WIDTHS.items():
-            ws.column_dimensions[get_column_letter(col_idx)].width = width
-
-        # ── Header row (row 1) ────────────────────────────────────────────────
-        ws.row_dimensions[1].height = 14.25
-        for col_idx, header in enumerate(_HEADERS, start=1):
-            c = ws.cell(row=1, column=col_idx)
-            c.value = header
-            c.font  = _CALIBRI_11B
-            c.fill  = _HEADER_FILL
-
-        # ── Data rows ─────────────────────────────────────────────────────────
-        for row_offset, row_data in enumerate(rows):
-            data_row_idx = row_offset + 2
-            ws.row_dimensions[data_row_idx].height = 150
-
-            # A – S No.
-            c = ws.cell(row=data_row_idx, column=_COL_SNO)
-            c.value     = row_offset + 1
-            c.font      = _CALIBRI_11
-            c.alignment = _TOP_ONLY
-
-            # B – Test Case ID
-            c = ws.cell(row=data_row_idx, column=_COL_TC_ID)
-            c.value     = row_data.get("TestCaseID", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _TOP_ONLY
-
-            # C – Test Case Name
-            c = ws.cell(row=data_row_idx, column=_COL_NAME)
-            c.value     = row_data.get("TestName", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _WRAP_TOP
-
-            # D – Pre Action
-            c = ws.cell(row=data_row_idx, column=_COL_PRE_ACT)
-            c.value     = row_data.get("PreAction", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _WRAP_TOP
-
-            # E – Test Steps
-            c = ws.cell(row=data_row_idx, column=_COL_STEPS)
-            c.value     = row_data.get("TestSteps", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _WRAP_TOP
-
-            # F – Expected Result
-            c = ws.cell(row=data_row_idx, column=_COL_EXPECTED)
-            c.value     = row_data.get("Expected", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _WRAP_TOP
-
-            # G – Post Action
-            c = ws.cell(row=data_row_idx, column=_COL_POST_ACT)
-            c.value     = row_data.get("PostAction", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _WRAP_TOP
-
-            # H – Observed Result
-            c = ws.cell(row=data_row_idx, column=_COL_OBS)
-            c.value     = row_data.get("ObservedText", "")
-            c.font      = _CALIBRI_11
-            c.alignment = _WRAP_TOP
-
-            # I – Status
-            status    = row_data.get("Status", "")
-            stat_cell = ws.cell(row=data_row_idx, column=_COL_STATUS)
-            stat_cell.value     = status
-            stat_cell.font      = _CALIBRI_11B
-            stat_cell.alignment = _CENTER_BOTH
-            stat_cell.fill = (
-                _PASS_FILL if status == "PASS" else
-                _FAIL_FILL if status == "FAIL" else
-                _SKIP_FILL
-            )
-
-            # J – Remark (intentionally left blank)
-            c = ws.cell(row=data_row_idx, column=_COL_REMARK)
-            c.font      = _CALIBRI_11
-            c.alignment = _TOP_ONLY
+        _create_generated_sheet_into(ws)
+        _populate_generated_sheet(ws, rows)
 
     if not wb.sheetnames:
         wb.create_sheet("Results")
 
     return wb
+
+
+def _create_generated_sheet_into(ws) -> None:
+    """Apply column widths and header row formatting to *ws* in-place."""
+    for col_idx, width in _COL_WIDTHS.items():
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col_idx)].width = width
+    ws.row_dimensions[1].height = 14.25
+    for col_idx, header in enumerate(_GENERATED_HEADERS, start=1):
+        c = ws.cell(row=1, column=col_idx)
+        c.value = header
+        c.font  = _CALIBRI_11B
+        c.fill  = _HEADER_FILL
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -602,7 +738,10 @@ def generate_report(
                 del wb[sheet_to_remove]
 
         for sheet_name, rows in results_by_sheet.items():
-            if sheet_name in wb.sheetnames and rows:
+            if not rows:
+                continue
+
+            if sheet_name in wb.sheetnames:
                 _fill_sheet(wb[sheet_name], rows)
                 # Delete any template row whose TC_ID was not executed
                 executed_ids = {
@@ -617,6 +756,10 @@ def generate_report(
                 ]
                 for row_idx in reversed(to_delete):
                     ws.delete_rows(row_idx)
+                continue
+
+            ws = _create_generated_sheet(wb, sheet_name)
+            _populate_generated_sheet(ws, rows)
     else:
         # ── Fallback: build report from scratch when template is absent ────────
         wb = _create_report_workbook(results_by_sheet)
