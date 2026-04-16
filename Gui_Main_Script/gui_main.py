@@ -899,9 +899,13 @@ tab7_entry8.place(x=570.0, y=offset_top + 3*40, width=115, height=32)
 def auto_refresh_sg_values():
     """Automatically refresh SG values every 2 seconds"""
     try:
-        # Only refresh if Trace32 is connected and we're on the SG tab
+        # Only refresh if Trace32 is connected and we're on the SG tab.
+        # Skip for J-Link: reading variables via JLink.exe commander kills/reopens
+        # Ozone on every call, so auto-refresh is not supported for J-Link.
         current_tab = notebook.tab(notebook.select(), "text")
-        if current_tab == "Strain Gauge" and dbg and not isinstance(dbg, str):
+        if (current_tab == "Strain Gauge"
+                and dbg and not isinstance(dbg, str)
+                and t32.get_backend_name() == "trace32"):
             # Read all SG values
             read_sg_values_with_delay(sg_output_variables, sg_entries)
     except:
@@ -1083,9 +1087,13 @@ capa_entries = [tab8_entry_1, tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry
 def auto_refresh_capa_values():
     """Automatically refresh CAPA values every 2 seconds"""
     try:
-        # Only refresh if Trace32 is connected and we're on the CAPA tab
+        # Only refresh if Trace32 is connected and we're on the CAPA tab.
+        # Skip for J-Link: reading variables via JLink.exe commander kills/reopens
+        # Ozone on every call, so auto-refresh is not supported for J-Link.
         current_tab = notebook.tab(notebook.select(), "text")
-        if current_tab == "Capa Sensor" and dbg and not isinstance(dbg, str):
+        if (current_tab == "Capa Sensor"
+                and dbg and not isinstance(dbg, str)
+                and t32.get_backend_name() == "trace32"):
             # Read all CAPA values
             read_capa_values_with_delay(capa_output_variables, capa_entries)
     except:

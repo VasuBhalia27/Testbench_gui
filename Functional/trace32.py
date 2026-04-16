@@ -652,6 +652,16 @@ def poll_target_state(label, window):
     if not dbg or isinstance(dbg, str):
         label.config(text="SmartBU Status: Disconnected")
         return
+
+    # J-Link backend: reading variables via JLink.exe commander requires
+    # killing and reopening Ozone on every call — skip polling entirely.
+    try:
+        from Functional import debugger as _dbg_mod
+        if _dbg_mod.get_backend_name() != "trace32":
+            poll_id = window.after(1000, lambda: poll_target_state(label, window))
+            return
+    except Exception:
+        pass
     
     try:
         # Check running status from TRACE32
