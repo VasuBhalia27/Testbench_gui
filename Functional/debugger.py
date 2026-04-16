@@ -116,8 +116,12 @@ class DebuggerManager:
             self.active = self.trace32
             self.current_name = "trace32"
         elif normalized in ("jlink", "j-link"):
-            if not self.jlink_module_available:
-                raise RuntimeError("J-Link backend unavailable. Ensure Functional/jlink.py is present and JLink.exe is installed.")
+            if not is_jlink_backend_available():
+                raise FileNotFoundError(
+                    "Segger J-Link executable not found. "
+                    "Install J-Link from https://www.segger.com/downloads/jlink/ "
+                    "and add JLink.exe to PATH."
+                )
             if self.jlink is None:
                 self.jlink = JLinkBackend()
             self.active = self.jlink
@@ -251,27 +255,145 @@ format_value_with_unit = trace32_backend.format_value_with_unit
 dbg = _MANAGER.dbg
 
 # ---------------------------------------------------------------------------
-# Re-export every trace32.py helper that gui_main.py calls without a t32. prefix.
-# These functions close over trace32.dbg, so they work correctly once connected.
+# These names are imported from trace32 only when Trace32 backend is active.
+# The ones below are backend-agnostic wrappers that route through _MANAGER so
+# they work with both Trace32 and J-Link.
 # ---------------------------------------------------------------------------
 from Functional.trace32 import (
     VARIABLE_UNITS_MAP,
-    led_on,
-    led_off,
-    CANoe_Disable,
-    CANoe_Enable,
-    motor_decouple_couple,
-    motor_no_req,
-    eos_set,
-    eos_reset,
-    sg_results,
     reset_cb,
-    auto_reset_motor_checkbox,
-    auto_reset_sg_checkbox,
-    read_sg_values_with_delay,
-    read_capa_values_with_delay,
-    TransmitLinRawCount,
     UpdateCodeExecLabel_running,
     UpdateCodeExecLabel_notrunning,
     ConnectToTraceUDP,
 )
+
+
+def _send(cmd: str):
+    """Send a debugger command through the active backend."""
+    _MANAGER.send_cmd(cmd)
+
+
+def led_on(led_input_condition):
+    if led_input_condition.get() == 1:
+        led_input_condition.set(1)
+    else:
+        led_input_condition.set(0)
+    _send("Var.set LedTest_LedCanLinRequest = 1")
+
+
+def led_off(led_input_condition):
+    if led_input_condition.get() == 2:
+        led_input_condition.set(2)
+    else:
+        led_input_condition.set(0)
+    _send("Var.set LedTest_LedCanLinRequest = 0")
+
+
+def CANoe_Disable(canoe_input_condition):
+    if canoe_input_condition.get() == 1:
+        canoe_input_condition.set(1)
+    else:
+        canoe_input_condition.set(0)
+    _send("Var.set TestFw_GuiCanDependencyDisable = 1")
+
+
+def CANoe_Enable(canoe_input_condition):
+    if canoe_input_condition.get() == 2:
+        canoe_input_condition.set(2)
+    else:
+        canoe_input_condition.set(0)
+    _send("Var.set TestFw_GuiCanDependencyDisable = 0")
+
+
+def motor_decouple_couple(selected_motor_state):
+    if selected_motor_state.get() == 1:
+        selected_motor_state.set(1)
+    else:
+        selected_motor_state.set(0)
+    _send("Var.set MotorTest_SetGuiMotorActuateRequest = 1")
+
+
+def motor_no_req(selected_motor_state):
+    if selected_motor_state.get() == 2:
+        selected_motor_state.set(2)
+    else:
+        selected_motor_state.set(0)
+    _send("Var.set MotorTest_SetGuiMotorActuateRequest = 0")
+
+
+def eos_set(eos_value):
+    if eos_value.get() == 1:
+        eos_value.set(1)
+    else:
+        eos_value.set(0)
+    _send("Var.set EosTest_EosRequestGui = 1")
+
+
+def eos_reset(eos_value):
+    if eos_value.get() == 2:
+        eos_value.set(2)
+    else:
+        eos_value.set(0)
+    _send("Var.set EosTest_EosRequestGui = 0")
+
+
+def sg_results(SgValue):
+    if SgValue.get() == 1:
+        SgValue.set(1)
+    else:
+        SgValue.set(0)
+    _send("Var.set TestFw_GetSgResults = 1")
+
+
+def auto_reset_motor_checkbox(selected_motor_state):
+    selected_motor_state.set(0)
+    try:
+        _send("Var.set MotorTest_SetGuiMotorActuateRequest = 0")
+    except Exception as e:
+        print(f"Failed to auto-reset motor variable: {e}")
+
+
+def auto_reset_sg_checkbox(SgValue):
+    SgValue.set(0)
+    try:
+        _send("Var.set TestFw_GetSgResults = 0")
+    except Exception as e:
+        print(f"Failed to auto-reset SG variable: {e}")
+
+
+def TransmitLinRawCount(entry_widget):
+    try:
+        raw_count_value = entry_widget.get()
+        _send(f"Var.set TestFw_TxGuiCapaApproachRawCountLinFrame = {raw_count_value}")
+    except Exception as e:
+        from tkinter import messagebox
+        messagebox.showerror("Error", f"Failed to transmit: {e}")
+
+
+def read_sg_values_with_delay(variables, entries):
+    try:
+        _send(f"Var.set TestFw_GuiCmd = {TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e}")
+        time.sleep(0.2)
+        for i in range(len(variables)):
+            fetched = int(_MANAGER.read_variable(variables[i]))
+            entries[i].delete(0, "end")
+            entries[i].insert(0, format_value_with_unit(variables[i], fetched))
+    except Exception as e:
+        print(f"Error reading SG values: {e}")
+
+
+def read_capa_values_with_delay(variables, entries):
+    try:
+        _send(f"Var.set TestFw_GuiCmd = {TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e}")
+        time.sleep(0.2)
+        for i in range(len(variables)):
+            fetched = _MANAGER.read_variable(variables[i])
+            try:
+                fetched = int(fetched)
+            except (TypeError, ValueError):
+                pass
+            entries[i].delete(0, "end")
+            entries[i].insert(0, format_value_with_unit(variables[i], fetched))
+    except Exception as e:
+        print(f"Error reading CAPA values: {e}")
+

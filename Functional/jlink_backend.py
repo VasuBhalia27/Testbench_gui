@@ -7,7 +7,13 @@ from Functional import jlink as jlink_module
 
 
 def is_jlink_backend_available() -> bool:
-    return hasattr(jlink_module, "JLinkBackend")
+    """Return True only if JLink.exe can actually be located on this machine."""
+    try:
+        # Attempt to locate the executable the same way JLinkBackend does.
+        jlink_module.JLinkBackend._find_jlink_exe(jlink_module.JLinkBackend.__new__(jlink_module.JLinkBackend))
+        return True
+    except (FileNotFoundError, AttributeError):
+        return False
 
 
 class JLinkBackend:
