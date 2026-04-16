@@ -203,14 +203,7 @@ class IntegratedAutomationRunner:
             # Generate Excel test report from the actual hardware measurements.
             try:
                 from AutomationScripts.report_generator import generate_report
-                barcode_payload = {}
-                if hasattr(self.gui, "get_barcode_payload"):
-                    barcode_payload = self.gui.get_barcode_payload()
-                report_path = generate_report(
-                    run_results=results,
-                    barcode_payload=barcode_payload,
-                    overall_passed=all_passed,
-                )
+                report_path = generate_report(run_results=results)
                 self._log(f"Report saved: {report_path}")
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
