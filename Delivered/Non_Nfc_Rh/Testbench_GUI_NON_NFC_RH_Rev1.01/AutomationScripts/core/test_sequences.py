@@ -393,11 +393,12 @@ class TestSequenceRunner:
                 self._log(f"CAN: test failed with exception: {exc}")
                 results['can'] = {'pass': False}
 
-            try:
-                results['lin'] = self._run_lin_test_with_logging()
-            except Exception as exc:
-                self._log(f"LIN: test failed with exception: {exc}")
-                results['lin'] = {'pass': False}
+        # LIN runs for all variants (Non-NFC hardware has CAN/LIN bus)
+        try:
+            results['lin'] = self._run_lin_test_with_logging()
+        except Exception as exc:
+            self._log(f"LIN: test failed with exception: {exc}")
+            results['lin'] = {'pass': False}
 
         # the remaining tests will eventually be added here
         return results
