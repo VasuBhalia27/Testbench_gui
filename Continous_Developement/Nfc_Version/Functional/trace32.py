@@ -521,7 +521,7 @@ def Trace32ConnectApp(repo_path_entry, selected_preset, status_label):
     time.sleep(2)
     # Update status after successful connection and loading
     if status_label:
-        status_label.config(text="Status: stopped at breakpoint", fg="#D35400") # Orange color
+        status_label.after(0, lambda: status_label.config(text="Status: stopped at breakpoint", fg="#D35400")) # Orange color
 
 def ResetTarget(status_label):
     global dbg
@@ -529,7 +529,7 @@ def ResetTarget(status_label):
         if dbg and hasattr(dbg, 'cmd'):
             dbg.cmd("SYStem.Up") 
             if status_label:
-                status_label.config(text="Status: system ready", fg="blue")
+                status_label.after(0, lambda: status_label.config(text="Status: system ready", fg="blue"))
         else:
             messagebox.showwarning("Warning", "Trace32 not connected!")
     except Exception as e:
@@ -541,13 +541,13 @@ def RunCode(exec_label):
         if dbg and hasattr(dbg, 'cmd'):
             dbg.cmd("Go")
             if exec_label:
-                exec_label.config(text="Status: running", fg="green")
+                exec_label.after(0, lambda: exec_label.config(text="Status: running", fg="green"))
         else:
             messagebox.showwarning("Warning", "Trace32 not connected!")
     except Exception as err:
         if "target running" in str(err).lower():
             if exec_label:
-                exec_label.config(text="Status: running", fg="green")
+                exec_label.after(0, lambda: exec_label.config(text="Status: running", fg="green"))
         else:
             messagebox.showerror("Error", f"Failed to start code: {str(err)}")
 
@@ -564,7 +564,7 @@ def QuitTrace32(status_label=None):
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
         dbg = ''
         if status_label:
-            status_label.config(text="Status: Disconnected", fg="red")
+            status_label.after(0, lambda: status_label.config(text="Status: Disconnected", fg="red"))
 
 def motor_decouple_couple(selected_motor_state):
     if selected_motor_state.get() == 1:
@@ -652,6 +652,16 @@ def poll_target_state(label, window):
     if not dbg or isinstance(dbg, str):
         label.config(text="SmartBU Status: Disconnected")
         return
+
+    # J-Link backend: reading variables via JLink.exe commander requires
+    # killing and reopening Ozone on every call — skip polling entirely.
+    try:
+        from Functional import debugger as _dbg_mod
+        if _dbg_mod.get_backend_name() != "trace32":
+            poll_id = window.after(1000, lambda: poll_target_state(label, window))
+            return
+    except Exception:
+        pass
     
     try:
         # Check running status from TRACE32

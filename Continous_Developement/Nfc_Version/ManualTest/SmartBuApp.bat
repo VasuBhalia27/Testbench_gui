@@ -27,7 +27,7 @@ if %errorlevel% equ 0 (
     exit /b 1
 )
 
-:: Check Trace32
+:: Check Trace32 software
 if exist "C:\T32\bin\windows64\t32marm.exe" (
     echo [OK] Trace32 found at C:\T32
 ) else (
@@ -35,40 +35,63 @@ if exist "C:\T32\bin\windows64\t32marm.exe" (
     echo        Expected: C:\T32\bin\windows64\t32marm.exe
 )
 
-:: Lauterbach detection - Using PnPEntity search
+:: ---------------------------------------------------------------
+:: Auto-detect connected debugger hardware (Trace32 or J-Link)
+:: Sets DEBUGGER_BACKEND=trace32 or jlink for the GUI to read.
+:: ---------------------------------------------------------------
 echo.
-echo Checking Lauterbach debugger...
+echo Detecting connected debugger hardware...
 
-:: Method 1: Search by full device name (most reliable)
-wmic path Win32_PnPEntity get Name | findstr /i "Lauterbach PODBUS" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo [OK] Lauterbach debugger detected (PODBUS)
-) else (
-    :: Method 2: Search by partial name
-    wmic path Win32_PnPEntity get Name | findstr /i "Lauterbach" >nul 2>&1
-    if %errorlevel% equ 0 (
-        echo [OK] Lauterbach debugger detected
-    ) else (
-        :: Method 3: Search USB devices as fallback
-        wmic path Win32_USBControllerDevice get Dependent | findstr /i "Lauterbach" >nul 2>&1
-        if %errorlevel% equ 0 (
-            echo [OK] Lauterbach debugger detected via USB
-        ) else (
-            echo [WARN] Lauterbach debugger NOT detected
-            echo        Please check:
-            echo          - Is the debugger plugged in?
-            echo          - Is the LED on?
-            echo          - Try a different USB port
-            echo.
-            set /p ignore="Ignore warning and continue? (y/n): "
-            if /i not "!ignore!"=="y" (
-                echo Exiting...
-                pause
-                exit /b 1
-            )
-        )
-    )
+set "DEBUGGER_BACKEND=none"
+
+:: --- Check for Lauterbach / Trace32 POD ---
+wmic path Win32_PnPEntity get Name 2>nul | findstr /i "Lauterbach PODBUS" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "DEBUGGER_BACKEND=trace32"
+    echo [OK] Lauterbach Trace32 POD detected
+    goto :debugger_found
 )
+wmic path Win32_PnPEntity get Name 2>nul | findstr /i "Lauterbach" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "DEBUGGER_BACKEND=trace32"
+    echo [OK] Lauterbach Trace32 debugger detected
+    goto :debugger_found
+)
+
+:: --- Check for SEGGER J-Link ---
+wmic path Win32_PnPEntity get Name 2>nul | findstr /i "J-Link" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "DEBUGGER_BACKEND=jlink"
+    echo [OK] SEGGER J-Link debugger detected
+    goto :debugger_found
+)
+wmic path Win32_PnPEntity get Name 2>nul | findstr /i "SEGGER" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "DEBUGGER_BACKEND=jlink"
+    echo [OK] SEGGER J-Link debugger detected
+    goto :debugger_found
+)
+
+:: --- Neither found ---
+echo [WARN] No debugger hardware detected.
+echo        Please check:
+echo          - Is the debugger cable plugged in?
+echo          - Is the LED on the probe lit?
+echo          - Try a different USB port
+echo          - For Trace32: USB driver must be installed
+echo          - For J-Link:  SEGGER USB driver must be installed
+echo.
+set /p ignore="Ignore warning and continue? (y/n): "
+if /i not "!ignore!"=="y" (
+    echo Exiting...
+    pause
+    exit /b 1
+)
+:: Default to trace32 if user chooses to continue without detection
+set "DEBUGGER_BACKEND=trace32"
+
+:debugger_found
+echo [INFO] Debugger backend set to: %DEBUGGER_BACKEND%
 
 :: Check Repository
 echo.

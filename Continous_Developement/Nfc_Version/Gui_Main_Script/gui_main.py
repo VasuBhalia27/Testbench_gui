@@ -1,4 +1,6 @@
-﻿import sys
+﻿import os
+import sys
+import threading
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, Button, PhotoImage
@@ -18,10 +20,28 @@ from tkinter import messagebox
 
 
 def connect_debugger(repo_path_entry, selected_preset, backend_var, status_label=None):
-    """Switch to the selected debugger backend then connect."""
+    """Switch to the selected debugger backend then connect (runs in background thread)."""
+    from tkinter import messagebox
     backend = backend_var.get() if hasattr(backend_var, "get") else str(backend_var)
-    t32.set_backend(backend)
-    t32.Trace32ConnectApp(repo_path_entry, selected_preset, status_label)
+    try:
+        t32.set_backend(backend)
+    except FileNotFoundError as e:
+        messagebox.showerror(
+            "Debugger Not Found",
+            f"{e}\n\nPlease install the SEGGER J-Link software and ensure JLink.exe is in PATH or the default install folder."
+        )
+        return
+    except Exception as e:
+        messagebox.showerror("Debugger Error", str(e))
+        return
+
+    def _connect():
+        try:
+            t32.Trace32ConnectApp(repo_path_entry, selected_preset, status_label)
+        except Exception as e:
+            messagebox.showerror("Connection Error", str(e))
+
+    threading.Thread(target=_connect, daemon=True).start()
 
 # Automation framework imports
 from AutomationScripts.core import gui_automation, integrated_automation
@@ -318,8 +338,11 @@ selected_preset_minsizerel.place(x=450, y=180)
 canvas2.create_rectangle(55.0, 240.0, 550.0, 380.0, outline="#F39C12", width=1)
 canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#F39C12", font=("Inter SemiBold", 10))
 
-# Backend selection
-debugger_backend_var = tk.StringVar(value="trace32")
+# Backend selection — auto-detect from env var set by SmartBuApp.bat
+_detected_backend = os.environ.get("DEBUGGER_BACKEND", "trace32").strip().lower()
+if _detected_backend not in ("trace32", "jlink"):
+    _detected_backend = "trace32"
+debugger_backend_var = tk.StringVar(value=_detected_backend)
 canvas2.create_text(61.0, 270.0, anchor="nw", text="Backend:", fill="#FFFFFF", font=("Inter SemiBold", 13 * -1))
 trace32_radio = ttk.Radiobutton(tab2, text="Trace32", variable=debugger_backend_var, value="trace32")
 trace32_radio.place(x=140, y=267)
@@ -337,14 +360,16 @@ connect_trace32.place(x=200, y=300, width=34, height=34)
 # Start Code (Go) Button
 canvas2.create_text(61.0, 345.0, anchor="nw", text="Start Code (Go)", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_go_button"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-go_button = Button(tab2, image=images["tab2_go_button"], command=lambda: t32.RunCode(code_status_label), bd=0)
+go_button = Button(tab2, image=images["tab2_go_button"],
+                   command=lambda: threading.Thread(target=lambda: t32.RunCode(code_status_label), daemon=True).start(),
+                   bd=0)
 go_button.place(x=200, y=345, width=34, height=34)
 
 # Disconnect Debugger Button
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Debugger", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], 
-                            command=lambda: t32.QuitTrace32(code_status_label), 
+disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"],
+                            command=lambda: threading.Thread(target=lambda: t32.QuitTrace32(code_status_label), daemon=True).start(),
                             bd = 0)
 disconnect_trace32.place(x=500, y=265, width=34, height=34)
 
@@ -352,8 +377,8 @@ disconnect_trace32.place(x=500, y=265, width=34, height=34)
 canvas2.create_text(350.0, 315.0, anchor="nw", text="Reset Target", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 # Button Image and Placement
 images["tab2_reset_target"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-reset_target_btn = Button(tab2, image=images["tab2_reset_target"], 
-                          command=lambda: t32.ResetTarget(code_status_label), 
+reset_target_btn = Button(tab2, image=images["tab2_reset_target"],
+                          command=lambda: threading.Thread(target=lambda: t32.ResetTarget(code_status_label), daemon=True).start(),
                           bd=0)
 reset_target_btn.place(x=500, y=305, width=34, height=34)
 
@@ -874,9 +899,13 @@ tab7_entry8.place(x=570.0, y=offset_top + 3*40, width=115, height=32)
 def auto_refresh_sg_values():
     """Automatically refresh SG values every 2 seconds"""
     try:
-        # Only refresh if Trace32 is connected and we're on the SG tab
+        # Only refresh if Trace32 is connected and we're on the SG tab.
+        # Skip for J-Link: reading variables via JLink.exe commander kills/reopens
+        # Ozone on every call, so auto-refresh is not supported for J-Link.
         current_tab = notebook.tab(notebook.select(), "text")
-        if current_tab == "Strain Gauge" and dbg and not isinstance(dbg, str):
+        if (current_tab == "Strain Gauge"
+                and dbg and not isinstance(dbg, str)
+                and t32.get_backend_name() == "trace32"):
             # Read all SG values
             read_sg_values_with_delay(sg_output_variables, sg_entries)
     except:
@@ -1058,9 +1087,13 @@ capa_entries = [tab8_entry_1, tab8_entry_2, tab8_entry3, tab8_entry4, tab8_entry
 def auto_refresh_capa_values():
     """Automatically refresh CAPA values every 2 seconds"""
     try:
-        # Only refresh if Trace32 is connected and we're on the CAPA tab
+        # Only refresh if Trace32 is connected and we're on the CAPA tab.
+        # Skip for J-Link: reading variables via JLink.exe commander kills/reopens
+        # Ozone on every call, so auto-refresh is not supported for J-Link.
         current_tab = notebook.tab(notebook.select(), "text")
-        if current_tab == "Capa Sensor" and dbg and not isinstance(dbg, str):
+        if (current_tab == "Capa Sensor"
+                and dbg and not isinstance(dbg, str)
+                and t32.get_backend_name() == "trace32"):
             # Read all CAPA values
             read_capa_values_with_delay(capa_output_variables, capa_entries)
     except:
