@@ -127,19 +127,15 @@ class AutomationGUI:
         self.result_indicator = tk.Label(
             self.result_row,
             text="",
-            font=("Segoe UI Emoji", 28, "bold"),
-            fg="#1A1A1A",
+            font=("Arial", 44, "bold"),
+            fg="#FFFFFF",
             bg="#DFDFDF",
-            width=2,
+            width=6,
+            relief="flat",
         )
-        self.result_indicator.pack(side="left")
+        self.result_indicator.pack(side="left", padx=(0, 4), pady=4)
 
-        self.result_status_text = ttk.Label(
-            self.result_row,
-            text="Pending",
-            font=(None, 16, "bold"),
-        )
-        self.result_status_text.pack(side="left", padx=(8, 0))
+        self.result_status_text = ttk.Label(self.result_row, text="")
 
         # --- RIGHT PANEL ---
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
@@ -550,18 +546,24 @@ class AutomationGUI:
         self.timer_start_time = None
 
     def set_result_indicator(self, all_passed: bool) -> None:
-        """Set top-right operator acknowledgement icon for test outcome."""
+        """Set top-right operator result label for test outcome."""
         if all_passed:
-            self.result_indicator.config(text="\N{THUMBS UP SIGN}", fg="#148A08")
-            self.result_status_text.config(text="Pass test")
+            self.result_indicator.config(
+                text="PASS", fg="#FFFFFF", bg="#27AE60",
+                font=("Arial", 44, "bold"),
+            )
+            self.result_status_text.config(text="")
         else:
-            self.result_indicator.config(text="\N{BLACK STAR}", fg="#C62828")
-            self.result_status_text.config(text="Fail test")
+            self.result_indicator.config(
+                text="FAIL", fg="#FFFFFF", bg="#C62828",
+                font=("Arial", 44, "bold"),
+            )
+            self.result_status_text.config(text="")
 
     def clear_result_indicator(self) -> None:
-        """Clear top-right operator acknowledgement icon."""
-        self.result_indicator.config(text="")
-        self.result_status_text.config(text="Pending")
+        """Clear top-right operator result label."""
+        self.result_indicator.config(text="", bg="#DFDFDF", fg="#FFFFFF")
+        self.result_status_text.config(text="")
 
     def set_automation_runner(self, runner) -> None:
         """Set the automation runner instance."""

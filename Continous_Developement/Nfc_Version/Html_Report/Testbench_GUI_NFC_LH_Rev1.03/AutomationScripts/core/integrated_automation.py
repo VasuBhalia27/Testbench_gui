@@ -200,11 +200,11 @@ class IntegratedAutomationRunner:
 
             self.gui.root.after(0, lambda: self.gui.set_result_indicator(all_passed))
 
-            # Generate Excel test report from the actual hardware measurements.
+            # Generate HTML test report from the actual hardware measurements.
             try:
                 from AutomationScripts.report_generator import generate_report
                 report_path = generate_report(run_results=results)
-                self._log(f"Report saved: {report_path}")
+                self._log(f"HTML Report saved: {report_path}")
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
 

@@ -629,22 +629,22 @@ def generate_report(
     output_path: Optional[str] = None,
 ) -> str:
     """
-    Generate a filled-in Excel test report from the specification template.
+    Generate an HTML test report from the test results.
 
     Parameters
     ----------
     run_results:
         The dictionary returned by
         ``TestSequenceRunner.run_for_variant()``.  When *None* an empty
-        report (template copy) is produced.
+        report is produced.
     output_path:
-        Destination file path.  Defaults to
-        ``AutomationTest/reports/<YYYYMMDD_HHMMSS>_Test_Report.xlsx``.
+        Destination ``.html`` file path.  Defaults to
+        ``AutomationTest/reports/<YYYYMMDD_HHMMSS>_Test_Report.html``.
 
     Returns
     -------
     str
-        Absolute path to the generated report file.
+        Absolute path to the generated HTML report file.
     """
     results_by_sheet = results_from_run(run_results) if run_results else {}
 
@@ -652,63 +652,16 @@ def generate_report(
 
     if output_path is None:
         ts          = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.xlsx")
+        output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.html")
 
-    output_path  = os.path.abspath(output_path)
-    template_abs = os.path.abspath(TEMPLATE_PATH)
+    output_path = os.path.abspath(output_path)
 
-    if os.path.isfile(template_abs):
-        # ── Template-based path ───────────────────────────────────────────────
-        shutil.copy2(template_abs, output_path)
-        wb = openpyxl.load_workbook(output_path)
-
-        # Remove sheets not relevant to automated testing
-        for sheet_to_remove in ("Voltage_Check", "Common Operations_Preconditions"):
-            if sheet_to_remove in wb.sheetnames:
-                del wb[sheet_to_remove]
-
-        for sheet_name, rows in results_by_sheet.items():
-            if not rows:
-                continue
-
-            if sheet_name in wb.sheetnames:
-                _fill_sheet(wb[sheet_name], rows)
-                # Delete any template row whose TC_ID was not executed
-                executed_ids = {
-                    str(r.get("TestCaseID", "")).strip()
-                    for r in rows if r.get("TestCaseID")
-                }
-                ws = wb[sheet_name]
-                to_delete = [
-                    row_idx
-                    for row_idx in range(2, ws.max_row + 1)
-                    if str(ws.cell(row=row_idx, column=_COL_TC_ID).value or "").strip() not in ("", *executed_ids)
-                ]
-                for row_idx in reversed(to_delete):
-                    ws.delete_rows(row_idx)
-                continue
-
-            ws = _create_generated_sheet(wb, sheet_name)
-            _populate_generated_sheet(ws, rows)
-    else:
-        # ── Fallback: build report from scratch when template is absent ────────
-        wb = _create_report_workbook(results_by_sheet)
-
-    wb.save(output_path)
-    wb.close()
-
-    # ── Also produce an HTML report alongside the Excel file ──────────────────
-    try:
-        from AutomationScripts.html_report_generator import generate_html_report
-        html_path = os.path.splitext(output_path)[0] + ".html"
-        generate_html_report(
-            results_by_sheet=results_by_sheet,
-            output_path=html_path,
-            reports_dir=REPORTS_DIR,
-            project_title="Smart BU Testbench NON-NFC RH \u2013 Automated Test Report",
-        )
-    except Exception as _html_exc:  # never block Excel delivery
-        import warnings
-        warnings.warn(f"HTML report generation failed: {_html_exc}")
+    from AutomationScripts.html_report_generator import generate_html_report
+    generate_html_report(
+        results_by_sheet=results_by_sheet,
+        output_path=output_path,
+        reports_dir=REPORTS_DIR,
+        project_title="Smart BU Testbench NON-NFC RH \u2013 Automated Test Report",
+    )
 
     return output_path
