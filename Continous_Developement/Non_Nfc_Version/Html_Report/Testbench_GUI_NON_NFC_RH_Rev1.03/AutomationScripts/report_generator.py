@@ -696,4 +696,19 @@ def generate_report(
 
     wb.save(output_path)
     wb.close()
+
+    # ── Also produce an HTML report alongside the Excel file ──────────────────
+    try:
+        from AutomationScripts.html_report_generator import generate_html_report
+        html_path = os.path.splitext(output_path)[0] + ".html"
+        generate_html_report(
+            results_by_sheet=results_by_sheet,
+            output_path=html_path,
+            reports_dir=REPORTS_DIR,
+            project_title="Smart BU Testbench NON-NFC RH \u2013 Automated Test Report",
+        )
+    except Exception as _html_exc:  # never block Excel delivery
+        import warnings
+        warnings.warn(f"HTML report generation failed: {_html_exc}")
+
     return output_path
