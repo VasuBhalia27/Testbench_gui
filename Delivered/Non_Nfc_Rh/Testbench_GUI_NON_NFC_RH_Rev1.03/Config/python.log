@@ -1,0 +1,4 @@
+C:\Users\charan.singh\AppData\Local\Programs\Python\Python312\Lib\site-packages\pyvisa_py\tcpip.py:443: UserWarning: TCPIP:instr resource discovery is limited to the default interface.Install psutil: pip install psutil if you want to scan all interfaces.
+  warnings.warn(
+C:\Users\charan.singh\AppData\Local\Programs\Python\Python312\Lib\site-packages\pyvisa_py\tcpip.py:122: UserWarning: TCPIP::hislip resource discovery requires the zeroconf package to be installed... try 'pip install zeroconf'
+  warnings.warn(
