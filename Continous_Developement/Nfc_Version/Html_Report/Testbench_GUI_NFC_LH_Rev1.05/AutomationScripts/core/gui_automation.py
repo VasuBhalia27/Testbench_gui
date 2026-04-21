@@ -143,21 +143,6 @@ class AutomationGUI:
 
         self.result_status_text = ttk.Label(self.result_row, text="")
 
-        # --- 2D SCAN PANEL (to the left of counter panel) ---
-        scan_panel = tk.Frame(top_section, bg="#DFDFDF")
-        scan_panel.pack(side="right", fill="y", padx=(0, 4), pady=4)
-
-        ttk.Label(scan_panel, text="2D Scan",
-                  font=(None, 10, "bold")).pack(pady=(8, 2))
-        self.scan_code = tk.StringVar(master=self.root)
-        scan_entry = ttk.Entry(
-            scan_panel,
-            textvariable=self.scan_code,
-            font=("Courier", 11),
-            width=22,
-        )
-        scan_entry.pack(padx=8, pady=(0, 8))
-
         # --- FAR RIGHT PANEL: Pass/Fail Counters ---
         counter_panel = tk.Frame(top_section, bg="#DFDFDF")
         counter_panel.pack(side="right", fill="y", padx=(0, 8), pady=4)
@@ -217,6 +202,7 @@ class AutomationGUI:
         self.start_button = ttk.Button(btn_frame, text="Start",
                                        command=self._on_start)
         self.start_button.pack(side="left", padx=8)
+        self.start_button.config(state="disabled")  # enabled only after 2D scan entered
 
         self.end_button = ttk.Button(btn_frame, text="End",
                                      command=self._on_end)
@@ -243,6 +229,22 @@ class AutomationGUI:
             offvalue=0,
         )
         self.psu_automation_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+
+        # 2D Scan field — below Start/End/PSU row, centred in the right panel
+        scan_row = ttk.Frame(right_panel)
+        scan_row.pack(pady=(4, 6))
+        ttk.Label(scan_row, text="2D Scan:",
+                  font=("Arial", 11, "bold")).pack(side="left", padx=(0, 8))
+        self.scan_code = tk.StringVar(master=self.root)
+        self.scan_code.trace_add("write", lambda *_: self._update_start_button_state())
+        tk.Entry(
+            scan_row,
+            textvariable=self.scan_code,
+            font=("Courier", 13, "bold"),
+            width=22,
+            relief="solid",
+            bd=1,
+        ).pack(side="left")
 
         # Create a main area that will hold control_frame above status_frame.
         # Using grid inside this area ensures the control frame stays above the
@@ -369,7 +371,7 @@ class AutomationGUI:
         self.timer_label.config(text="Time Elapsed: 00:00")
         self.timer_start_time = None
         self.started = False
-        self.start_button.config(state="normal")
+        self._update_start_button_state()
         self.psu_type_cb.config(state="readonly")
         self.psu_automation_cb.config(state="normal")
         self.variant.set(0)
@@ -380,7 +382,17 @@ class AutomationGUI:
         self.canlin_on_cb.state(["!selected"])
         self.waiting_for_canlin = False
         self.clear_result_indicator()
-        self.append_status("\nReady for next PCB. Click 'Start' to begin.")
+        self.append_status("\nReady for next PCB. Scan the 2D code and click 'Start'.")
+
+    def _update_start_button_state(self) -> None:
+        """Enable Start button only when exactly 16 characters are entered in 2D Scan."""
+        try:
+            if len(self.scan_code.get().strip()) == 16:
+                self.start_button.config(state="normal")
+            else:
+                self.start_button.config(state="disabled")
+        except Exception:
+            pass
 
     def _on_start(self):
         """Handle Start button click."""
@@ -579,7 +591,7 @@ class AutomationGUI:
     def reset_for_new_run(self) -> None:
         """Reset GUI to allow another automation run."""
         self.started = False
-        self.start_button.config(state="normal")
+        self._update_start_button_state()
         self.psu_type_cb.config(state="readonly")
         self.psu_automation_cb.config(state="normal")
         # keep control_frame visible so handle selection and timer remain
