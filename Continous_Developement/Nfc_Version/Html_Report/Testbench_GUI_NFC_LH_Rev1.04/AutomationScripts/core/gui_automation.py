@@ -87,9 +87,10 @@ class AutomationGUI:
         self.psu_type = tk.StringVar(master=self.root, value=selected_psu_type.upper())
         self.psu_automation_enabled = tk.IntVar(master=self.root, value=selected_psu_automation)
 
-        # Pass/Fail counters
-        self.pass_count = 0
-        self.fail_count = 0
+        # Persistent PCB-level pass/fail counters (survive GUI restarts)
+        saved_counts = self._load_pcb_counts()
+        self.pass_count = saved_counts[0]
+        self.fail_count = saved_counts[1]
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -147,7 +148,7 @@ class AutomationGUI:
         counter_panel.pack(side="right", fill="y", padx=(0, 8), pady=4)
 
         self.pass_counter_label = tk.Label(
-            counter_panel, text="PASS\n0",
+            counter_panel, text=f"PASS\n{self.pass_count}",
             font=("Arial", 18, "bold"),
             fg="#FFFFFF", bg="#27AE60",
             width=6, height=3,
@@ -156,7 +157,7 @@ class AutomationGUI:
         self.pass_counter_label.pack(side="left", padx=4, pady=4)
 
         self.fail_counter_label = tk.Label(
-            counter_panel, text="FAIL\n0",
+            counter_panel, text=f"FAIL\n{self.fail_count}",
             font=("Arial", 18, "bold"),
             fg="#FFFFFF", bg="#C62828",
             width=6, height=3,
@@ -597,7 +598,7 @@ class AutomationGUI:
         self.timer_start_time = None
 
     def set_result_indicator(self, all_passed: bool) -> None:
-        """Set the Test Result Status box for the overall test outcome."""
+        """Set the Test Result Status box and increment the persistent PCB counter."""
         if all_passed:
             self.result_indicator.config(
                 text="PASS", fg="#FFFFFF", bg="#27AE60",
@@ -605,6 +606,7 @@ class AutomationGUI:
                 width=6,
             )
             self.result_status_text.config(text="")
+            self.pass_count += 1
         else:
             self.result_indicator.config(
                 text="FAIL", fg="#FFFFFF", bg="#C62828",
@@ -612,26 +614,52 @@ class AutomationGUI:
                 width=6,
             )
             self.result_status_text.config(text="")
-
-    def update_test_item_counts(self, pass_n: int, fail_n: int) -> None:
-        """Update the PASS/FAIL counters with individual test item counts."""
-        self.pass_count = pass_n
-        self.fail_count = fail_n
+            self.fail_count += 1
         self.pass_counter_label.config(text=f"PASS\n{self.pass_count}")
         self.fail_counter_label.config(text=f"FAIL\n{self.fail_count}")
+        self._save_pcb_counts()
+
+    def update_test_item_counts(self, pass_n: int, fail_n: int) -> None:
+        """No-op: PCB counters are now maintained by set_result_indicator.
+        Kept for API compatibility with integrated_automation."""
+        pass
 
     def clear_result_indicator(self) -> None:
-        """Clear result indicator and reset pass/fail counters for a new test run."""
+        """Clear the result box for the next test run. PCB counters are NOT reset."""
         self.result_indicator.config(text="", bg="#DFDFDF", fg="#FFFFFF", font=("Arial", 44, "bold"), width=6)
         self.result_status_text.config(text="")
-        self.pass_count = 0
-        self.fail_count = 0
-        self.pass_counter_label.config(text="PASS\n0")
-        self.fail_counter_label.config(text="FAIL\n0")
 
     def set_automation_runner(self, runner) -> None:
         """Set the automation runner instance."""
         self.automation_runner = runner
+
+    def _load_pcb_counts(self):
+        """Load persistent PCB pass/fail counts from the settings file."""
+        try:
+            if not _SETTINGS_FILE.exists():
+                return (0, 0)
+            data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+            p = int(data.get("pcb_pass_count", 0))
+            f = int(data.get("pcb_fail_count", 0))
+            return (max(p, 0), max(f, 0))
+        except Exception:
+            return (0, 0)
+
+    def _save_pcb_counts(self) -> None:
+        """Persist current PCB pass/fail counts to the settings file."""
+        try:
+            _SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            data = {}
+            if _SETTINGS_FILE.exists():
+                try:
+                    data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+                except Exception:
+                    data = {}
+            data["pcb_pass_count"] = self.pass_count
+            data["pcb_fail_count"] = self.fail_count
+            _SETTINGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        except Exception:
+            pass
 
     def _load_saved_psu_type(self) -> str:
         """Load persisted PSU type from local settings file."""
