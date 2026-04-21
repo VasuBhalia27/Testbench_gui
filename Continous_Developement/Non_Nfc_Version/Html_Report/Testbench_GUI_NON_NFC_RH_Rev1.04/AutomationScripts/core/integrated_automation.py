@@ -204,9 +204,17 @@ class IntegratedAutomationRunner:
             self.gui.root.after(0, lambda: self.gui.set_result_indicator(all_passed))
 
             # Generate HTML test report from the actual hardware measurements.
+            # pcb_count is the sequential number for this PCB (1-based).
+            # gui.pass_count + gui.fail_count = total runs BEFORE this one
+            # (set_result_indicator hasn't fired yet on the main thread).
+            pcb_count = self.gui.pass_count + self.gui.fail_count + 1
             try:
                 from AutomationScripts.report_generator import generate_report, results_from_run
-                report_path = generate_report(run_results=results)
+                report_path = generate_report(
+                    run_results=results,
+                    pcb_count=pcb_count,
+                    all_passed=all_passed,
+                )
                 self._log(f"HTML Report saved: {report_path}")
                 # Sync GUI counters to match the HTML report exactly
                 try:

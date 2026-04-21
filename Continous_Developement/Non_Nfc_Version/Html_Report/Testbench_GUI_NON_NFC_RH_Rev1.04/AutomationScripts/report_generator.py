@@ -627,6 +627,8 @@ def _create_generated_sheet_into(ws) -> None:
 def generate_report(
     run_results: Optional[Dict[str, Any]] = None,
     output_path: Optional[str] = None,
+    pcb_count: Optional[int] = None,
+    all_passed: Optional[bool] = None,
 ) -> str:
     """
     Generate an HTML test report from the test results.
@@ -639,7 +641,13 @@ def generate_report(
         report is produced.
     output_path:
         Destination ``.html`` file path.  Defaults to
-        ``AutomationTest/reports/<YYYYMMDD_HHMMSS>_Test_Report.html``.
+        ``AutomationTest/reports/<YYYYMMDD_HHMMSS>_Test_Report_<NNNN>_<PASS|FAIL>.html``.
+    pcb_count:
+        Sequential PCB number for this run (1-based).  Used in the default
+        filename when *output_path* is *None*.
+    all_passed:
+        Overall pass/fail result.  Used in the default filename suffix
+        (``PASS`` or ``FAIL``) when *output_path* is *None*.
 
     Returns
     -------
@@ -651,8 +659,12 @@ def generate_report(
     os.makedirs(REPORTS_DIR, exist_ok=True)
 
     if output_path is None:
-        ts          = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(REPORTS_DIR, f"{ts}_Test_Report.html")
+        ts         = datetime.now().strftime("%Y%m%d_%H%M%S")
+        count_str  = f"{pcb_count:04d}" if pcb_count is not None else "0000"
+        result_str = "PASS" if all_passed else "FAIL"
+        output_path = os.path.join(
+            REPORTS_DIR, f"{ts}_Test_Report_{count_str}_{result_str}.html"
+        )
 
     output_path = os.path.abspath(output_path)
 

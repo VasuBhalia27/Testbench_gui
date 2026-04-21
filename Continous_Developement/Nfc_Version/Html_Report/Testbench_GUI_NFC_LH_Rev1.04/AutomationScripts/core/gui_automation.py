@@ -147,8 +147,12 @@ class AutomationGUI:
         counter_panel = tk.Frame(top_section, bg="#DFDFDF")
         counter_panel.pack(side="right", fill="y", padx=(0, 8), pady=4)
 
+        # Top row: PASS and FAIL boxes
+        counter_boxes = tk.Frame(counter_panel, bg="#DFDFDF")
+        counter_boxes.pack(side="top")
+
         self.pass_counter_label = tk.Label(
-            counter_panel, text=f"PASS\n{self.pass_count}",
+            counter_boxes, text=f"PASS\n{self.pass_count}",
             font=("Arial", 18, "bold"),
             fg="#FFFFFF", bg="#27AE60",
             width=6, height=3,
@@ -157,13 +161,24 @@ class AutomationGUI:
         self.pass_counter_label.pack(side="left", padx=4, pady=4)
 
         self.fail_counter_label = tk.Label(
-            counter_panel, text=f"FAIL\n{self.fail_count}",
+            counter_boxes, text=f"FAIL\n{self.fail_count}",
             font=("Arial", 18, "bold"),
             fg="#FFFFFF", bg="#C62828",
             width=6, height=3,
             relief="flat",
         )
         self.fail_counter_label.pack(side="left", padx=4, pady=4)
+
+        # Bottom row: Reset Count button
+        tk.Button(
+            counter_panel,
+            text="Reset Count",
+            font=("Arial", 9, "bold"),
+            fg="#FFFFFF", bg="#555555",
+            activebackground="#333333", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._reset_pcb_counts,
+        ).pack(side="top", fill="x", padx=4, pady=(0, 4))
 
         # --- RIGHT PANEL ---
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
@@ -660,6 +675,14 @@ class AutomationGUI:
             _SETTINGS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
         except Exception:
             pass
+
+    def _reset_pcb_counts(self) -> None:
+        """Reset PCB pass/fail counters to zero and persist immediately."""
+        self.pass_count = 0
+        self.fail_count = 0
+        self.pass_counter_label.config(text="PASS\n0")
+        self.fail_counter_label.config(text="FAIL\n0")
+        self._save_pcb_counts()
 
     def _load_saved_psu_type(self) -> str:
         """Load persisted PSU type from local settings file."""
