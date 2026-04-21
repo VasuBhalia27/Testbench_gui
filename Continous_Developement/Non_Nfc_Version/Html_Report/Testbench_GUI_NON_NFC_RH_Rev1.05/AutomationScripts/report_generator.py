@@ -629,6 +629,7 @@ def generate_report(
     output_path: Optional[str] = None,
     pcb_count: Optional[int] = None,
     all_passed: Optional[bool] = None,
+    scan_code: Optional[str] = None,
 ) -> str:
     """
     Generate an HTML test report from the test results.
@@ -673,7 +674,6 @@ def generate_report(
         results_by_sheet=results_by_sheet,
         output_path=output_path,
         reports_dir=REPORTS_DIR,
-        project_title="Smart BU Testbench NON-NFC RH \u2013 Automated Test Report",
-    )
+        project_title="Smart BU Testbench NON-NFC RH \u2013 Automated Test Report",        scan_code=scan_code,    )
 
     return output_path

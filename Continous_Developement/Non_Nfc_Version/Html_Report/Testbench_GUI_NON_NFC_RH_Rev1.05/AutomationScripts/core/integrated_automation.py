@@ -70,6 +70,14 @@ class IntegratedAutomationRunner:
         try:
             self._log("Starting automation sequence...")
 
+            # Capture the 2D scan code entered by the operator before the run starts
+            scan_code = getattr(self.gui, "scan_code", None)
+            scan_code = scan_code.get().strip() if scan_code is not None else ""
+            if scan_code:
+                self._log(f"2D Scan Code: {scan_code}")
+            else:
+                self._log("2D Scan Code: (not entered)")
+
             psu_automation_enabled = self._is_psu_automation_enabled()
 
             if psu_automation_enabled:
@@ -214,6 +222,7 @@ class IntegratedAutomationRunner:
                     run_results=results,
                     pcb_count=pcb_count,
                     all_passed=all_passed,
+                    scan_code=scan_code,
                 )
                 self._log(f"HTML Report saved: {report_path}")
                 # Sync GUI counters to match the HTML report exactly

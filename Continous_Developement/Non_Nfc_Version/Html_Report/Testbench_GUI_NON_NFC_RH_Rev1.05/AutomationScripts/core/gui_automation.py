@@ -143,6 +143,21 @@ class AutomationGUI:
 
         self.result_status_text = ttk.Label(self.result_row, text="")
 
+        # --- 2D SCAN PANEL (to the left of counter panel) ---
+        scan_panel = tk.Frame(top_section, bg="#DFDFDF")
+        scan_panel.pack(side="right", fill="y", padx=(0, 4), pady=4)
+
+        ttk.Label(scan_panel, text="2D Scan",
+                  font=(None, 10, "bold")).pack(pady=(8, 2))
+        self.scan_code = tk.StringVar(master=self.root)
+        scan_entry = ttk.Entry(
+            scan_panel,
+            textvariable=self.scan_code,
+            font=("Courier", 11),
+            width=22,
+        )
+        scan_entry.pack(padx=8, pady=(0, 8))
+
         # --- FAR RIGHT PANEL: Pass/Fail Counters ---
         counter_panel = tk.Frame(top_section, bg="#DFDFDF")
         counter_panel.pack(side="right", fill="y", padx=(0, 8), pady=4)
