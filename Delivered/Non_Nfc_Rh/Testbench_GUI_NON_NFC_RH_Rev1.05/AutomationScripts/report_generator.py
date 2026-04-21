@@ -663,8 +663,9 @@ def generate_report(
         ts         = datetime.now().strftime("%Y%m%d_%H%M%S")
         count_str  = f"{pcb_count:04d}" if pcb_count is not None else "0000"
         result_str = "PASS" if all_passed else "FAIL"
+        scan_part  = f"_{scan_code}" if scan_code else ""
         output_path = os.path.join(
-            REPORTS_DIR, f"{ts}_Test_Report_{count_str}_{result_str}.html"
+            REPORTS_DIR, f"{ts}{scan_part}_Test_Report_{count_str}_{result_str}.html"
         )
 
     output_path = os.path.abspath(output_path)
