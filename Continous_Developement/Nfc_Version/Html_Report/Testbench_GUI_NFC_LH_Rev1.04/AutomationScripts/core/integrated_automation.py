@@ -163,7 +163,9 @@ class IntegratedAutomationRunner:
             self.adapter.set_variable("TestFw_GuiCanDependencyDisable", can_dep_value)
 
             runner = test_sequences.TestSequenceRunner(
-                self.adapter, status_callback=self._log
+                self.adapter,
+                status_callback=self._log,
+                power_cycle_callback=self._motor_ocp_recovery,
             )
 
             self._log("\nExecuting functional test sequence...")
@@ -244,6 +246,32 @@ class IntegratedAutomationRunner:
     def _log(self, message: str) -> None:
         """Log a message to the GUI status area."""
         self.gui.append_status(message)
+
+    def _motor_ocp_recovery(self) -> None:
+        """Recover from PSU over-current protection triggered by the motor test.
+
+        Turns the supply OFF to reset the OCP latch, then powers back ON and
+        restarts the target firmware so that subsequent tests can continue.
+        """
+        self._log("MOTOR OCP: turning supply OFF to clear over-current protection...")
+        self.power_off_supply()
+        self._log("MOTOR OCP: waiting 3 seconds for PSU to reset...")
+        time.sleep(3)
+        self._log("MOTOR OCP: turning supply ON...")
+        self.power_on_supply()
+        self._log("MOTOR OCP: waiting 4 seconds for supply and PCB to stabilise...")
+        time.sleep(4)
+        self._log("MOTOR OCP: resetting target (SYStem.Up)...")
+        try:
+            t32.ResetTarget(status_label=None)
+            self._log("MOTOR OCP: target reset complete")
+            time.sleep(1)
+            t32.RunCode(exec_label=None)
+            self._log("MOTOR OCP: code execution started")
+            self._log("MOTOR OCP: waiting 5 seconds for firmware to initialise...")
+            time.sleep(5)
+        except Exception as _e:
+            self._log(f"MOTOR OCP: recovery reset failed — {_e}")
 
     def _capa_power_cycle(self) -> None:
         """Power-cycle the supply and reset the target before CAPA tests.

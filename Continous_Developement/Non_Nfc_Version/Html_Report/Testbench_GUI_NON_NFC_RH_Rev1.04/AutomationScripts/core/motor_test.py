@@ -17,6 +17,15 @@ from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
 
+class MotorOCPError(Exception):
+    """Raised when PSU over-current protection trips during motor actuation.
+
+    This usually means the motor drew too much current, the power supply
+    entered OCP mode and the target ECU is no longer powered.  A full
+    PSU power-cycle and target reset is required to continue testing.
+    """
+
+
 class MotorTest:
     """Standalone motor test implementation."""
 
@@ -30,10 +39,20 @@ class MotorTest:
         voltage, current, load_error = MotorTest._read_once(adapter)
 
         # Auto-reset request after sampling.
+        # Wrapped in try/except: if the PSU over-current protection tripped
+        # while the motor was running the target will be down and this command
+        # will fail.  Raise MotorOCPError so the caller can perform a full
+        # power-cycle recovery before continuing with the remaining tests.
         wait_left = max(TIMING.motor_actuate_wait - 0.5, 0.0)
         if wait_left > 0:
             time.sleep(wait_left)
-        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
+        try:
+            adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
+        except Exception as _reset_err:
+            raise MotorOCPError(
+                "PSU over-current protection likely triggered — "
+                "motor reset command failed (target system down)"
+            ) from _reset_err
 
         # If first read looks like transient/sentinel, take one more quick sample.
         if current in (None, 65535.0) or voltage in (None, 0.0):

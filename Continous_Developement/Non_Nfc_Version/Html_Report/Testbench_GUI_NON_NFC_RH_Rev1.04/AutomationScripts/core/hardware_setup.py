@@ -134,13 +134,37 @@ class HardwareSetupVerifier:
                             Used for subsequent runs to avoid redundant connection setup.
         :return: True if fully verified, False otherwise
         """
-        try:
-            # Only connect on first run; reuse connection for subsequent runs
-            if not skip_connect:
-                self.connect_trace32(preset)
-            self.run_code_and_verify()
-            self._log("Hardware setup verified successfully!")
-            return True
-        except HardwareSetupVerificationError as e:
-            self._log(f"Hardware setup failed: {e}")
-            return False
+        max_attempts = 2
+        for attempt in range(1, max_attempts + 1):
+            try:
+                # Only connect on first run; reuse connection for subsequent runs
+                if not skip_connect:
+                    self.connect_trace32(preset)
+                self.run_code_and_verify()
+                self._log("Hardware setup verified successfully!")
+                return True
+            except HardwareSetupVerificationError as e:
+                err_str = str(e)
+                is_timeout = "Timeout" in err_str or "timed out" in err_str.lower()
+                if attempt < max_attempts:
+                    if is_timeout:
+                        self._log(
+                            f"Hardware setup attempt {attempt} timed out — "
+                            "target did not reach running state. Retrying once..."
+                        )
+                    else:
+                        self._log(
+                            f"Hardware setup attempt {attempt} failed: {e} — retrying once..."
+                        )
+                else:
+                    self._log(f"Hardware setup failed after {max_attempts} attempts: {e}")
+                    if is_timeout:
+                        self._log(
+                            "Timeout hint: If this happens consistently, check:\n"
+                            "  1) PCB power and hardware connections\n"
+                            "  2) Debugger cable (USB/JTAG) and Trace32 connection\n"
+                            "  3) ELF/firmware file — ensure it matches the flashed software\n"
+                            "  If it only happens occasionally it is likely a transient "
+                            "hardware issue — click Start to retry."
+                        )
+                    return False

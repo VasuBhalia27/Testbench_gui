@@ -17,7 +17,7 @@ from AutomationScripts.core.trace32_adapter import Trace32Interface
 # individual sequence modules
 from AutomationScripts.core.led_test import LedTest
 from AutomationScripts.core.bat_test import BatTest
-from AutomationScripts.core.motor_test import MotorTest
+from AutomationScripts.core.motor_test import MotorTest, MotorOCPError
 from AutomationScripts.core.eos_test import EosTest
 from AutomationScripts.core.sg_test import SgTest
 from AutomationScripts.core.capa_test import CapaTest
@@ -365,9 +365,21 @@ class TestSequenceRunner:
         results['led_off'] = {'pass': led_off_passed, 'voltage': led_off_v}
 
         # motor test
-        mot_passed, mot_v, mot_i, mot_e = self.run_motor_test_with_values()
-        results['motor'] = {'pass': mot_passed, 'voltage': mot_v,
-                            'current': mot_i, 'load_error': mot_e}
+        try:
+            mot_passed, mot_v, mot_i, mot_e = self.run_motor_test_with_values()
+            results['motor'] = {'pass': mot_passed, 'voltage': mot_v,
+                                'current': mot_i, 'load_error': mot_e}
+        except MotorOCPError as _ocp_err:
+            self._log(f"MOTOR: \u26a0 {_ocp_err}")
+            self._log(
+                "MOTOR: PSU over-current triggered — performing power-cycle recovery"
+                " before continuing with remaining tests..."
+            )
+            results['motor'] = {'pass': False, 'voltage': 0.0, 'current': 0.0, 'load_error': -1.0}
+            self._power_cycle()
+        except Exception as _mot_exc:
+            self._log(f"MOTOR: test failed with exception: {_mot_exc}")
+            results['motor'] = {'pass': False, 'voltage': 0.0, 'current': 0.0, 'load_error': -1.0}
 
         # EOS test (both reset and set cases)
         eos_results = self.run_eos_test()

@@ -549,7 +549,19 @@ def RunCode(exec_label):
             if exec_label:
                 exec_label.config(text="Status: running", fg="green")
         else:
-            messagebox.showerror("Error", f"Failed to start code: {str(err)}")
+            if exec_label is None:
+                # Called from automation — re-raise so caller can log and handle it
+                # without showing a blocking popup dialog
+                raise
+            messagebox.showerror(
+                "Error",
+                f"Failed to start code: {str(err)}\n\n"
+                "Troubleshooting:\n"
+                "  \u2022 Check PCB power and hardware connections\n"
+                "  \u2022 Check debugger cable and USB connection\n"
+                "  \u2022 Verify ELF file matches the flashed firmware\n"
+                "  \u2022 Try restarting Trace32 and reconnecting",
+            )
 
 def QuitTrace32(status_label=None):
     global dbg
