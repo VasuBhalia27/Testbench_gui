@@ -41,6 +41,7 @@ class IntegratedAutomationRunner:
         self.unlock_tabs = unlock_tabs_callback
         self.is_first_run = True
         self.is_running = False
+        self._automation_lock = threading.Lock()  # prevents race-condition double-start
         self.adapter = None  # Trace32 adapter persists across runs
         self.psu = None  # power supply instance
         self.consecutive_bat_zero_count = 0  # tracks successive 0.0 mV battery failures
@@ -55,10 +56,10 @@ class IntegratedAutomationRunner:
                                CAN/LIN selection is collected from the user
                                after hardware initialisation completes.
         """
-        if self.is_running:
-            return
-
-        self.is_running = True
+        with self._automation_lock:
+            if self.is_running:
+                return
+            self.is_running = True
         self._canlin_event.clear()
         thread = threading.Thread(target=self._run_automation_thread, args=(variant,))
         thread.daemon = True
@@ -202,9 +203,23 @@ class IntegratedAutomationRunner:
 
             # Generate HTML test report from the actual hardware measurements.
             try:
-                from AutomationScripts.report_generator import generate_report
+                from AutomationScripts.report_generator import generate_report, results_from_run
                 report_path = generate_report(run_results=results)
                 self._log(f"HTML Report saved: {report_path}")
+                # Sync GUI counters to match the HTML report exactly
+                try:
+                    results_by_sheet = results_from_run(results)
+                    rpt_pass = sum(
+                        1 for rows in results_by_sheet.values()
+                        for r in rows if (r.get("Status") or "").upper().strip() == "PASS"
+                    )
+                    rpt_fail = sum(
+                        1 for rows in results_by_sheet.values()
+                        for r in rows if (r.get("Status") or "").upper().strip() == "FAIL"
+                    )
+                    self.gui.root.after(0, lambda p=rpt_pass, f=rpt_fail: self.gui.update_test_item_counts(p, f))
+                except Exception:
+                    pass
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
 
@@ -311,6 +326,8 @@ class IntegratedAutomationRunner:
         test reported a passing status.
         """
         all_passed = True
+        pass_count = 0
+        fail_count = 0
         for name, result in results.items():
             if isinstance(result, dict):
                 passed = bool(result.get('pass', False))
@@ -321,7 +338,13 @@ class IntegratedAutomationRunner:
             status = "PASS" if passed else "FAIL"
             self._log(f"  {icon} {name}: {status}")
 
-            if not passed:
+            if passed:
+                pass_count += 1
+            else:
+                fail_count += 1
                 all_passed = False
+
+        # Update the GUI counters with individual test item counts
+        self.gui.root.after(0, lambda p=pass_count, f=fail_count: self.gui.update_test_item_counts(p, f))
 
         return all_passed

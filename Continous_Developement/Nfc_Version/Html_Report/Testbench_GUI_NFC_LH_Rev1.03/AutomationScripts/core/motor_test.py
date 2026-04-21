@@ -93,10 +93,21 @@ class MotorTest:
         voltage, current, load_error, last_readings = MotorTest._measure_once(adapter, timeout)
 
         # Retry once when current saturates at 0xFFFF or values are invalid.
+        # Re-read only — the motor actuation DID was already sent; do NOT
+        # resend it or the motor will be commanded a second time.
         if current in (None, 65535.0) or voltage in (None, 0.0):
             log("MOTOR: transient/sentinel readback, retrying once")
             time.sleep(0.5)
-            voltage, current, load_error, last_readings = MotorTest._measure_once(adapter, timeout)
+            voltage2, current2, load_error2 = MotorTest._read_once(adapter)
+            if voltage2 is not None:
+                voltage = voltage2
+                last_readings['voltage'] = voltage2
+            if current2 is not None:
+                current = current2
+                last_readings['current'] = current2
+            if load_error2 is not None:
+                load_error = load_error2
+                last_readings['load_error'] = load_error2
 
         # If any value failed to stabilize, log the last-read values for debugging
         if voltage is None:
@@ -163,7 +174,13 @@ class MotorTest:
         if current in (None, 65535.0) or voltage in (None, 0.0):
             log("MOTOR: transient/sentinel readback, retrying once")
             time.sleep(0.5)
-            voltage, current, load_error, _ = MotorTest._measure_once(adapter, timeout)
+            voltage2, current2, load_error2 = MotorTest._read_once(adapter)
+            if voltage2 is not None:
+                voltage = voltage2
+            if current2 is not None:
+                current = current2
+            if load_error2 is not None:
+                load_error = load_error2
 
         v = voltage if voltage is not None else 0.0
         i = current if current is not None else 0.0

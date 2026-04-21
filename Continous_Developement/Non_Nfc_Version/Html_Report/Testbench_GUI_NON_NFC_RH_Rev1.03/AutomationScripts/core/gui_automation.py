@@ -52,11 +52,12 @@ class AutomationGUI:
         # Timer tracking
         self.timer_start_time = None
         self.timer_id = None
+        self._start_automation_id = None  # after-callback ID for pending _start_automation
 
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("SmartBU Test Automation")
+            self.root.title("Non-NFC RH Rev 1.04 Automation")
             self.root.geometry("500x450")
         else:
             # Embedded mode: build UI directly in parent widget
@@ -85,6 +86,10 @@ class AutomationGUI:
             selected_psu_automation = 1 if saved_psu_automation else 0
         self.psu_type = tk.StringVar(master=self.root, value=selected_psu_type.upper())
         self.psu_automation_enabled = tk.IntVar(master=self.root, value=selected_psu_automation)
+
+        # Pass/Fail counters
+        self.pass_count = 0
+        self.fail_count = 0
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -137,17 +142,39 @@ class AutomationGUI:
 
         self.result_status_text = ttk.Label(self.result_row, text="")
 
+        # --- FAR RIGHT PANEL: Pass/Fail Counters ---
+        counter_panel = tk.Frame(top_section, bg="#DFDFDF")
+        counter_panel.pack(side="right", fill="y", padx=(0, 8), pady=4)
+
+        self.pass_counter_label = tk.Label(
+            counter_panel, text="PASS\n0",
+            font=("Arial", 18, "bold"),
+            fg="#FFFFFF", bg="#27AE60",
+            width=6, height=3,
+            relief="flat",
+        )
+        self.pass_counter_label.pack(side="left", padx=4, pady=4)
+
+        self.fail_counter_label = tk.Label(
+            counter_panel, text="FAIL\n0",
+            font=("Arial", 18, "bold"),
+            fg="#FFFFFF", bg="#C62828",
+            width=6, height=3,
+            relief="flat",
+        )
+        self.fail_counter_label.pack(side="left", padx=4, pady=4)
+
         # --- RIGHT PANEL ---
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
         right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
 
         # Welcome header
-        header = ttk.Label(right_panel, text="SmartBU Test Automation",
+        header = ttk.Label(right_panel, text="Non-NFC RH Rev 1.04 Automation",
                            font=(None, 16, "bold"))
         header.pack(pady=(10, 4))
 
         welcome = ttk.Label(right_panel,
-                            text="Welcome to SmartBU Test Automation\n"
+                            text="Welcome to Non-NFC RH Rev 1.04 Automation\n"
                                  "Click 'Start' to begin the setup and test sequence.",
                             font=(None, 10), justify="center")
         welcome.pack(pady=(0, 6))
@@ -427,17 +454,41 @@ class AutomationGUI:
         self.nfc_cb.state(["!selected"] if self.variant.get() != 2 else ["selected"])
         # Only trigger automation if user explicitly started the flow
         if getattr(self, "started", False):
-            # Lock other tabs, start timer, then launch automation
+            # Lock other tabs, start timer, then launch automation.
+            # Cancel any previously scheduled _start_automation so only the
+            # most recent variant selection takes effect.
+            if self._start_automation_id is not None:
+                try:
+                    self.root.after_cancel(self._start_automation_id)
+                except Exception:
+                    pass
+                self._start_automation_id = None
             self.lock_callback()
             self._start_timer()
-            self.root.after(100, self._start_automation)
+            self._start_automation_id = self.root.after(100, self._start_automation)
+
+    def set_testing_indicator(self) -> None:
+        """Show 'Testing...' in result indicator while test is in progress."""
+        self.result_indicator.config(
+            text="Testing...",
+            fg="#FFFFFF",
+            bg="#E67E22",
+            font=("Arial", 20, "bold"),
+            width=8,
+        )
+        self.result_status_text.config(text="")
 
     def _start_automation(self):
         """Called after variant selection; triggers the automation flow."""
+        self._start_automation_id = None
+        # Guard: do not start a second run if one is already in progress
+        if self.automation_runner is not None and getattr(self.automation_runner, 'is_running', False):
+            return
         if self.automation_runner is not None:
             variant = self.variant.get()
             self.append_status(f"\nVariant selected: {variant}")
             self.append_status("Starting automation — CAN/LIN selection will be prompted after hardware initialisation.")
+            self.set_testing_indicator()
             self.automation_runner.start_automation(variant)
 
     def prompt_canlin_selection(self) -> None:
@@ -546,24 +597,37 @@ class AutomationGUI:
         self.timer_start_time = None
 
     def set_result_indicator(self, all_passed: bool) -> None:
-        """Set top-right operator result label for test outcome."""
+        """Set the Test Result Status box for the overall test outcome."""
         if all_passed:
             self.result_indicator.config(
                 text="PASS", fg="#FFFFFF", bg="#27AE60",
                 font=("Arial", 44, "bold"),
+                width=6,
             )
             self.result_status_text.config(text="")
         else:
             self.result_indicator.config(
                 text="FAIL", fg="#FFFFFF", bg="#C62828",
                 font=("Arial", 44, "bold"),
+                width=6,
             )
             self.result_status_text.config(text="")
 
+    def update_test_item_counts(self, pass_n: int, fail_n: int) -> None:
+        """Update the PASS/FAIL counters with individual test item counts."""
+        self.pass_count = pass_n
+        self.fail_count = fail_n
+        self.pass_counter_label.config(text=f"PASS\n{self.pass_count}")
+        self.fail_counter_label.config(text=f"FAIL\n{self.fail_count}")
+
     def clear_result_indicator(self) -> None:
-        """Clear top-right operator result label."""
-        self.result_indicator.config(text="", bg="#DFDFDF", fg="#FFFFFF")
+        """Clear result indicator and reset pass/fail counters for a new test run."""
+        self.result_indicator.config(text="", bg="#DFDFDF", fg="#FFFFFF", font=("Arial", 44, "bold"), width=6)
         self.result_status_text.config(text="")
+        self.pass_count = 0
+        self.fail_count = 0
+        self.pass_counter_label.config(text="PASS\n0")
+        self.fail_counter_label.config(text="FAIL\n0")
 
     def set_automation_runner(self, runner) -> None:
         """Set the automation runner instance."""
