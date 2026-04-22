@@ -233,14 +233,20 @@ class AutomationGUI:
                   font=("Arial", 11, "bold")).pack(side="left", padx=(0, 8))
         self.scan_code = tk.StringVar(master=self.root)
         self.scan_code.trace_add("write", lambda *_: self._update_start_button_state())
-        tk.Entry(
+        _vcmd = (self.root.register(lambda s: len(s) <= 20), "%P")
+        self.scan_entry = tk.Entry(
             scan_row,
             textvariable=self.scan_code,
             font=("Courier", 13, "bold"),
-            width=22,
+            width=20,
             relief="solid",
             bd=1,
-        ).pack(side="left")
+            validate="key",
+            validatecommand=_vcmd,
+        )
+        self.scan_entry.pack(side="left")
+        # Auto-focus the scan field when the GUI first appears
+        self.root.after(200, self.scan_entry.focus_set)
 
         # Create a main area that will hold control_frame above status_frame.
         # Using grid inside this area ensures the control frame stays above the
@@ -332,9 +338,9 @@ class AutomationGUI:
         # Initially control_frame is not gridded; it will be shown on Start
 
     def _update_start_button_state(self) -> None:
-        """Enable Start button only when exactly 16 characters are entered in 2D Scan."""
+        """Enable Start button when more than 15 characters are entered in 2D Scan."""
         try:
-            if len(self.scan_code.get().strip()) == 16:
+            if len(self.scan_code.get().strip()) > 15:
                 self.start_button.config(state="normal")
             else:
                 self.start_button.config(state="disabled")
@@ -541,6 +547,8 @@ class AutomationGUI:
         # Clear the 2D scan field so operator must scan the next PCB before starting
         self.scan_code.set("")
         self._update_start_button_state()
+        # Return focus to the scan entry so the operator can scan immediately
+        self.root.after(150, self.scan_entry.focus_set)
         self.psu_type_cb.config(state="readonly")
         self.psu_automation_cb.config(state="normal")
         # keep control_frame visible so handle selection and timer remain
