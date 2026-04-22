@@ -26,15 +26,18 @@ class HardwareSetupVerificationError(Exception):
 class HardwareSetupVerifier:
     """Orchestrates automated hardware setup and verification."""
 
-    def __init__(self, status_callback: Optional[Callable[[str], None]] = None):
+    def __init__(self, status_callback: Optional[Callable[[str], None]] = None, gui_root=None):
         """
         Initialize the verifier.
 
         :param status_callback: Optional callable to report progress.
                                 Receives messages like "Connecting to Trace32..."
+        :param gui_root: tkinter root window — used to bring the GUI back to
+                         the front after the Trace32 debugger window appears.
         """
         self.status_callback = status_callback or (lambda msg: None)
         self.repo_path = path_utils.smartbu_repo_path()
+        self.gui_root = gui_root
 
     def _log(self, message: str) -> None:
         """Log a status message via callback."""
@@ -70,6 +73,18 @@ class HardwareSetupVerifier:
             except Exception:
                 pass
             raise HardwareSetupVerificationError(f"Failed to launch Trace32: {e}")
+
+        # Bring the GUI window back to the front now that the T32 window has appeared
+        if self.gui_root is not None:
+            def _lift():
+                try:
+                    self.gui_root.attributes("-topmost", True)
+                    self.gui_root.lift()
+                    self.gui_root.focus_force()
+                    self.gui_root.after(800, lambda: self.gui_root.attributes("-topmost", False))
+                except Exception:
+                    pass
+            self.gui_root.after(0, _lift)
 
         self._log("Waiting for breakpoint...")
         start = time.time()

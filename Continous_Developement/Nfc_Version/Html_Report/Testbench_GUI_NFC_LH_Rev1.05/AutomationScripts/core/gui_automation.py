@@ -57,7 +57,7 @@ class AutomationGUI:
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("NFC LH Rev 1.04 Automation")
+            self.root.title("NFC LH Rev 1.06 Automation")
             self.root.geometry("500x450")
         else:
             # Embedded mode: build UI directly in parent widget
@@ -185,17 +185,17 @@ class AutomationGUI:
         right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
 
         # Welcome header
-        header = ttk.Label(right_panel, text="NFC LH Rev 1.04 Automation",
+        header = ttk.Label(right_panel, text="NFC LH Rev 1.06 Automation",
                            font=(None, 16, "bold"))
         header.pack(pady=(10, 4))
 
         welcome = ttk.Label(right_panel,
-                            text="Welcome to NFC LH Rev 1.04 Automation\n"
+                            text="Welcome to NFC LH Rev 1.06 Automation\n"
                                  "Click 'Start' to begin the setup and test sequence.",
                             font=(None, 10), justify="center")
         welcome.pack(pady=(0, 6))
 
-        # Button row: Start / End / Power Supply
+        # Button row: Start / Power Supply
         btn_frame = ttk.Frame(right_panel)
         btn_frame.pack(pady=(0, 8))
 
@@ -203,10 +203,6 @@ class AutomationGUI:
                                        command=self._on_start)
         self.start_button.pack(side="left", padx=8)
         self.start_button.config(state="disabled")  # enabled only after 2D scan entered
-
-        self.end_button = ttk.Button(btn_frame, text="End",
-                                     command=self._on_end)
-        self.end_button.pack(side="left", padx=8)
 
         # Power Supply frame — always visible so it can be changed before Start.
         self.psu_frame = ttk.Labelframe(btn_frame, text="Power Supply")
@@ -230,7 +226,7 @@ class AutomationGUI:
         )
         self.psu_automation_cb.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
-        # 2D Scan field — below Start/End/PSU row, centred in the right panel
+        # 2D Scan field — below Start/PSU row, centred in the right panel
         scan_row = ttk.Frame(right_panel)
         scan_row.pack(pady=(4, 6))
         ttk.Label(scan_row, text="2D Scan:",
@@ -334,55 +330,6 @@ class AutomationGUI:
         self.main_area.rowconfigure(1, weight=1)
 
         # Initially control_frame is not gridded; it will be shown on Start
-
-    def _on_end(self) -> None:
-        """Handle End button click.
-
-        Disconnects from Trace32 (kills the debugger process) and resets the
-        GUI back to a clean state so the operator can immediately plug in the
-        next PCB and click Start without restarting the application.
-        """
-        # If automation is still running, stop it gracefully first
-        if self.automation_runner is not None and getattr(self.automation_runner, 'is_running', False):
-            self.append_status("\nEnd requested — waiting for current run to finish...")
-            # signal the runner to stop after the current step
-            self.automation_runner.is_running = False
-
-        # Close the Trace32 debugger connection
-        try:
-            from Functional import trace32 as t32
-            self.append_status("Closing Trace32 debugger (force cleanup if needed)...")
-            # Always call QuitTrace32: it performs process-level cleanup in
-            # addition to protocol-level disconnect, which is needed when
-            # PowerView is hung and no valid dbg object exists.
-            t32.QuitTrace32(status_label=None)
-            self.append_status("Trace32 closed.")
-        except Exception as e:
-            self.append_status(f"Note: Trace32 close: {e}")
-
-        # Reset the automation runner so the next run starts fresh
-        if self.automation_runner is not None:
-            self.automation_runner.is_first_run = True
-            self.automation_runner.adapter = None
-            self.automation_runner.psu = None
-
-        # Stop timer and reset GUI
-        self._stop_timer()
-        self.timer_label.config(text="Time Elapsed: 00:00")
-        self.timer_start_time = None
-        self.started = False
-        self._update_start_button_state()
-        self.psu_type_cb.config(state="readonly")
-        self.psu_automation_cb.config(state="normal")
-        self.variant.set(0)
-        self.non_nfc_cb.state(["!selected"])
-        self.nfc_cb.state(["!selected"])
-        self.canlin_enabled.set(0)
-        self.canlin_off_cb.state(["!selected"])
-        self.canlin_on_cb.state(["!selected"])
-        self.waiting_for_canlin = False
-        self.clear_result_indicator()
-        self.append_status("\nReady for next PCB. Scan the 2D code and click 'Start'.")
 
     def _update_start_button_state(self) -> None:
         """Enable Start button only when exactly 16 characters are entered in 2D Scan."""
@@ -591,6 +538,8 @@ class AutomationGUI:
     def reset_for_new_run(self) -> None:
         """Reset GUI to allow another automation run."""
         self.started = False
+        # Clear the 2D scan field so operator must scan the next PCB before starting
+        self.scan_code.set("")
         self._update_start_button_state()
         self.psu_type_cb.config(state="readonly")
         self.psu_automation_cb.config(state="normal")

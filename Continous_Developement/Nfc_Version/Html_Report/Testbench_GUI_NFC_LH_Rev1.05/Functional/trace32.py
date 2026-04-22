@@ -531,8 +531,12 @@ def ResetTarget(status_label):
             if status_label:
                 status_label.config(text="Status: system ready", fg="blue")
         else:
+            if status_label is None:
+                raise RuntimeError("Trace32 not connected")
             messagebox.showwarning("Warning", "Trace32 not connected!")
     except Exception as e:
+        if status_label is None:
+            raise
         messagebox.showerror("Error", f"Failed to reset target: {str(e)}")
 
 def RunCode(exec_label):
@@ -543,6 +547,8 @@ def RunCode(exec_label):
             if exec_label:
                 exec_label.config(text="Status: running", fg="green")
         else:
+            if exec_label is None:
+                raise RuntimeError("Trace32 not connected")
             messagebox.showwarning("Warning", "Trace32 not connected!")
     except Exception as err:
         if "target running" in str(err).lower():

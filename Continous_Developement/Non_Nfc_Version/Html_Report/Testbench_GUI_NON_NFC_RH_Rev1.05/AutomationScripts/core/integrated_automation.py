@@ -98,32 +98,25 @@ class IntegratedAutomationRunner:
 
             # If not first run, reset target and go before hardware setup
             if not self.is_first_run:
-                self._log("\nResetting target from previous run...")
                 try:
                     t32.ResetTarget(status_label=None)
-                    self._log("Target reset complete")
                     time.sleep(1)
-                except Exception as e:
-                    self._log(f"⚠ Reset target failed: {e}")
+                except Exception:
+                    pass
 
-                self._log("Running code (Go)...")
                 try:
                     t32.RunCode(exec_label=None)
-                    self._log("Code execution started")
                     time.sleep(2)  # give it time to settle
-                except Exception as e:
-                    self._log(f"⚠ Go command failed: {e}")
+                except Exception:
+                    pass
 
             # Hardware setup verification
             verifier = hardware_setup.HardwareSetupVerifier(
-                status_callback=self._log
+                status_callback=self._log,
+                gui_root=self.gui.root,
             )
             # determine whether a Trace32 connection already exists (persisted from previous run or manual connect)
             already_connected = bool(getattr(t32, 'dbg', None))
-            if already_connected:
-                self._log("Using existing Trace32 connection")
-            else:
-                self._log("No Trace32 connection detected; will connect now")
             success = verifier.verify_setup(variant, skip_connect=already_connected)
 
             if not success:
@@ -241,6 +234,14 @@ class IntegratedAutomationRunner:
                     pass
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
+
+            # Close the T32 debugger automatically after report is saved
+            try:
+                self._log("Closing debugger...")
+                t32.QuitTrace32(status_label=None)
+                self._log("Debugger closed.")
+            except Exception as _e:
+                self._log(f"Note: Debugger close: {_e}")
 
             self.is_first_run = False
 
