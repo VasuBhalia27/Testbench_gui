@@ -235,6 +235,9 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     edit_trace32_config_file(trace_configfile_path)
     
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
+    # Kill any stale T32 process before launching to avoid PODBUS "device already used" error
+    os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+    time.sleep(2)  # Give the PODBUS driver time to release before new instance starts
     subprocess.Popen(command)
     # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
     time.sleep(8) 
@@ -580,6 +583,7 @@ def QuitTrace32(status_label=None):
         pass
     finally:
         os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        time.sleep(4)  # Wait for PODBUS USB driver to fully release the device
         dbg = ''
         if status_label:
             status_label.config(text="Status: Disconnected", fg="red")
