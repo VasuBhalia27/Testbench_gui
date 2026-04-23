@@ -96,18 +96,17 @@ class IntegratedAutomationRunner:
             else:
                 self._log("PSU automation disabled — skipping automated power OFF/ON sequence")
 
-            # On subsequent runs a new PCB has been inserted into the fixture.
-            # The SWD probe loses its link to the old board; Trace32 then crashes
-            # when trying SYStem.Up on the new board — exactly the failure that
-            # forces testers to unplug/replug the debugger USB cable.
-            # Fix: shut Trace32 down cleanly (SYStem.Down + QUIT + taskkill +
-            # 4 s USB-driver release window) so the probe fully resets.
-            # verify_setup then sees dbg='' and does a full relaunch automatically —
-            # the software equivalent of replugging the debugger cable.
+            # If not first run, reset target and go before hardware setup
             if not self.is_first_run:
-                self._log("New PCB in fixture — restarting Trace32 for clean probe connection...")
                 try:
-                    t32.QuitTrace32(status_label=None)
+                    t32.ResetTarget(status_label=None)
+                    time.sleep(1)
+                except Exception:
+                    pass
+
+                try:
+                    t32.RunCode(exec_label=None)
+                    time.sleep(2)  # give it time to settle
                 except Exception:
                     pass
 
@@ -116,9 +115,7 @@ class IntegratedAutomationRunner:
                 status_callback=self._log,
                 gui_root=self.gui.root,
             )
-            # After QuitTrace32, dbg is '' so already_connected is False and
-            # verify_setup will perform a full Trace32 relaunch.
-            # On first run, dbg may already be set from a manual connect.
+            # determine whether a Trace32 connection already exists (persisted from previous run or manual connect)
             already_connected = bool(getattr(t32, 'dbg', None))
             success = verifier.verify_setup(variant, skip_connect=already_connected)
 
