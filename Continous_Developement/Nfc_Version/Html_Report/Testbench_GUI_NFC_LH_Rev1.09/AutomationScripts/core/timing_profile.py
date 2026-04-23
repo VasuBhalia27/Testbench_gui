@@ -1,0 +1,91 @@
+"""Timing profile values for automation speed tuning.
+
+Set environment variable ``AUTOMATION_SPEED`` to ``fast`` to reduce fixed
+delays and shorten total execution time.
+"""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class TimingProfile:
+    supply_off_wait: float
+    supply_on_wait: float
+    first_run_fw_init_wait: float
+    before_go_wait: float
+    bat_initial_wait: float
+    bat_retry_wait: float
+    led_stabilize_wait: float
+    motor_actuate_wait: float
+    eos_mode_switch_wait: float
+    eos_reset_stabilize_wait: float
+    eos_measure_wait: float
+    eos_clear_wait: float
+    eos_set_process_wait: float
+    sg1_measure_wait: float
+    sg2_flag_wait: float
+    sg2_reset_wait: float
+    sg2_measure_wait: float
+    capa_retry_timeout: float
+    capa_retry_interval: float
+    stable_poll_interval: float
+
+
+NORMAL = TimingProfile(
+    supply_off_wait=1.0,
+    supply_on_wait=1.5,
+    first_run_fw_init_wait=5.0,
+    before_go_wait=0.2,
+    bat_initial_wait=1.5,   # reduced 3.0→1.5 s: 50 mV tolerance means ADC is accepted sooner
+    bat_retry_wait=2.0,     # reduced 5.0→2.0 s: retry gap was far longer than needed
+    led_stabilize_wait=0.5,
+    motor_actuate_wait=1.0,
+    eos_mode_switch_wait=0.2,
+    eos_reset_stabilize_wait=0.3,
+    eos_measure_wait=0.4,
+    eos_clear_wait=0.2,
+    eos_set_process_wait=0.6,
+    sg1_measure_wait=0.8,
+    sg2_flag_wait=0.2,
+    sg2_reset_wait=0.3,
+    sg2_measure_wait=0.8,
+    capa_retry_timeout=15.0,  # increased 2.0→15.0: allows multiple DID retries if firmware is slow
+    capa_retry_interval=0.25,
+    stable_poll_interval=0.25,
+)
+
+FAST = TimingProfile(
+    supply_off_wait=0.5,
+    supply_on_wait=1.0,
+    first_run_fw_init_wait=3.0,
+    before_go_wait=0.2,
+    bat_initial_wait=0.5,
+    bat_retry_wait=2.0,
+    led_stabilize_wait=0.5,
+    motor_actuate_wait=0.3,
+    eos_mode_switch_wait=0.2,
+    eos_reset_stabilize_wait=0.5,
+    eos_measure_wait=0.5,
+    eos_clear_wait=0.2,
+    eos_set_process_wait=0.8,
+    sg1_measure_wait=1.0,
+    sg2_flag_wait=0.2,
+    sg2_reset_wait=0.2,
+    sg2_measure_wait=1.0,
+    capa_retry_timeout=3.0,
+    capa_retry_interval=0.25,
+    stable_poll_interval=0.25,
+)
+
+
+def get_timing_profile() -> TimingProfile:
+    speed = os.getenv("AUTOMATION_SPEED", "normal").strip().lower()
+    if speed == "fast":
+        return FAST
+    return NORMAL
+
+
+TIMING = get_timing_profile()
