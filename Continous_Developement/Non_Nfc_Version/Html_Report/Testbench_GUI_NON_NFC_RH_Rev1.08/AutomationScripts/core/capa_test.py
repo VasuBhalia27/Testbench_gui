@@ -76,6 +76,8 @@ class CapaTest:
         results: Dict[str, Dict] = {}
         results["capa1"] = self.run_tc_capa_01()
         results["capa2"] = self.run_tc_capa_02()
+        self._log_capa_result("CAPA1", results["capa1"])
+        self._log_capa_result("CAPA2", results["capa2"])
         return results
 
     def run_tc_capa_01(self) -> Dict:
@@ -92,10 +94,8 @@ class CapaTest:
 
         readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
         deadline = time.time() + CAPA1_RETRY_TIMEOUT
-        attempt = 0
 
         while True:
-            attempt += 1
             self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
             time.sleep(CAPA1_RETRY_INTERVAL)
 
@@ -136,10 +136,6 @@ class CapaTest:
             pass_unlock_sensor and pass_approach_sensor and pass_lock_sensor
         )
 
-        self.log(f"CAPA1: values — unlock={unlock_sensor}, approach={approach_sensor}, lock={lock_sensor}")
-        p_str = f"unlock={'✓' if pass_unlock_sensor else '✗'}{unlock_sensor}  approach={'✓' if pass_approach_sensor else '✗'}{approach_sensor}  lock={'✓' if pass_lock_sensor else '✗'}{lock_sensor}"
-        self.log(f"CAPA1: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
-
         result = {"pass": pass_status}
         result.update(readings)
         return result
@@ -156,10 +152,8 @@ class CapaTest:
 
         readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
         deadline = time.time() + CAPA2_RETRY_TIMEOUT
-        attempt = 0
 
         while True:
-            attempt += 1
             self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
             time.sleep(CAPA2_RETRY_INTERVAL)
 
@@ -199,13 +193,22 @@ class CapaTest:
             pass_unlock_sensor and pass_approach_sensor and pass_lock_sensor
         )
 
-        self.log(f"CAPA2: values — unlock={unlock_sensor}, approach={approach_sensor}, lock={lock_sensor}")
-        p_str = f"unlock={'✓' if pass_unlock_sensor else '✗'}{unlock_sensor}  approach={'✓' if pass_approach_sensor else '✗'}{approach_sensor}  lock={'✓' if pass_lock_sensor else '✗'}{lock_sensor}"
-        self.log(f"CAPA2: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
-
         result = {"pass": pass_status}
         result.update(readings)
         return result
+
+    def _log_capa_result(self, label: str, result: Dict) -> None:
+        """Log two-line SG-style summary for a CAPA result dict."""
+        unlock_sensor   = result.get("TestFw_CapaUnlockSensorValue")
+        approach_sensor = result.get("TestFw_CapaApproachSensorValue")
+        lock_sensor     = result.get("TestFw_CapaLockSensorValue")
+        pass_unlock   = unlock_sensor   is not None and unlock_sensor   > self.UNLOCK_SENSOR_THRESHOLD
+        pass_approach = approach_sensor is not None and approach_sensor > self.APPROACH_SENSOR_THRESHOLD
+        pass_lock     = lock_sensor     is not None and lock_sensor     > self.LOCK_SENSOR_THRESHOLD
+        pass_status   = result.get("pass", False)
+        self.log(f"{label}: values — unlock={unlock_sensor}, approach={approach_sensor}, lock={lock_sensor}")
+        p_str = f"unlock={'✓' if pass_unlock else '✗'}{unlock_sensor}  approach={'✓' if pass_approach else '✗'}{approach_sensor}  lock={'✓' if pass_lock else '✗'}{lock_sensor}"
+        self.log(f"{label}: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
 
     def _wait_for_stable_variables(
         self,
