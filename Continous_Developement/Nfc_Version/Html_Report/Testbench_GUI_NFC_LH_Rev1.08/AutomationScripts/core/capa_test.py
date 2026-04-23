@@ -96,7 +96,6 @@ class CapaTest:
 
         while True:
             attempt += 1
-            self.log(f"CAPA1: triggering measurement DID (attempt {attempt})")
             self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
             time.sleep(CAPA1_RETRY_INTERVAL)
 
@@ -137,22 +136,9 @@ class CapaTest:
             pass_unlock_sensor and pass_approach_sensor and pass_lock_sensor
         )
 
-        self.log(
-            f"CAPA1: unlock_sensor={unlock_sensor}, approach_sensor={approach_sensor}, "
-            f"lock_sensor={lock_sensor}"
-        )
-        self.log(
-            f"CAPA1: unlock={unlock}, approach={approach}, lock={lock}"
-        )
-        if pass_status:
-            self.log("CAPA1: ✓ all sensor values in pass range")
-        else:
-            if not pass_unlock_sensor:
-                self.log(f"CAPA1: ✗ unlock sensor {unlock_sensor} expected > {self.UNLOCK_SENSOR_THRESHOLD}")
-            if not pass_approach_sensor:
-                self.log(f"CAPA1: ✗ approach sensor {approach_sensor} expected > {self.APPROACH_SENSOR_THRESHOLD}")
-            if not pass_lock_sensor:
-                self.log(f"CAPA1: ✗ lock sensor {lock_sensor} expected > {self.LOCK_SENSOR_THRESHOLD}")
+        self.log(f"CAPA1: values — unlock={unlock_sensor}, approach={approach_sensor}, lock={lock_sensor}")
+        p_str = f"unlock={'✓' if pass_unlock_sensor else '✗'}{unlock_sensor}  approach={'✓' if pass_approach_sensor else '✗'}{approach_sensor}  lock={'✓' if pass_lock_sensor else '✗'}{lock_sensor}"
+        self.log(f"CAPA1: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
 
         result = {"pass": pass_status}
         result.update(readings)
@@ -174,7 +160,6 @@ class CapaTest:
 
         while True:
             attempt += 1
-            self.log(f"CAPA2: triggering measurement DID (attempt {attempt})")
             self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
             time.sleep(CAPA2_RETRY_INTERVAL)
 
@@ -214,22 +199,9 @@ class CapaTest:
             pass_unlock_sensor and pass_approach_sensor and pass_lock_sensor
         )
 
-        self.log(
-            f"CAPA2: unlock_sensor={unlock_sensor}, approach_sensor={approach_sensor}, "
-            f"lock_sensor={lock_sensor}"
-        )
-        self.log(
-            f"CAPA2: unlock={unlock}, approach={approach}, lock={lock}"
-        )
-        if pass_status:
-            self.log("CAPA2: ✓ all sensor values in pass range")
-        else:
-            if not pass_unlock_sensor:
-                self.log(f"CAPA2: ✗ unlock sensor {unlock_sensor} expected > {self.UNLOCK_SENSOR_THRESHOLD}")
-            if not pass_approach_sensor:
-                self.log(f"CAPA2: ✗ approach sensor {approach_sensor} expected > {self.APPROACH_SENSOR_THRESHOLD}")
-            if not pass_lock_sensor:
-                self.log(f"CAPA2: ✗ lock sensor {lock_sensor} expected > {self.LOCK_SENSOR_THRESHOLD}")
+        self.log(f"CAPA2: values — unlock={unlock_sensor}, approach={approach_sensor}, lock={lock_sensor}")
+        p_str = f"unlock={'✓' if pass_unlock_sensor else '✗'}{unlock_sensor}  approach={'✓' if pass_approach_sensor else '✗'}{approach_sensor}  lock={'✓' if pass_lock_sensor else '✗'}{lock_sensor}"
+        self.log(f"CAPA2: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
 
         result = {"pass": pass_status}
         result.update(readings)
