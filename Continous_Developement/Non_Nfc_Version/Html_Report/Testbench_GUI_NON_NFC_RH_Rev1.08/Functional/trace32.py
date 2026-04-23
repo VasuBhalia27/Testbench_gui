@@ -530,7 +530,26 @@ def ResetTarget(status_label):
     global dbg
     try:
         if dbg and hasattr(dbg, 'cmd'):
-            dbg.cmd("SYStem.Up") 
+            # On PCB swap the SWD connection is lost. Release probe state with
+            # SYStem.Down first, then retry SYStem.Up up to 3 times so a board
+            # swap never immediately triggers the error popup.
+            last_exc = None
+            for attempt in range(3):
+                try:
+                    dbg.cmd("SYStem.Down")
+                except Exception:
+                    pass
+                time.sleep(0.5)
+                try:
+                    dbg.cmd("SYStem.Up")
+                    last_exc = None
+                    break
+                except Exception as e:
+                    last_exc = e
+                    if attempt < 2:
+                        time.sleep(1.0)
+            if last_exc is not None:
+                raise last_exc
             if status_label:
                 status_label.config(text="Status: system ready", fg="blue")
         else:
