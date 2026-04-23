@@ -92,6 +92,11 @@ class CapaTest:
         CAPA1_RETRY_TIMEOUT = TIMING.capa_retry_timeout
         CAPA1_RETRY_INTERVAL = TIMING.capa_retry_interval
 
+        SENSOR_VARS = [
+            "TestFw_CapaUnlockSensorValue",
+            "TestFw_CapaApproachSensorValue",
+            "TestFw_CapaLockSensorValue",
+        ]
         readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
         deadline = time.time() + CAPA1_RETRY_TIMEOUT
 
@@ -99,7 +104,11 @@ class CapaTest:
             self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
             time.sleep(CAPA1_RETRY_INTERVAL)
 
-            readings = self._wait_for_stable_variables(self.VARIABLES)
+            # Only poll the 3 ADC sensor vars — flag vars (Approach/Lock/Unlock)
+            # are 0 when untouched; the zero-guard would skip them and cause
+            # _wait_for_stable_variables to spin its full 5 s timeout every call.
+            sensor_readings = self._wait_for_stable_variables(SENSOR_VARS)
+            readings.update(sensor_readings)
 
             unlock_sensor_val   = readings.get("TestFw_CapaUnlockSensorValue")
             approach_sensor_val = readings.get("TestFw_CapaApproachSensorValue")
@@ -117,7 +126,10 @@ class CapaTest:
                 and approach_val is not None and approach_val == 1.0
                 and lock_val    is not None and lock_val    == 1.0
             )
-            if sensors_active or time.time() >= deadline:
+            # Also exit once all 3 ADC values are stable (firmware responded,
+            # retrying won't change the result in automated/simulated mode).
+            readings_ready = all(readings.get(var) is not None for var in SENSOR_VARS)
+            if sensors_active or readings_ready or time.time() >= deadline:
                 break
 
         approach        = readings.get("TestFw_CapaApproach")
@@ -150,6 +162,11 @@ class CapaTest:
         CAPA2_RETRY_TIMEOUT = TIMING.capa_retry_timeout
         CAPA2_RETRY_INTERVAL = TIMING.capa_retry_interval
 
+        SENSOR_VARS = [
+            "TestFw_CapaUnlockSensorValue",
+            "TestFw_CapaApproachSensorValue",
+            "TestFw_CapaLockSensorValue",
+        ]
         readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
         deadline = time.time() + CAPA2_RETRY_TIMEOUT
 
@@ -157,7 +174,8 @@ class CapaTest:
             self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAPA_TEST_e)
             time.sleep(CAPA2_RETRY_INTERVAL)
 
-            readings = self._wait_for_stable_variables(self.VARIABLES)
+            sensor_readings = self._wait_for_stable_variables(SENSOR_VARS)
+            readings.update(sensor_readings)
 
             unlock_sensor_val   = readings.get("TestFw_CapaUnlockSensorValue")
             approach_sensor_val = readings.get("TestFw_CapaApproachSensorValue")
@@ -175,7 +193,8 @@ class CapaTest:
                 and approach_val is not None and approach_val == 1.0
                 and lock_val    is not None and lock_val    == 1.0
             )
-            if sensors_active or time.time() >= deadline:
+            readings_ready = all(readings.get(var) is not None for var in SENSOR_VARS)
+            if sensors_active or readings_ready or time.time() >= deadline:
                 break
 
         approach        = readings.get("TestFw_CapaApproach")
