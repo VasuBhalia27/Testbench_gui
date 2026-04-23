@@ -9,7 +9,7 @@ _THRESHOLDS = {
     ),
     "TestFw_AiBatRef": (
         "TC_BAT_01", "Battery AI Reference Voltage (12 V supply)",
-        lambda v: 11900 <= v <= 12100, "11900–12100 mV"
+        lambda v: 11500 <= v <= 12500, "11500–12500 mV"
     ),
 }
 

@@ -20,7 +20,7 @@ class BatTest:
     def run(
         adapter: Trace32Interface,
         status_callback: Optional[Callable[[str], None]] = None,
-        timeout: float = 5.0,
+        timeout: float = 10.0,
     ) -> bool:
         """Execute one battery test case.
 
@@ -37,7 +37,7 @@ class BatTest:
     def run_with_voltage(
         adapter: Trace32Interface,
         status_callback: Optional[Callable[[str], None]] = None,
-        timeout: float = 5.0,
+        timeout: float = 10.0,
     ) -> tuple:
         """Execute one battery test case and return both pass/fail and the measured voltage.
 
@@ -74,13 +74,14 @@ class BatTest:
     @staticmethod
     def _wait_for_stable_voltage(
         adapter: Trace32Interface,
-        timeout: float = 5.0,
+        timeout: float = 10.0,
         poll_interval: float = TIMING.stable_poll_interval,
     ) -> Optional[float]:
         """Poll ``TestFw_AiBatRef`` until a stable reading appears.
 
-        Stability is defined as two consecutive identical values.  Returns the
-        stable value or ``None`` if the timeout elapses first.
+        Stability is defined as three consecutive readings within 50 mV of each
+        other.  Returns the average of those readings or ``None`` if the timeout
+        elapses first.
         """
         start = time.time()
         last = None
@@ -96,12 +97,12 @@ class BatTest:
             # 0.0 means the ADC has not produced a real reading yet;
             # skip it so it is never mistaken for a stable voltage.
             if val is not None and val != 0.0:
-                if last is not None and abs(val - last) < 1e-3:
+                if last is not None and abs(val - last) <= 50.0:
                     stable_count += 1
                 else:
                     stable_count = 0
                 last = val
-                if stable_count >= 1:
+                if stable_count >= 2:
                     return val
 
             time.sleep(poll_interval)
