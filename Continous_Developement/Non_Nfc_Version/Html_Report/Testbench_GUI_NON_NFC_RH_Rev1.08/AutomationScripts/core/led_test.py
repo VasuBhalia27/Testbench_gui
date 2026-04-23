@@ -60,7 +60,6 @@ class LedTest:
         log(f"LED: waiting {TIMING.led_stabilize_wait:.1f} seconds for voltage to stabilise")
         time.sleep(TIMING.led_stabilize_wait)
 
-        log("LED: triggering measurement DID")
         voltage = LedTest._measure_voltage(adapter, timeout=timeout)
 
         # Retry up to 2 times for transient 0 mV on LED ON runs seen in logs.
@@ -102,7 +101,6 @@ class LedTest:
         log(f"LED: waiting {TIMING.led_stabilize_wait:.1f} seconds for voltage to stabilise")
         time.sleep(TIMING.led_stabilize_wait)
 
-        log("LED: triggering measurement DID")
         voltage = LedTest._measure_voltage(adapter, timeout=timeout)
 
         if on and (voltage is None or voltage <= 0):

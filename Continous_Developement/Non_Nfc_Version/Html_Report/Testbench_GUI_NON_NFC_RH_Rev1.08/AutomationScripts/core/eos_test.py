@@ -49,11 +49,11 @@ class EosTest:
         """
         results = {}
         
-        # Test 1: EOS Reset
-        results['eos_reset'] = self.run_eos_reset()
-        
-        # Test 2: EOS Set (with clearing step before)
+        # Test 1: EOS Set (with clearing step before)
         results['eos_set'] = self.run_eos_set()
+        
+        # Test 2: EOS Reset
+        results['eos_reset'] = self.run_eos_reset()
         
         return results
     
@@ -73,30 +73,19 @@ class EosTest:
         Returns:
             dict: {'pass': bool, 'voltage': float}
         """
-        self.log("EOS Reset: setting hardware to reset mode")
         # Critical: Set the hardware to RESET mode (0) before sending DID
         self.adapter.set_variable("EosTest_EosRequestGui", 0)
         
         # Wait a moment for mode switch to register
         time.sleep(TIMING.eos_mode_switch_wait)
         
-        self.log("EOS Reset: triggering reset command")
         # Tick EOS Reset - send DID with reset command
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
-        
-        self.log(
-            f"EOS Reset: waiting {TIMING.eos_reset_stabilize_wait:.1f} seconds for stabilisation"
-        )
         time.sleep(TIMING.eos_reset_stabilize_wait)
         
         # Send DID to get voltage readout
-        self.log("EOS Reset: triggering measurement DID")
+        self.log("EOS Reset: triggering measurement read")
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
-        
-        # Wait 1 second for stabilization before polling
-        self.log(
-            f"EOS Reset: waiting {TIMING.eos_measure_wait:.1f} seconds for initial stabilisation"
-        )
         time.sleep(TIMING.eos_measure_wait)
         
         # Poll until voltage is stable
@@ -105,11 +94,8 @@ class EosTest:
         # Check pass criteria
         pass_status = self.MIN_RESET_VOLTAGE <= voltage <= self.MAX_RESET_VOLTAGE
         
-        self.log(f"EOS Reset: final voltage = {voltage} mV")
-        if pass_status:
-            self.log("EOS Reset: ✓ voltage in pass range")
-        else:
-            self.log(f"EOS Reset: ✗ voltage out of range ({self.MIN_RESET_VOLTAGE}-{self.MAX_RESET_VOLTAGE} mV)")
+        self.log(f"EOS Reset: voltage = {voltage} mV")
+        self.log(f"EOS Reset: {'✓ PASS' if pass_status else f'✗ FAIL — {voltage} mV not in {self.MIN_RESET_VOLTAGE}–{self.MAX_RESET_VOLTAGE} mV'}")
         
         return {
             "pass": pass_status,
@@ -137,43 +123,24 @@ class EosTest:
             dict: {'pass': bool, 'voltage': float}
         """
         # Clear result entries (called via adapter if available)
-        # This simulates the user clicking "Reset Results" button
-        self.log("EOS Set: clearing entry field")
         try:
             self.adapter.clear_eos_entries()
         except AttributeError:
-            # If clear_eos_entries not available in adapter, skip
             pass
         
-        # Wait 0.5 seconds after clearing
-        self.log(f"EOS Set: waiting {TIMING.eos_clear_wait:.1f} seconds after clear")
         time.sleep(TIMING.eos_clear_wait)
         
-        self.log("EOS Set: setting hardware to set mode")
         # Critical: Set the hardware to SET mode (1) before sending DID
-        # Without this, the hardware remains in RESET mode and reads will be
-        # in the wrong range, even though they might pass or fail due to cache
         self.adapter.set_variable("EosTest_EosRequestGui", 1)
-        
-        # Wait a moment for mode switch to register
         time.sleep(TIMING.eos_mode_switch_wait)
         
         # Tick EOS Set - send DID with set command
-        self.log("EOS Set: triggering set command")
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
-        
-        # Wait 2 seconds for set process to complete
-        self.log(f"EOS Set: waiting {TIMING.eos_set_process_wait:.1f} seconds for set process")
         time.sleep(TIMING.eos_set_process_wait)
         
         # Send DID to get voltage readout
-        self.log("EOS Set: triggering measurement DID")
+        self.log("EOS Set: triggering measurement read")
         self.adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e)
-        
-        # Wait 1 second for stabilization before polling
-        self.log(
-            f"EOS Set: waiting {TIMING.eos_measure_wait:.1f} seconds for initial stabilisation"
-        )
         time.sleep(TIMING.eos_measure_wait)
         
         # Poll until voltage is stable
@@ -182,11 +149,8 @@ class EosTest:
         # Check pass criteria
         pass_status = self.MIN_SET_VOLTAGE <= voltage <= self.MAX_SET_VOLTAGE
         
-        self.log(f"EOS Set: final voltage = {voltage} mV")
-        if pass_status:
-            self.log("EOS Set: ✓ voltage in pass range")
-        else:
-            self.log(f"EOS Set: ✗ voltage out of range ({self.MIN_SET_VOLTAGE}-{self.MAX_SET_VOLTAGE} mV)")
+        self.log(f"EOS Set: voltage = {voltage} mV")
+        self.log(f"EOS Set: {'✓ PASS' if pass_status else f'✗ FAIL — {voltage} mV not in {self.MIN_SET_VOLTAGE}–{self.MAX_SET_VOLTAGE} mV'}")
         
         return {
             "pass": pass_status,

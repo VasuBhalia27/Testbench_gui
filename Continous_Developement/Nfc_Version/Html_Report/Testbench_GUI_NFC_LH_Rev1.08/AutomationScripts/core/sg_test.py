@@ -74,26 +74,15 @@ class SgTest:
 
     def run_sg1(self) -> Dict[str, float]:
         """First SG group evaluation (plus/minus/opamp)."""
-        # clear any existing displayed values
-        self.log("SG1: clearing entry field")
         try:
             self.adapter.clear_sg_entries()
         except AttributeError:
             pass
-
-        # mimic GUI: set TestFw_GetSgResults = 1 to tell firmware to generate data
-        self.log("SG1: requesting firmware to update SG results")
         self.adapter.set_variable("TestFw_GetSgResults", 1)
-
-        self.log("SG1: triggering results DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
-
-        self.log(f"SG1: waiting {TIMING.sg1_measure_wait:.1f} seconds for measurement")
         time.sleep(TIMING.sg1_measure_wait)
 
-        # send DID again before polling in case the firmware uses the DID to
-        # latch values into variables (GUI reads immediately after raising flag)
-        self.log("SG1: triggering measurement DID")
+        self.log("SG1: triggering read DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
 
         readings = self._wait_for_stable_variables(self.VARIABLES)
@@ -107,23 +96,9 @@ class SgTest:
         pass_opamp = opamp is not None and self.SG_OPAMP_MIN <= opamp <= self.SG_OPAMP_MAX
         pass_status = pass_plus and pass_minus and pass_opamp
 
-        self.log(f"SG1: final values - plus={plus}, minus={minus}, opamp={opamp}")
-        if pass_status:
-            self.log("SG1: ✓ all values in pass range")
-        else:
-            # Always log individual status for each value (pass or fail)
-            if pass_plus:
-                self.log(f"SG1: ✓ plus value {plus} in range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            else:
-                self.log(f"SG1: ✗ plus value {plus} out of range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            if pass_minus:
-                self.log(f"SG1: ✓ minus value {minus} in range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            else:
-                self.log(f"SG1: ✗ minus value {minus} out of range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            if pass_opamp:
-                self.log(f"SG1: ✓ opamp value {opamp} in range ({self.SG_OPAMP_MIN}-{self.SG_OPAMP_MAX})")
-            else:
-                self.log(f"SG1: ✗ opamp value {opamp} out of range ({self.SG_OPAMP_MIN}-{self.SG_OPAMP_MAX})")
+        self.log(f"SG1: values — plus={plus}, minus={minus}, opamp={opamp}")
+        p_str = f"plus={'✓' if pass_plus else '✗'}{plus}  minus={'✓' if pass_minus else '✗'}{minus}  opamp={'✓' if pass_opamp else '✗'}{opamp}"
+        self.log(f"SG1: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
 
         result = {
             "pass": pass_status,
@@ -136,36 +111,18 @@ class SgTest:
 
     def run_sg2(self) -> Dict[str, float]:
         """Second SG group evaluation (plus/minus/opamp)."""
-        # Reset firmware flag before clearing to ensure clean state
-        self.log("SG2: resetting measurement flag")
         self.adapter.set_variable("TestFw_GetSgResults", 0)
-        
-        # Wait for flag to take effect
         time.sleep(TIMING.sg2_flag_wait)
-        
-        # clear any existing displayed values (may have been left by SG1)
-        self.log("SG2: clearing entry field")
         try:
             self.adapter.clear_sg_entries()
         except AttributeError:
             pass
-
-        # manual GUI workflow inserts a 2‑second pause after hitting "Reset Results".
-        # The firmware may need time to digest the clearing, so mimic that behaviour
-        # before proceeding with the next measurement.
-        self.log(f"SG2: waiting {TIMING.sg2_reset_wait:.1f} seconds after reset")
         time.sleep(TIMING.sg2_reset_wait)
-
-        self.log("SG2: requesting firmware to update SG results")
         self.adapter.set_variable("TestFw_GetSgResults", 1)
-
-        self.log("SG2: triggering results DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
-
-        self.log(f"SG2: waiting {TIMING.sg2_measure_wait:.1f} seconds for measurement")
         time.sleep(TIMING.sg2_measure_wait)
 
-        self.log("SG2: triggering measurement DID")
+        self.log("SG2: triggering read DID")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_SG_TEST_e)
 
         readings = self._wait_for_stable_variables(self.VARIABLES)
@@ -179,23 +136,9 @@ class SgTest:
         pass_opamp = opamp is not None and self.SG_OPAMP_MIN <= opamp <= self.SG_OPAMP_MAX
         pass_status = pass_plus and pass_minus and pass_opamp
 
-        self.log(f"SG2: final values - plus={plus}, minus={minus}, opamp={opamp}")
-        if pass_status:
-            self.log("SG2: ✓ all values in pass range")
-        else:
-            # Always log individual status for each value (pass or fail)
-            if pass_plus:
-                self.log(f"SG2: ✓ plus value {plus} in range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            else:
-                self.log(f"SG2: ✗ plus value {plus} out of range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            if pass_minus:
-                self.log(f"SG2: ✓ minus value {minus} in range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            else:
-                self.log(f"SG2: ✗ minus value {minus} out of range ({self.SG_PLUS_MINUS_MIN}-{self.SG_PLUS_MINUS_MAX})")
-            if pass_opamp:
-                self.log(f"SG2: ✓ opamp value {opamp} in range ({self.SG_OPAMP_MIN}-{self.SG_OPAMP_MAX})")
-            else:
-                self.log(f"SG2: ✗ opamp value {opamp} out of range ({self.SG_OPAMP_MIN}-{self.SG_OPAMP_MAX})")
+        self.log(f"SG2: values — plus={plus}, minus={minus}, opamp={opamp}")
+        p_str = f"plus={'✓' if pass_plus else '✗'}{plus}  minus={'✓' if pass_minus else '✗'}{minus}  opamp={'✓' if pass_opamp else '✗'}{opamp}"
+        self.log(f"SG2: {'✓ PASS' if pass_status else '✗ FAIL'} — {p_str}")
 
         result = {
             "pass": pass_status,
