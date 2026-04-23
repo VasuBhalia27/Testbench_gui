@@ -57,8 +57,9 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log(f"LED: waiting {TIMING.led_stabilize_wait:.1f} seconds for voltage to stabilise")
-        time.sleep(TIMING.led_stabilize_wait)
+        _wait = TIMING.led_off_stabilize_wait if not on else TIMING.led_stabilize_wait
+        log(f"LED: waiting {_wait:.1f} seconds for voltage to stabilise")
+        time.sleep(_wait)
 
         voltage = LedTest._measure_voltage(adapter, timeout=timeout)
 
@@ -98,8 +99,9 @@ class LedTest:
         log(f"LED {'ON' if on else 'OFF'}: setting request")
         adapter.set_variable("LedTest_LedCanLinRequest", 1 if on else 0)
 
-        log(f"LED: waiting {TIMING.led_stabilize_wait:.1f} seconds for voltage to stabilise")
-        time.sleep(TIMING.led_stabilize_wait)
+        _wait = TIMING.led_off_stabilize_wait if not on else TIMING.led_stabilize_wait
+        log(f"LED: waiting {_wait:.1f} seconds for voltage to stabilise")
+        time.sleep(_wait)
 
         voltage = LedTest._measure_voltage(adapter, timeout=timeout)
 

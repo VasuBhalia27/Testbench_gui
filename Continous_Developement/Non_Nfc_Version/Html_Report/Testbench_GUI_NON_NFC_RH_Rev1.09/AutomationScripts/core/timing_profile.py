@@ -19,6 +19,7 @@ class TimingProfile:
     bat_initial_wait: float
     bat_retry_wait: float
     led_stabilize_wait: float
+    led_off_stabilize_wait: float
     motor_actuate_wait: float
     eos_mode_switch_wait: float
     eos_reset_stabilize_wait: float
@@ -42,16 +43,17 @@ NORMAL = TimingProfile(
     bat_initial_wait=1.5,   # reduced 3.0→1.5 s: 50 mV tolerance means ADC is accepted sooner
     bat_retry_wait=2.0,     # reduced 5.0→2.0 s: retry gap was far longer than needed
     led_stabilize_wait=0.5,
+    led_off_stabilize_wait=2.0,   # increased: LED voltage needs ~2 s to discharge to ≤ 10 mV
     motor_actuate_wait=1.0,
     eos_mode_switch_wait=0.2,
     eos_reset_stabilize_wait=0.3,
     eos_measure_wait=0.4,
     eos_clear_wait=0.2,
     eos_set_process_wait=0.6,
-    sg1_measure_wait=0.8,
+    sg1_measure_wait=3.0,   # increased 0.8→3.0: firmware needs ~3 s to compute SG OpAmp values
     sg2_flag_wait=0.2,
     sg2_reset_wait=0.3,
-    sg2_measure_wait=0.8,
+    sg2_measure_wait=3.0,   # increased 0.8→3.0: firmware needs ~3 s to compute SG OpAmp values
     capa_retry_timeout=15.0,  # increased 2.0→15.0: allows multiple DID retries if firmware is slow
     capa_retry_interval=0.25,
     stable_poll_interval=0.25,
@@ -65,16 +67,17 @@ FAST = TimingProfile(
     bat_initial_wait=0.5,
     bat_retry_wait=2.0,
     led_stabilize_wait=0.5,
+    led_off_stabilize_wait=2.0,
     motor_actuate_wait=0.3,
     eos_mode_switch_wait=0.2,
     eos_reset_stabilize_wait=0.5,
     eos_measure_wait=0.5,
     eos_clear_wait=0.2,
     eos_set_process_wait=0.8,
-    sg1_measure_wait=1.0,
+    sg1_measure_wait=3.0,
     sg2_flag_wait=0.2,
     sg2_reset_wait=0.2,
-    sg2_measure_wait=1.0,
+    sg2_measure_wait=3.0,
     capa_retry_timeout=3.0,
     capa_retry_interval=0.25,
     stable_poll_interval=0.25,

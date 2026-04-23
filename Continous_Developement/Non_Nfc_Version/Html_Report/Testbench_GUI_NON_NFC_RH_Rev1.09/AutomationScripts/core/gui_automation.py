@@ -57,7 +57,7 @@ class AutomationGUI:
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("NFC_OR_NON_NFC_RH_Rev1.09")
+            self.root.title("NFC_OR_NON_NFC_RH_Rev2.00")
             self.root.geometry("1050x550")
             self.root.minsize(1000, 450)
         else:
@@ -186,12 +186,12 @@ class AutomationGUI:
         right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
 
         # Welcome header
-        header = ttk.Label(right_panel, text="NFC_OR_NON_NFC_RH_Rev1.09",
+        header = ttk.Label(right_panel, text="NFC_OR_NON_NFC_RH_Rev2.00",
                            font=(None, 16, "bold"))
         header.pack(pady=(10, 4))
 
         welcome = ttk.Label(right_panel,
-                            text="Welcome to NFC_OR_NON_NFC_RH_Rev1.09\n"
+                            text="Welcome to NFC_OR_NON_NFC_RH_Rev2.00\n"
                                  "Click 'Start' to begin the setup and test sequence.",
                             font=(None, 10), justify="center")
         welcome.pack(pady=(0, 6))
