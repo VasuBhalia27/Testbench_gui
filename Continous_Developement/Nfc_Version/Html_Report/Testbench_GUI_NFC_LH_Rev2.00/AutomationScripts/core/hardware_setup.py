@@ -107,7 +107,7 @@ class HardwareSetupVerifier:
             pass
         raise HardwareSetupVerificationError("Timeout waiting for Trace32 breakpoint")
 
-    def run_code_and_verify(self, timeout: float = 10.0) -> None:
+    def run_code_and_verify(self, timeout: float = 15.0) -> None:
         """
         Wait 1 second, then start code execution and verify "running" status.
 
@@ -152,9 +152,21 @@ class HardwareSetupVerifier:
         max_attempts = 2
         for attempt in range(1, max_attempts + 1):
             try:
-                # Only connect on first run; reuse connection for subsequent runs
-                if not skip_connect:
+                if attempt == 1 and not skip_connect:
+                    # First attempt: full T32 launch + connect
                     self.connect_trace32(preset)
+                elif attempt > 1:
+                    # Retry: do NOT relaunch T32 — re-launching risks the
+                    # "Connection to Trace32 Failed" race condition when the
+                    # autoexec CMM's SYStem.Up stalls on a target in a bad state.
+                    # Instead, reset the probe on the existing connection and
+                    # try Go again.
+                    self._log("Resetting target probe for retry (SYStem.Down → SYStem.Up)...")
+                    try:
+                        t32.ResetTarget(status_label=None)
+                        time.sleep(1.0)
+                    except Exception:
+                        pass
                 self.run_code_and_verify()
                 self._log("Hardware setup verified successfully!")
                 return True
