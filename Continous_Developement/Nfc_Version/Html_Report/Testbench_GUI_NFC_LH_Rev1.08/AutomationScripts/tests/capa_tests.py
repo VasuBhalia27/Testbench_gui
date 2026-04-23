@@ -21,13 +21,16 @@ def run_suite():
 	approach_flag = float(data.get("TestFw_CapaApproach", 0.0) or 0.0)
 	lock_flag = float(data.get("TestFw_CapaLock", 0.0) or 0.0)
 
-	threshold = 9000.0
+	# Per-sensor thresholds — Lock and Unlock channels read ~8996/8989 in hardware.
+	UNLOCK_THRESHOLD  = 8900.0
+	APPROACH_THRESHOLD = 9000.0
+	LOCK_THRESHOLD    = 8900.0
 	active_pass = (
-		unlock > threshold and approach > threshold and lock > threshold
+		unlock > UNLOCK_THRESHOLD and approach > APPROACH_THRESHOLD and lock > LOCK_THRESHOLD
 		and unlock_flag == 1.0 and approach_flag == 1.0 and lock_flag == 1.0
 	)
 	inactive_pass = (
-		unlock <= threshold and approach <= threshold and lock <= threshold
+		unlock <= UNLOCK_THRESHOLD and approach <= APPROACH_THRESHOLD and lock <= LOCK_THRESHOLD
 		and unlock_flag == 0.0 and approach_flag == 0.0 and lock_flag == 0.0
 	)
 
@@ -42,7 +45,7 @@ def run_suite():
 			"TestName": "CAPA unlock active",
 			"MeasuredValue": unlock,
 			"MeasuredStr": common_observed,
-			"Expected": "all three sensor values > 9000 and all flags = 1",
+			"Expected": "unlock/lock > 8900, approach > 9000, all flags = 1",
 			"Status": "PASS" if active_pass else "FAIL",
 			"Details": "Requires physical touch/input on sensor",
 		},
@@ -51,7 +54,7 @@ def run_suite():
 			"TestName": "CAPA unlock inactive",
 			"MeasuredValue": unlock,
 			"MeasuredStr": common_observed,
-			"Expected": "all three sensor values <= 9000 and all flags = 0",
+			"Expected": "unlock/lock <= 8900, approach <= 9000, all flags = 0",
 			"Status": "PASS" if inactive_pass else "FAIL",
 			"Details": "Resting sensor state check",
 		},

@@ -203,11 +203,23 @@ class SmartBUTestExecutor:
         }
     }
     
+    # Per-feature wait time (seconds) after triggering DID before reading variables.
+    # Battery needs the full 10 s for ADC stabilisation; all other features settle much faster.
+    FEATURE_MIN_DURATION = {
+        "Battery":            10.0,  # ADC must stabilise — keep full window
+        "Motor":               4.0,  # mechanical actuation needs a moment
+        "EOS":                 3.0,  # capacitor charge curve
+        "Strain Gauge":        3.0,  # bridge settle time
+        "LED":                 2.0,  # optical/voltage response is fast
+        "Capacitive Sensor":   2.0,  # sensor polling is quick
+        "NFC":                 2.0,
+        "CAN":                 2.0,
+        "LIN":                 2.0,
+    }
+
     def __init__(self):
         self.results: List[TestResult] = []
         self.trace32_connected = False
-        # Minimum time to wait after triggering a test (seconds)
-        self.TEST_CASE_MIN_DURATION = 10.0
         
         # Detect driver vs non-driver variant from environment
         # TRACE32_PRESET: 1 = non-driver (without NFC), 2 = driver (with NFC)
@@ -267,9 +279,11 @@ class SmartBUTestExecutor:
                         # STEP 2: Send DID command to trigger firmware test
                         if did_cmd:
                             send_test_command(did_cmd)
-                            # Wait long enough for DUT to complete the test and settle
-                            print(f"[DEBUG] Waiting {self.TEST_CASE_MIN_DURATION}s for test to complete...")
-                            time.sleep(self.TEST_CASE_MIN_DURATION)
+                            # Use a feature-specific wait so fast tests (LED, CAN, LIN…)
+                            # don't burn the same 10 s as Battery.
+                            wait_s = self.FEATURE_MIN_DURATION.get(feature, 3.0)
+                            print(f"[DEBUG] Waiting {wait_s}s for {feature} test to complete...")
+                            time.sleep(wait_s)
                         
                         # STEP 2: Read variables from Trace32 after test executes
                         var_values = []

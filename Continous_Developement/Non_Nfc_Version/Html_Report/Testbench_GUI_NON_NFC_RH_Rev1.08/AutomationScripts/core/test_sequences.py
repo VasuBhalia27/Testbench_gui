@@ -78,7 +78,7 @@ class TestSequenceRunner:
             timeout=timeout,
         )
 
-    def run_battery_test_with_voltage(self, timeout: float = 2.0):
+    def run_battery_test_with_voltage(self, timeout: float = 10.0):
         """Run the battery monitor sequence and return ``(passed, voltage_mV)``."""
         return BatTest.run_with_voltage(
             adapter=self.adapter,
@@ -333,7 +333,7 @@ class TestSequenceRunner:
         # A reading of 0.0 mV means the supply has not yet stabilised.
         # In that case there is no point running further tests; all hardware
         # functions depend on a healthy supply voltage.
-        bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=5.0)
+        bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
         results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:
@@ -342,7 +342,7 @@ class TestSequenceRunner:
                 f"{TIMING.bat_retry_wait:.1f} s and retrying..."
             )
             time.sleep(TIMING.bat_retry_wait)
-            bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=5.0)
+            bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
             results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
         if bat_voltage == 0.0:
