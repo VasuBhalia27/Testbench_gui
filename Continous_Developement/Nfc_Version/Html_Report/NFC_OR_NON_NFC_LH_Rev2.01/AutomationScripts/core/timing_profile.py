@@ -33,6 +33,8 @@ class TimingProfile:
     capa_retry_timeout: float
     capa_retry_interval: float
     stable_poll_interval: float
+    can_response_timeout: float
+    lin_response_timeout: float
 
 
 NORMAL = TimingProfile(
@@ -57,6 +59,8 @@ NORMAL = TimingProfile(
     capa_retry_timeout=15.0,  # increased 2.0→15.0: allows multiple DID retries if firmware is slow
     capa_retry_interval=0.25,
     stable_poll_interval=0.25,
+    can_response_timeout=5.0,  # max seconds to poll for CanRxDataValid after send_did
+    lin_response_timeout=5.0,  # max seconds to poll for LinRxDataValid after send_did
 )
 
 FAST = TimingProfile(
@@ -81,6 +85,8 @@ FAST = TimingProfile(
     capa_retry_timeout=3.0,
     capa_retry_interval=0.25,
     stable_poll_interval=0.25,
+    can_response_timeout=5.0,
+    lin_response_timeout=5.0,
 )
 
 
