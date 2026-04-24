@@ -1,0 +1,80 @@
+;* ************************************************************************ */
+;* ************************************************************************ */
+;*                                                                          */
+;* !Stack           : n/a                                                   */
+;* !Component       : n/a                                                   */
+;* !Module          : Setup CPU                                             */
+;*                                                                          */
+;* !Description     :                                                       */
+;*                                                                          */
+;* Lauterbach Trace32 script which is executed automatically at start of    */
+;* Trace32. It does:                                                        */
+;* - Trace32 startup script                                                 */
+;* - user configuration                                                     */
+;* - project setup                                                          */
+;* Feel free to adapt to the project needs.                                 */
+;*                                                                          */
+;* !File            : autoexec.cmm                                          */
+;* !Scope           : n/a                                                   */
+;* !Target          : all                                                   */
+;* !Vendor          : U-Shin                                                */
+;* !Coding language : T32 Script                                            */
+;*                                                                          */
+;*                         (C) Copyright 2022 by                            */
+;*                 U-Shin Deutschland Zugangssysteme GmbH                   */
+;*                           All right reserved                             */
+;*            This software is the exclusive property of U-Shin.            */
+;*    It cannot be communicated or divulged to anybody without a previous   */
+;*   written authorization                                                  */
+;*                                                                          */
+;*      Any partial or complete copy of this program whether it is in its   */
+;*    original shape or in its modified shape has to mention this copyright */
+;*   and its proprietor                                                     */
+;*                                                                          */
+;* ************************************************************************ */
+;* ************************************************************************ */
+
+
+;* ************************************************************************ */
+;* Configuration                                                            */
+;* ************************************************************************ */
+
+; CPU Type
+&cpuType=cpu()
+
+
+;* ************************************************************************ */
+;* Variable Declarations                                                    */
+;* ************************************************************************ */
+
+
+;* ************************************************************************ */
+;* Script Code                                                              */
+;* ************************************************************************ */
+
+; run Trace32 startup script
+DO ~~\autostart.cmm
+
+IF OS.FILE(~~~~\windows_setup_user.cmm)
+   ; ... user's own file
+   DO ~~~~\windows_setup_user.cmm
+ELSE
+   ; ... project's default file
+   DO ~~~~\windows_setup.cmm
+
+; run project setup script
+DO ~~~~\cpu_setup.cmm
+; flash 
+DO ~~~~\flash.cmm
+
+
+
+;* ************************************************************************ */
+
+ENDDO
+
+;* ************************************************************************ */
+;* ************************************************************************ */
+;* End of Script                                                            */
+;* ************************************************************************ */
+;* ************************************************************************ */
