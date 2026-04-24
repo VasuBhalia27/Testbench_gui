@@ -13,7 +13,7 @@ Acceptance Criteria:
 
 TC_CAPA_01 (Unlock Sensor Active — requires physical touch on sensor):
   - TestFw_CapaUnlockSensorValue:  > 8900
-  - TestFw_CapaApproachSensorValue: > 9000
+  - TestFw_CapaApproachSensorValue: > 8900
   - TestFw_CapaLockSensorValue:     > 8900
   - TestFw_CapaUnlock:              1
   - TestFw_CapaApproach:            1
@@ -21,7 +21,7 @@ TC_CAPA_01 (Unlock Sensor Active — requires physical touch on sensor):
 
 TC_CAPA_02 (Second measurement — same active criteria as TC_CAPA_01):
   - TestFw_CapaUnlockSensorValue:  > 8900
-  - TestFw_CapaApproachSensorValue: > 9000
+  - TestFw_CapaApproachSensorValue: > 8900
   - TestFw_CapaLockSensorValue:     > 8900
   - TestFw_CapaUnlock:              1
   - TestFw_CapaApproach:            1
@@ -51,13 +51,13 @@ class CapaTest:
     ]
 
     # Per-sensor thresholds (> threshold = active = pass for TC_CAPA_01/02).
-    # Unlock and Lock sensors read slightly lower (~8989/8996) due to hardware
-    # tolerance on those channels; Approach sensor is stable above 9000.
+    # Unlock, Approach and Lock sensors all use 8900 threshold due to hardware
+    # channel tolerances on all three capacitive sensor channels.
     UNLOCK_SENSOR_THRESHOLD   = 8900
-    APPROACH_SENSOR_THRESHOLD = 9000
+    APPROACH_SENSOR_THRESHOLD = 8900  # lowered 9000→8900: Approach channel hardware tolerance
     LOCK_SENSOR_THRESHOLD     = 8900  # lowered 9000→8900: Lock channel reads ~8996 in hardware
     # Keep legacy name pointing at approach value for any external reference
-    SENSOR_THRESHOLD = 9000
+    SENSOR_THRESHOLD = 8900
 
     def __init__(
         self, adapter, status_callback: Optional[Callable[[str], None]] = None

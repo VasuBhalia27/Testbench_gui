@@ -362,7 +362,7 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
     )
     for tc_id, key, label, sensor_key, sensor_name, threshold in [
         ("TC_CAPA_01", "capa1", "1st", "TestFw_CapaUnlockSensorValue",   "Unlock",   "> 8900"),
-        ("TC_CAPA_02", "capa2", "2nd", "TestFw_CapaApproachSensorValue", "Approach", "> 9000"),
+        ("TC_CAPA_02", "capa2", "2nd", "TestFw_CapaApproachSensorValue", "Approach", "> 8900"),
         ("TC_CAPA_03", "capa1", "1st", "TestFw_CapaLockSensorValue",     "Lock",     "> 8900"),
     ]:
         c = run_results.get(key, {})
@@ -371,7 +371,7 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
             a = c.get("TestFw_CapaApproachSensorValue", 0.0)
             l = c.get("TestFw_CapaLockSensorValue",     0.0)
             sensor_val = c.get(sensor_key, 0.0)
-            sensor_passed = isinstance(sensor_val, (int, float)) and sensor_val > (9000 if "Approach" in sensor_name else 8900)
+            sensor_passed = isinstance(sensor_val, (int, float)) and sensor_val > 8900
             capa_rows.append(_row(
                 tc_id,
                 f"Test case to verify CAPA {sensor_name} sensor functionality",

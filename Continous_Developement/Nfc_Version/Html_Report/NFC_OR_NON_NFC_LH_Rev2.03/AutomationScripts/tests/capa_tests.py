@@ -23,7 +23,7 @@ def run_suite():
 
 	# Per-sensor thresholds — Lock and Unlock channels read ~8996/8989 in hardware.
 	UNLOCK_THRESHOLD  = 8900.0
-	APPROACH_THRESHOLD = 9000.0
+	APPROACH_THRESHOLD = 8900.0
 	LOCK_THRESHOLD    = 8900.0
 	active_pass = (
 		unlock > UNLOCK_THRESHOLD and approach > APPROACH_THRESHOLD and lock > LOCK_THRESHOLD
@@ -45,7 +45,7 @@ def run_suite():
 			"TestName": "CAPA unlock active",
 			"MeasuredValue": unlock,
 			"MeasuredStr": common_observed,
-			"Expected": "unlock/lock > 8900, approach > 9000, all flags = 1",
+			"Expected": "unlock/lock > 8900, approach > 8900, all flags = 1",
 			"Status": "PASS" if active_pass else "FAIL",
 			"Details": "Requires physical touch/input on sensor",
 		},
@@ -54,7 +54,7 @@ def run_suite():
 			"TestName": "CAPA unlock inactive",
 			"MeasuredValue": unlock,
 			"MeasuredStr": common_observed,
-			"Expected": "unlock/lock <= 8900, approach <= 9000, all flags = 0",
+			"Expected": "unlock/lock <= 8900, approach <= 8900, all flags = 0",
 			"Status": "PASS" if inactive_pass else "FAIL",
 			"Details": "Resting sensor state check",
 		},

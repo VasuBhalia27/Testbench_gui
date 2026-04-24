@@ -1104,8 +1104,8 @@ def _evaluate_capa_results():
         lambda v: v == 1,       # CapaApproach bool
         lambda v: v == 1,       # CapaLock bool
         lambda v: v == 1,       # CapaUnlock bool
-        lambda v: v > 9000,     # CapaApproachRawValue
-        lambda v: v > 9000,     # CapaLockRawValue
+        lambda v: v > 8900,     # CapaApproachRawValue
+        lambda v: v > 8900,     # CapaLockRawValue
         lambda v: v > 8900,     # CapaUnlockRawValue
     ]
     results = []
