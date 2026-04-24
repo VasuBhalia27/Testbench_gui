@@ -1,0 +1,768 @@
+================================================================================
+  FULL CHAT HISTORY — GitHub Copilot (Claude Sonnet 4.6) × Charan Singh
+  Project  : SmartBU Testbench GUI Automation (NFC_LH / NON_NFC_RH variants)
+  Period   : April 1, 2026 — April 24, 2026
+  AI Model : Claude Sonnet 4.6 (GitHub Copilot)
+================================================================================
+
+NOTE: Dates for early-session turns are approximate (reconstructed from session
+      summaries). Exact timestamps for April 23–24 turns are confirmed.
+
+================================================================================
+GLOSSARY / KEY TERMS
+================================================================================
+  T32 / Trace32 / Lauterbach  : Debugger tool used to connect to SmartBU ECU
+                                 via SWD/JLINK probe over USB
+  dbg                          : Python object representing the T32 UDP connection
+                                 (t32.connect → dbg; t32.QuitTrace32 → dbg='')
+  SYStem.Up / SYStem.Down      : T32 CMM commands to connect / disconnect SWD probe
+  DID                          : Diagnostic Identifier — triggers firmware test actions
+                                 via SendDIDGetVal_multiple_entry()
+  NON_NFC (RH)                 : Right-hand handle variant without NFC chip
+  NFC (LH)                     : Left-hand handle variant with NFC chip
+  TimingProfile                : Frozen Python dataclass — all test wait times
+                                 defined centrally in timing_profile.py
+  ResetTarget()                : SYStem.Down + SYStem.Up (T32 stays alive)
+  QuitTrace32()                : SYStem.Down + QUIT + taskkill + 4s USB release
+  RunCode()                    : T32 "Go" command — starts ECU firmware execution
+  CAPA                         : Capacitive sensor test (unlock/approach/lock)
+  SG / Strain Gauge            : OpAmp-based force sensor test
+  EOS                          : End-of-stroke sensor test
+  BAT                          : Battery voltage monitor test (TestFw_AiBatRef)
+  PSU                          : KIKUSUI programmable power supply
+
+================================================================================
+PATH REFERENCE TABLE
+================================================================================
+  Label             Full Path
+  ─────────────────────────────────────────────────────────────────────────────
+  NON_NFC Rev1.08   Delivered\Non_Nfc_Rh\Testbench_GUI_NON_NFC_RH_Rev1.08\
+  NFC     Rev1.08   Delivered\Nfc_Lh\Testbench_GUI_NFC_LH_Rev1.08\
+  NON_NFC Rev1.09   Delivered\Non_Nfc_Rh\Testbench_GUI_NON_NFC_RH_Rev1.09\
+  NFC     Rev1.09   Delivered\Nfc_Lh\Testbench_GUI_NFC_LH_Rev1.09\
+  NON_NFC Rev2.00   Continous_Developement\Non_Nfc_Version\Html_Report\
+                      Testbench_GUI_NON_NFC_RH_Rev2.00\
+  NFC     Rev2.00   Continous_Developement\Nfc_Version\Html_Report\
+                      Testbench_GUI_NFC_LH_Rev2.00\
+  NON_NFC Rev2.01   Continous_Developement\Non_Nfc_Version\Html_Report\
+                      NFC_OR_NON_NFC_RH_Rev2.01\
+  NFC     Rev2.01   Continous_Developement\Nfc_Version\Html_Report\
+                      NFC_OR_NON_NFC_LH_Rev2.01\
+  NON_NFC Rev2.02   Continous_Developement\Non_Nfc_Version\Html_Report\
+                      NFC_OR_NON_NFC_RH_Rev2.02\
+  NFC     Rev2.02   Continous_Developement\Nfc_Version\Html_Report\
+                      NFC_OR_NON_NFC_LH_Rev2.02\
+  All paths under: C:\UShin\Testbench_gui_Charan\
+
+================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 1  —  EARLY APRIL 2026  (approx. April 1–10)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+--------------------------------------------------------------------------------
+ISSUE 1 — CAPA Test ~30 Second Delay
+Affected: NON_NFC Rev1.08 + NFC Rev1.08
+File    : AutomationScripts/core/capa_test.py
+--------------------------------------------------------------------------------
+
+USER REPORT:
+  The CAPA (capacitive sensor) test was taking approximately 30 seconds to
+  complete even when no one was touching the sensor. This caused the full
+  automation sequence to be much slower than expected.
+
+COPILOT INVESTIGATION:
+  Examined capa_test.py methods: run_tc_capa_01() and run_tc_capa_02()
+  Both methods polled 6 variables via _wait_for_stable_variables():
+    - TestFw_CapaUnlockSensorValue   (ADC analog value — always non-zero)
+    - TestFw_CapaApproachSensorValue (ADC analog value — always non-zero)
+    - TestFw_CapaLockSensorValue     (ADC analog value — always non-zero)
+    - TestFw_CapaUnlockFlag          (binary flag — 0 when not touched)
+    - TestFw_CapaApproachFlag        (binary flag — 0 when not touched)
+    - TestFw_CapaLockFlag            (binary flag — 0 when not touched)
+
+  ROOT CAUSE FOUND:
+    _wait_for_stable_variables() had a zero-guard: any variable reading 0.0
+    was treated as "not ready" and the function retried for 5 seconds per
+    iteration. The flag variables (Unlock/Approach/Lock flags) are legitimately
+    0 when the sensor is not being touched. This caused:
+      5s timeout × multiple iterations × 2 test cases = ~30s total delay.
+
+COPILOT FIX:
+  Changed both run_tc_capa_01() and run_tc_capa_02() to only pass the 3 ADC
+  sensor variables to _wait_for_stable_variables() (not the flag variables).
+  Added a readings_ready early exit to break the poll loop as soon as all 3
+  ADC sensor values are non-None.
+
+  Code after fix (key section):
+    SENSOR_VARS = [
+        "TestFw_CapaUnlockSensorValue",
+        "TestFw_CapaApproachSensorValue",
+        "TestFw_CapaLockSensorValue",
+    ]
+    readings: Dict[str, Optional[float]] = {var: None for var in self.VARIABLES}
+    sensor_readings = self._wait_for_stable_variables(SENSOR_VARS)
+    readings.update(sensor_readings)
+    readings_ready = all(readings.get(var) is not None for var in SENSOR_VARS)
+    if sensors_active or readings_ready or time.time() >= deadline:
+        break
+
+  Also increased: capa_retry_timeout = 15.0s (from 2.0s) in timing_profile.py
+  Result: CAPA test now completes in ~1–2 seconds when sensor is not touched.
+
+FILES MODIFIED:
+  NON_NFC Rev1.08: AutomationScripts/core/capa_test.py
+  NFC     Rev1.08: AutomationScripts/core/capa_test.py
+  NON_NFC Rev1.08: AutomationScripts/core/timing_profile.py (capa_retry_timeout)
+  NFC     Rev1.08: AutomationScripts/core/timing_profile.py (capa_retry_timeout)
+
+--------------------------------------------------------------------------------
+ISSUE 2 — "Failed to Reset Target: Timed Out" on Manual PCB Swap
+Affected: NON_NFC Rev1.08 + NFC Rev1.08
+File    : Functional/trace32.py  →  ResetTarget() function
+--------------------------------------------------------------------------------
+
+USER REPORT:
+  When swapping a PCB manually during testing (without using the automated
+  sequence), clicking the Reset button caused the error:
+    "Failed to reset target: timed out"
+  The SWD probe could not reconnect to the newly inserted PCB.
+
+COPILOT INVESTIGATION:
+  Examined ResetTarget() in Functional/trace32.py.
+  Original code did a single SYStem.Up call with no prior SYStem.Down:
+    dbg.cmd("SYStem.Up")
+  On a new/freshly inserted board, the SWD link is in an unknown state.
+  SYStem.Up without first doing SYStem.Down would time out because the probe
+  was still trying to use the previous board's SWD session state.
+
+COPILOT FIX:
+  Added SYStem.Down first, then a 3-attempt retry loop for SYStem.Up:
+
+    def ResetTarget(status_label):
+        global dbg
+        try:
+            if dbg and hasattr(dbg, 'cmd'):
+                last_exc = None
+                for attempt in range(3):
+                    try:
+                        dbg.cmd("SYStem.Down")
+                    except Exception:
+                        pass
+                    time.sleep(0.5)
+                    try:
+                        dbg.cmd("SYStem.Up")
+                        last_exc = None
+                        break
+                    except Exception as e:
+                        last_exc = e
+                        if attempt < 2:
+                            time.sleep(1.0)
+                if last_exc is not None:
+                    raise last_exc
+                if status_label:
+                    status_label.config(text="Status: system ready", fg="blue")
+
+FILES MODIFIED:
+  NON_NFC Rev1.08: Functional/trace32.py  →  ResetTarget()
+  NFC     Rev1.08: Functional/trace32.py  →  ResetTarget()
+
+================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 2  —  MID APRIL 2026  (approx. April 10–20)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+--------------------------------------------------------------------------------
+ISSUE 3 — "Connection to Trace32 Failed" on Factory PCB Swap (Automation)
+Affected: NON_NFC Rev2.00 + NFC Rev2.00 (Continous_Developement)
+File    : AutomationScripts/core/integrated_automation.py
+--------------------------------------------------------------------------------
+
+USER REPORT:
+  In the automated sequence, when a second PCB was placed in the fixture after
+  the first test completed, the automation crashed with:
+    "Connection to Trace32 Failed!!!"
+  Users had to physically unplug and replug the Lauterbach USB cable to recover.
+
+COPILOT INVESTIGATION:
+  Examined integrated_automation.py — non-first-run path.
+  Old code:
+    if not self.is_first_run:
+        t32.ResetTarget(status_label=None)   # SWD probe reset
+        time.sleep(1)
+        t32.RunCode(exec_label=None)          # Go
+        time.sleep(2)
+
+  ROOT CAUSE CHAIN:
+    1. ResetTarget() called SYStem.Up on the stale connection from old board
+    2. Old board was removed → SWD link was dead → SYStem.Up raised exception
+    3. Exception was caught but T32 process had internally crashed
+    4. dbg object was still non-None (pointing to crashed process)
+    5. already_connected = bool(getattr(t32, 'dbg', None)) → True
+    6. verify_setup(skip_connect=True) → tried to talk to dead T32
+    7. Result: "Connection to Trace32 Failed!!!"
+
+COPILOT FIX (first attempt — later revised):
+  Replaced ResetTarget+RunCode with QuitTrace32 on non-first runs:
+    if not self.is_first_run:
+        t32.QuitTrace32(status_label=None)
+  QuitTrace32 kills T32 process completely → dbg = '' → already_connected=False
+  → verify_setup does full relaunch automatically.
+
+FILES MODIFIED:
+  NON_NFC Rev2.00: AutomationScripts/core/integrated_automation.py
+  NFC     Rev2.00: AutomationScripts/core/integrated_automation.py
+
+--------------------------------------------------------------------------------
+ISSUE 4 — LED OFF Voltage Not Discharging (Reads ~1198 mV instead of ≤10 mV)
+Affected: NON_NFC Rev1.09 + NFC Rev1.09 (Continous_Developement)
+File    : AutomationScripts/core/led_test.py
+          AutomationScripts/core/timing_profile.py
+--------------------------------------------------------------------------------
+
+USER REPORT:
+  The LED OFF test was reading ~1198 mV instead of ≤10 mV (pass threshold).
+  The LED was physically turning off but the capacitor had not discharged by
+  the time the voltage measurement was taken.
+
+COPILOT INVESTIGATION:
+  LED test used the same led_stabilize_wait=0.5s for both ON and OFF cases.
+  When LED turns ON → voltage rises quickly → 0.5s is enough.
+  When LED turns OFF → capacitor discharges slowly → 0.5s is nowhere near enough.
+  Hardware measurement showed ~2s needed for discharge to ≤10 mV.
+
+COPILOT FIX:
+  Added separate led_off_stabilize_wait field to TimingProfile dataclass.
+  Set led_off_stabilize_wait = 2.0s in NORMAL profile.
+
+  timing_profile.py change:
+    # Dataclass — new field added:
+    led_off_stabilize_wait: float
+
+    # NORMAL profile:
+    led_stabilize_wait=0.5,
+    led_off_stabilize_wait=2.0,   # LED voltage needs ~2s to discharge to ≤10 mV
+
+  led_test.py change (in both run() and run_with_voltage()):
+    # BEFORE:
+    time.sleep(TIMING.led_stabilize_wait)
+
+    # AFTER:
+    _wait = TIMING.led_off_stabilize_wait if not on else TIMING.led_stabilize_wait
+    log(f"LED: waiting {_wait:.1f} seconds for voltage to stabilise")
+    time.sleep(_wait)
+
+FILES MODIFIED:
+  NON_NFC Rev1.09 Continous: AutomationScripts/core/timing_profile.py
+  NFC     Rev1.09 Continous: AutomationScripts/core/timing_profile.py
+  NON_NFC Rev1.09 Continous: AutomationScripts/core/led_test.py
+  NFC     Rev1.09 Continous: AutomationScripts/core/led_test.py
+
+--------------------------------------------------------------------------------
+ISSUE 5 — SG OpAmp Values Reading as 5.0 mV / 0.0 mV (Wrong Values)
+Affected: NON_NFC Rev1.09 + NFC Rev1.09 (Continous_Developement)
+File    : AutomationScripts/core/timing_profile.py
+          AutomationScripts/core/sg_test.py
+--------------------------------------------------------------------------------
+
+USER REPORT:
+  The Strain Gauge (SG) OpAmp test was reading 5.0 mV or 0.0 mV instead of
+  the expected hardware values (~50–200 mV range). Tests were failing or
+  giving unreliable results.
+
+COPILOT INVESTIGATION:
+  sg_test.py was using sg1_measure_wait=0.8s and sg2_measure_wait=0.8s.
+  After sending the DID to trigger SG measurement, the firmware needs time
+  to complete its ADC sampling and compute the OpAmp values.
+  0.8s was not sufficient — firmware returned stale/default values (5.0 or 0.0).
+
+COPILOT FIX:
+  Increased both SG wait times to 3.0s in timing_profile.py:
+
+    # BEFORE:
+    sg1_measure_wait=0.8,
+    sg2_measure_wait=0.8,
+
+    # AFTER:
+    sg1_measure_wait=3.0,   # firmware needs ~3s to compute SG OpAmp values
+    sg2_measure_wait=3.0,   # firmware needs ~3s to compute SG OpAmp values
+
+FILES MODIFIED:
+  NON_NFC Rev1.09 Continous: AutomationScripts/core/timing_profile.py
+  NFC     Rev1.09 Continous: AutomationScripts/core/timing_profile.py
+
+--------------------------------------------------------------------------------
+ISSUE 6 — First PCB Trace32 Connection Failure with Bad Retry Logic
+Affected: NON_NFC Rev1.09 + NFC Rev1.09 + Rev2.00 (Continous_Developement)
+          NON_NFC Rev1.09 + NFC Rev1.09 (Delivered)
+File    : AutomationScripts/core/hardware_setup.py
+--------------------------------------------------------------------------------
+
+USER REPORT:
+  On the very first PCB insertion (not a swap), occasionally Trace32 would
+  fail to connect and the retry logic made it worse — attempting to relaunch
+  T32 while the autoexec CMM script's SYStem.Up was still running, causing a
+  race condition and a second connection failure.
+
+COPILOT INVESTIGATION:
+  hardware_setup.py → verify_setup() had no retry logic differentiation
+  between attempt 1 and attempt 2. On failure, attempt 2 called
+  connect_trace32() again which relaunched T32. But T32's autoexec.cmm
+  already issues SYStem.Up — a second SYStem.Up arriving while the first was
+  still running caused the UDP port to never become ready.
+
+COPILOT FIX:
+  Added attempt-aware logic in verify_setup():
+    Attempt 1: Full connect_trace32() → run_code_and_verify()
+    Attempt 2: ResetTarget only (no T32 relaunch) → run_code_and_verify()
+
+  Also increased run_code_and_verify timeout: 10.0s → 15.0s
+
+  Code after fix:
+    max_attempts = 2
+    for attempt in range(1, max_attempts + 1):
+        try:
+            if attempt == 1 and not skip_connect:
+                self.connect_trace32(preset)
+            elif attempt > 1:
+                self._log("Resetting target probe for retry (SYStem.Down → SYStem.Up)...")
+                try:
+                    t32.ResetTarget(status_label=None)
+                    time.sleep(1.0)
+                except Exception:
+                    pass
+            self.run_code_and_verify()
+            ...
+
+FILES MODIFIED:
+  NON_NFC Rev2.00 Continous:  AutomationScripts/core/hardware_setup.py
+  NFC     Rev2.00 Continous:  AutomationScripts/core/hardware_setup.py
+  NON_NFC Rev1.09 Delivered:  AutomationScripts/core/hardware_setup.py
+  NFC     Rev1.09 Delivered:  AutomationScripts/core/hardware_setup.py
+
+--------------------------------------------------------------------------------
+ISSUE 7 — integrated_automation.py: QuitTrace32 Fix Propagated to Rev1.09
+Affected: NON_NFC Rev1.09 + NFC Rev1.09 (Continous_Developement + Delivered)
+File    : AutomationScripts/core/integrated_automation.py
+--------------------------------------------------------------------------------
+
+USER CONTEXT:
+  User confirmed Rev1.09 was working much better than Rev2.00 for the
+  Lauterbach/Trace32 PCB-swap issue. The QuitTrace32 fix was applied to
+  Rev1.09 Delivered and Continous_Developement copies to bring them in line.
+
+COPILOT ACTION:
+  Applied same QuitTrace32 PCB-swap logic to:
+    NON_NFC Rev1.09 Continous: AutomationScripts/core/integrated_automation.py
+    NFC     Rev1.09 Continous: AutomationScripts/core/integrated_automation.py
+    NON_NFC Rev1.09 Delivered: AutomationScripts/core/integrated_automation.py
+    NFC     Rev1.09 Delivered: AutomationScripts/core/integrated_automation.py
+
+================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 3  —  APRIL 23, 2026  (confirmed date)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+--------------------------------------------------------------------------------
+TURN 1 — Rev1.09 Must Stay Unchanged; Revert Rev2.00 Approach
+Date: April 23, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "I do not want change in Rev1.09, i am confirming you that Rev1.09 was
+  working much better than the Rev2.00"
+
+COPILOT ANSWER:
+  Acknowledged Rev1.09 Delivered as the working baseline. User had already
+  undone the edits via VS Code undo. Copilot confirmed:
+    - Rev1.09 Delivered = UNTOUCHED from this point forward
+    - Rev2.00 Continous_Developement = the version to be fixed
+
+  No files modified in this turn (reverts already done by user).
+
+--------------------------------------------------------------------------------
+TURN 2 — Rev2.00 FAIL: TestFw_IsEcuSleeping Never Reaches 0
+Date: April 23, 2026
+Screenshot provided showing: "Hardware setup failed after 2 attempts:
+  Timeout verifying running status"
+--------------------------------------------------------------------------------
+
+USER:
+  "this the issue in Rev2.0"
+
+COPILOT ANSWER — ROOT CAUSE:
+  The QuitTrace32 approach (full T32 relaunch) was causing the issue.
+  After QuitTrace32 → T32 relaunches → autoexec.cmm runs SYStem.Up →
+  RunCode (Go) is sent → but ECU firmware does not wake up properly in this
+  cold-start sequence → TestFw_IsEcuSleeping stays non-zero → 15s timeout.
+
+  Rev1.09 works because:
+    ResetTarget() (SYStem.Down + SYStem.Up) keeps T32 alive and resets only
+    the SWD probe link → RunCode() + 2s settle → firmware already running
+    before verify_setup begins polling.
+
+COPILOT FIX — Rev2.00 integrated_automation.py (both variants):
+  REVERTED FROM (QuitTrace32 approach):
+    if not self.is_first_run:
+        self._log("New PCB in fixture — restarting Trace32...")
+        try:
+            t32.QuitTrace32(status_label=None)
+        except Exception:
+            pass
+    already_connected = bool(getattr(t32, 'dbg', None))
+    success = verifier.verify_setup(variant, skip_connect=already_connected)
+
+  BACK TO (ResetTarget+RunCode — matching Rev1.09):
+    if not self.is_first_run:
+        try:
+            t32.ResetTarget(status_label=None)
+            time.sleep(1)
+        except Exception:
+            pass
+        try:
+            t32.RunCode(exec_label=None)
+            time.sleep(2)  # give it time to settle
+        except Exception:
+            pass
+    already_connected = bool(getattr(t32, 'dbg', None))
+    success = verifier.verify_setup(variant, skip_connect=already_connected)
+
+COPILOT FIX — Rev2.00 hardware_setup.py (both variants):
+  REVERTED:
+    run_code_and_verify timeout: 15.0s → 10.0s
+    verify_setup: removed attempt-based ResetTarget retry,
+                  back to: if not skip_connect: connect_trace32(preset)
+
+FILES MODIFIED:
+  NON_NFC Rev2.00: AutomationScripts/core/integrated_automation.py
+  NFC     Rev2.00: AutomationScripts/core/integrated_automation.py
+  NON_NFC Rev2.00: AutomationScripts/core/hardware_setup.py
+  NFC     Rev2.00: AutomationScripts/core/hardware_setup.py
+
+================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 4  —  APRIL 24, 2026  (confirmed date)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+--------------------------------------------------------------------------------
+TURN 3 — CAN/LIN LoopBack: Reduce Risk of Dead/Hung Thread
+Date: April 24, 2026
+Target: NON_NFC Rev2.01 + NFC Rev2.01
+Files : AutomationScripts/core/test_sequences.py
+        AutomationScripts/core/timing_profile.py
+--------------------------------------------------------------------------------
+
+USER:
+  "CAN LIN item, ' LoopBack ' test can ? Reduce to risk of dead,,"
+
+COPILOT ANSWER — THREE RISKS IDENTIFIED:
+
+  RISK 1 — Stale RxDataValid flag causes false PASS:
+    If TestFw_CanRxDataValid or TestFw_LinRxDataValid was left as 1 from a
+    previous run, the test would immediately PASS even if the bus was dead.
+    Old code never cleared these flags before sending the DID.
+
+  RISK 2 — Fixed time.sleep(2) with no abort mechanism:
+    The code always waited exactly 2 seconds regardless of:
+      - Whether firmware responded in 200ms (wasteful)
+      - Whether T32 had hung (would sleep 2s then block on dead read_variable)
+    No deadline cap → thread could hang indefinitely.
+
+  RISK 3 — No try/except on read_variable calls:
+    Any single failed read_variable (T32 timeout/crash) would raise an
+    unhandled exception and crash the entire automation thread.
+
+COPILOT FIX — test_sequences.py _run_can_test_with_logging():
+
+  BEFORE:
+    self.adapter.set_variable("TestFw_CanGuiLocalLoopbackEnable", 1)
+    self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+    [set tx bytes]
+    self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
+    time.sleep(2)
+    rx_valid  = self._as_int(self.adapter.read_variable("TestFw_CanRxDataValid"))
+    rx_msg_id = self._as_int(self.adapter.read_variable("TestFw_CanRxMessageId"))
+    rx_bytes  = [self._as_int(self.adapter.read_variable(...)) for i in range(8)]
+    can_active  = self._as_int(self.adapter.read_variable("TestFw_CanIsActiveState"))
+    fault_latch = self._as_int(self.adapter.read_variable("TestFw_CanFaultLatch"))
+
+  AFTER:
+    self.adapter.set_variable("TestFw_CanGuiLocalLoopbackEnable", 1)
+    self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+
+    # Risk 1 fix — pre-clear stale RX valid flag
+    try:
+        self.adapter.set_variable("TestFw_CanRxDataValid", 0)
+    except Exception:
+        pass
+
+    [set tx bytes]
+    self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
+
+    # Risk 2 fix — poll with deadline instead of fixed sleep
+    deadline = time.time() + TIMING.can_response_timeout  # 5.0s
+    rx_valid = None
+    while time.time() < deadline:
+        try:
+            rx_valid = self._as_int(self.adapter.read_variable("TestFw_CanRxDataValid"))
+        except Exception:
+            rx_valid = None
+        if rx_valid == 1:
+            break
+        time.sleep(0.2)
+
+    # Risk 3 fix — all reads wrapped in try/except
+    rx_msg_id = None; rx_bytes = [None]*8; can_active = None; fault_latch = None
+    try: rx_msg_id  = self._as_int(self.adapter.read_variable("TestFw_CanRxMessageId"))
+    except Exception: pass
+    for i in range(8):
+        try: rx_bytes[i] = self._as_int(self.adapter.read_variable(
+                 f"TestFw_CanRxBytes.dummy_byte{i}_U8"))
+        except Exception: pass
+    try: can_active  = self._as_int(self.adapter.read_variable("TestFw_CanIsActiveState"))
+    except Exception: pass
+    try: fault_latch = self._as_int(self.adapter.read_variable("TestFw_CanFaultLatch"))
+    except Exception: pass
+
+COPILOT FIX — test_sequences.py _run_lin_test_with_logging():
+  Same pattern applied:
+    - Pre-clear TestFw_LinRxDataValid = 0 before send_did
+    - Replace time.sleep(2) with deadline poll on TestFw_LinRxDataValid
+      (uses TIMING.lin_response_timeout = 5.0s)
+    - All read_variable calls wrapped in individual try/except
+
+COPILOT FIX — timing_profile.py (new constants added to dataclass + both profiles):
+  New fields added to TimingProfile dataclass:
+    can_response_timeout: float
+    lin_response_timeout: float
+
+  NORMAL profile:
+    can_response_timeout=5.0  # max seconds to poll CanRxDataValid after send_did
+    lin_response_timeout=5.0  # max seconds to poll LinRxDataValid after send_did
+
+  FAST profile:
+    can_response_timeout=5.0
+    lin_response_timeout=5.0
+
+FILES MODIFIED:
+  NON_NFC Rev2.01: AutomationScripts/core/test_sequences.py
+  NFC     Rev2.01: AutomationScripts/core/test_sequences.py
+  NON_NFC Rev2.01: AutomationScripts/core/timing_profile.py
+  NFC     Rev2.01: AutomationScripts/core/timing_profile.py
+
+--------------------------------------------------------------------------------
+TURN 4 — LoopBack Routine: Is It a Valid Request?
+Date: April 24, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "First please check this question and tell whether this question is valid
+   Would you prepare ' LoopBack ' routine?"
+
+COPILOT ANSWER — VALIDITY ASSESSMENT: YES, VALID
+
+  CAN Loopback — FULLY VALID:
+    CAN controllers have hardware-level internal loopback.
+    ECU transmits → same CAN controller receives — no external bus needed.
+    Variable: TestFw_CanGuiLocalLoopbackEnable = 1
+    Currently embedded inside _run_can_test_with_logging().
+    A dedicated standalone routine would make it independently runnable.
+
+  LIN Loopback — VALID WITH CAVEAT:
+    LIN protocol has no hardware loopback (master-slave, single-wire).
+    BUT: firmware supports software echo mode:
+      Write → TestFw_LinTxPid + TestFw_LinTxByte[0..7]
+      Firmware echoes frame back as slave response
+      Read → TestFw_LinRxDataValid + TestFw_LinRxData_aU8[0..7]
+    This is a valid loopback test at the firmware level.
+
+  STATUS TABLE:
+    CAN loopback routine    | Valid | Currently inside _run_can_test_with_logging
+    LIN loopback routine    | Valid | Currently inside _run_lin_test_with_logging
+    Standalone routine      | Valid | Not yet extracted — open for future action
+
+  COPILOT QUESTION TO USER (pending answer):
+    "Would you like me to extract them into a dedicated standalone LoopbackTest
+     class (separate file loopback_test.py) so it can be run independently
+     from the rest of the automation sequence?"
+
+--------------------------------------------------------------------------------
+TURN 5 — Rev2.01 Battery FAIL: Two Screenshots Provided
+Date: April 24, 2026
+Target: NON_NFC Rev2.02 + NFC Rev2.02 (NEW paths)
+Files : AutomationScripts/core/timing_profile.py
+--------------------------------------------------------------------------------
+
+SCREENSHOTS PROVIDED:
+
+  Screenshot 1 (8 minute run):
+    "Hardware setup attempt 1 timed out — target did not reach running state."
+    "Connecting to Trace32... (attempt 2)"
+    "Hardware setup failed after 2 attempts: Timeout waiting for Trace32 breakpoint"
+    → Lauterbach/hardware issue (hardware cable or probe state)
+
+  Screenshot 2 (47 second run):
+    HARDWARE SETUP COMPLETE
+    CAN/LIN setting selected: OFF
+    BAT: triggering measurement DID
+    BAT: waiting 1.5 seconds for initial stabilisation
+    BAT: voltage never stabilised within timeout
+    BAT: 0.0 mV — ADC not ready yet, waiting 2.0 s and retrying...
+    BAT: triggering measurement DID
+    BAT: waiting 1.5 seconds for initial stabilisation
+    BAT: voltage never stabilised within timeout
+    BAT: ✗ voltage is 0.0 mV — supply has not yet stabilised.
+    ✗ battery: FAIL
+
+USER:
+  "C:\UShin\...\NFC_OR_NON_NFC_RH_Rev2.02
+   C:\UShin\...\NFC_OR_NON_NFC_LH_Rev2.02
+   Please update on this path above.
+   In previous Rev2.01 fail was due to battery unstablized and here, so need
+   to increase the battery wait time for stablization. so please update in Rev2.02
+   There is no issue found for lauterbach unplug and replug only battery issue
+   is remaining"
+
+COPILOT ANSWER — ROOT CAUSE ANALYSIS (Battery):
+  From Screenshot 2 trace:
+    bat_initial_wait=1.5s → firmware ADC still reads 0.0mV (not sampled yet)
+    10s poll timeout → still 0.0mV (ADC never produced non-zero reading)
+    bat_retry_wait=2.0s → retry with same bat_initial_wait=1.5s → same failure
+
+  The PSU needs more time after power-on before the firmware's ADC circuitry
+  can produce a valid reading. The problem occurs because:
+    1. supply_on_wait=1.5s is too short → firmware starts before PSU is stable
+    2. bat_initial_wait=1.5s after DID trigger is too short → ADC not ready
+    3. bat_retry_wait=2.0s gap is too short → supply still not stable on retry
+
+COPILOT FIX — timing_profile.py NORMAL profile (both Rev2.02 variants):
+
+  BEFORE:
+    supply_on_wait  = 1.5s   (comment: reduced 3.0→1.5)
+    bat_initial_wait = 1.5s  (comment: reduced 3.0→1.5)
+    bat_retry_wait  = 2.0s   (comment: reduced 5.0→2.0)
+
+  AFTER:
+    supply_on_wait  = 3.0s   (increased 1.5→3.0: PSU needs more time to reach
+                               full voltage before firmware ADC reads)
+    bat_initial_wait = 3.0s  (increased 1.5→3.0: ADC not ready within 1.5s
+                               after DID trigger)
+    bat_retry_wait  = 5.0s   (increased 2.0→5.0: give supply more time
+                               between retries)
+
+  Total battery test budget (new):
+    3.0s (supply_on) + 3.0s (initial wait) + 10s (poll) = ~16s first attempt
+    If still 0.0mV: + 5.0s (retry gap) + 3.0s + 10s = ~34s total before FAIL
+
+FILES MODIFIED:
+  NON_NFC Rev2.02: AutomationScripts/core/timing_profile.py
+  NFC     Rev2.02: AutomationScripts/core/timing_profile.py
+
+  Note: No logic changes — only timing constants changed.
+
+--------------------------------------------------------------------------------
+TURN 6 — Request: Full ChatHistory.txt (April 1 – April 24)
+Date: April 24, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "Can you please prepare a ChatHistory.txt for which i chat with you and
+   your answers in details"
+  [followed by]
+  "not only for today but also from 1st April to till today"
+
+COPILOT ANSWER:
+  This file (ChatHistory_Full_April2026.txt) was created covering the full
+  period April 1 – April 24, 2026, including all issues, root cause analyses,
+  code changes (before and after), and file paths modified.
+
+  Saved to: C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
+
+================================================================================
+COMPLETE FILE CHANGE MASTER TABLE — APRIL 1–24, 2026
+================================================================================
+
+  File                              Rev/Path           Change
+  ──────────────────────────────────────────────────────────────────────────────
+  capa_test.py                      Rev1.08 (both)     SENSOR_VARS: poll only 3
+                                                        ADC vars, not flag vars;
+                                                        readings_ready early exit
+  trace32.py ResetTarget()          Rev1.08 (both)     SYStem.Down before Up;
+                                                        3-attempt retry loop
+  timing_profile.py                 Rev1.08 (both)     capa_retry_timeout 2→15s
+  timing_profile.py                 Rev1.09 Cts (both) led_off_stabilize_wait=2.0s
+                                                        sg1/sg2_measure_wait 0.8→3.0s
+                                                        capa_retry_timeout=15s
+  led_test.py                       Rev1.09 Cts (both) Separate ON/OFF wait times
+  hardware_setup.py                 Rev1.09 Del (both) timeout 10→15s;
+                                                        smart retry (ResetTarget)
+  integrated_automation.py          Rev1.09 Del (both) QuitTrace32 PCB-swap
+                                                        [later reverted by user]
+  integrated_automation.py          Rev2.00 (both)     QuitTrace32 PCB-swap
+                                                        [later reverted — see below]
+  hardware_setup.py                 Rev2.00 (both)     timeout 10→15s;
+                                                        smart retry [later reverted]
+  integrated_automation.py          Rev2.00 (both)     REVERTED to ResetTarget+
+  [Apr 23]                                              RunCode (matching Rev1.09)
+  hardware_setup.py                 Rev2.00 (both)     REVERTED: timeout 15→10s;
+  [Apr 23]                                              simple verify_setup
+  test_sequences.py                 Rev2.01 (both)     CAN: pre-clear flag, poll
+  [Apr 24]                                              loop, try/except on reads
+                                                        LIN: same 3 fixes
+  timing_profile.py                 Rev2.01 (both)     New fields: can/lin_
+  [Apr 24]                                              response_timeout=5.0s
+  timing_profile.py                 Rev2.02 (both)     supply_on_wait 1.5→3.0s
+  [Apr 24]                                              bat_initial_wait 1.5→3.0s
+                                                        bat_retry_wait 2.0→5.0s
+
+  (both) = applied to NON_NFC (RH) and NFC (LH) variants
+  Cts    = Continous_Developement path
+  Del    = Delivered path
+
+================================================================================
+FINAL TIMING PROFILE REFERENCE — Rev2.02 NORMAL (latest values)
+================================================================================
+
+  supply_off_wait          = 1.0 s
+  supply_on_wait           = 3.0 s   ← increased (Apr 24)
+  first_run_fw_init_wait   = 5.0 s
+  before_go_wait           = 0.2 s
+  bat_initial_wait         = 3.0 s   ← increased (Apr 24)
+  bat_retry_wait           = 5.0 s   ← increased (Apr 24)
+  led_stabilize_wait       = 0.5 s
+  led_off_stabilize_wait   = 2.0 s   ← new field (mid-Apr)
+  motor_actuate_wait       = 1.0 s
+  eos_mode_switch_wait     = 0.2 s
+  eos_reset_stabilize_wait = 0.3 s
+  eos_measure_wait         = 0.4 s
+  eos_clear_wait           = 0.2 s
+  eos_set_process_wait     = 0.6 s
+  sg1_measure_wait         = 3.0 s   ← increased from 0.8s (mid-Apr)
+  sg2_flag_wait            = 0.2 s
+  sg2_reset_wait           = 0.3 s
+  sg2_measure_wait         = 3.0 s   ← increased from 0.8s (mid-Apr)
+  capa_retry_timeout       = 15.0 s  ← increased from 2.0s (early-Apr)
+  capa_retry_interval      = 0.25 s
+  stable_poll_interval     = 0.25 s
+  can_response_timeout     = 5.0 s   ← new field (Apr 24)
+  lin_response_timeout     = 5.0 s   ← new field (Apr 24)
+
+================================================================================
+OPEN ITEMS / PENDING DECISIONS
+================================================================================
+  1. Standalone LoopbackTest class (loopback_test.py) — not yet created.
+     User has not confirmed whether they want this extracted.
+
+  2. Rev1.09 Delivered — confirmed STABLE, do not modify.
+
+  3. Rev2.02 battery fix — awaiting test results from factory floor.
+
+  4. Screenshot 1 (8-minute Lauterbach timeout) — user stated no Lauterbach
+     issue found. This may have been a transient hardware cable issue.
+
+================================================================================
+END OF FULL CHAT HISTORY — April 1 to April 24, 2026
+================================================================================
