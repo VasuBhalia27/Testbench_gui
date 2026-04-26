@@ -1087,7 +1087,35 @@ OPEN ITEMS / PENDING DECISIONS
      Same DB_CONFIG credentials apply to both; both write to the same
      'testbench'.'test_results' table on the MySQL server.
 
-  7. [PENDING — Apr 26, 2026] MySQL Connection Details Dialog
+  7. [PENDING — Apr 26, 2026] KEYENCE SR-X100 Autofocus Code Reader — Hardware Procurement
+     The barcode scanner implementation (19-char validation, auto-start on Enter,
+     parsed fields in report) is fully coded and ready. However, the physical
+     KEYENCE SR-X100 Autofocus Code Reader unit has NOT yet been procured.
+     As of the PPTX specification date, a quotation was still pending.
+
+     Key hardware details (for purchasing):
+       Manufacturer : KEYENCE
+       Model        : SR-X100
+       Type         : Autofocus 2D Code Reader (USB keyboard-wedge interface)
+       Interface    : USB — appears as a standard HID keyboard to Windows
+                      (no driver or serial port setup needed)
+       Behaviour    : Reads barcode → types it as keystrokes → sends Enter
+       Code length  : Must output exactly 19 characters + Enter for the
+                      current validation to accept and auto-start tests
+       Software     : No code changes needed after hardware arrives;
+                      the GUI is already coded for this exact flow
+
+     Action required:
+       - Confirm quotation / place purchase order for SR-X100
+       - Once received, connect USB and verify scanner outputs 19-char
+         barcode followed by Enter keystroke
+       - Test with the integrated project:
+           Continous_Developement\Non_Nfc_Version\MySQL_Auto_Reader_Integration\
+             NFC_OR_NON_NFC_RH_MySQL_Auto_Reader\
+           Continous_Developement\Nfc_Version\MySQL_Auto_Reader_Integration\
+             NFC_OR_NON_NFC_LH_MySQL_Auto_Reader\
+
+  8. [PENDING — Apr 26, 2026] MySQL Connection Details Dialog
      A GUI dialog asking the operator for MySQL connection details
      (host, port, database name, username, password) has NOT yet been
      implemented. This was requested but deferred.
@@ -1499,6 +1527,231 @@ MASTER TABLE UPDATE:
   report_generator.py        NON_NFC RH auto_reader  parsed_barcode param, PCB serial in filename
   html_report_generator.py   NFC LH  auto_reader    parsed_barcode param, second header meta line
   html_report_generator.py   NON_NFC RH auto_reader  parsed_barcode param, second header meta line
+
+================================================================================
+TURN 15 — MySQL + Barcode Reader Integration: New Unified Projects Created
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "Please integrate [MySQL project] and [Barcode Reader auto_reader project]
+   into [MySQL_Auto_Reader_Integration] for both RH and LH variants, and
+   update the change history with details."
+
+INTEGRATION GOAL:
+  Combine the barcode reader features (19-char validation, auto-start, parsed
+  fields in report) with the MySQL database logging feature into single unified
+  projects that cover the full factory automation flow end-to-end.
+
+SOURCE PROJECTS (both variants):
+  MySQL   (RH): Continous_Developement\Non_Nfc_Version\MySQL\NFC_OR_NON_NFC_RH_Rev2.03_progress\
+  Auto_Reader (RH): Continous_Developement\Non_Nfc_Version\Barcode_Reader\Automatic_Reader\NFC_OR_NON_NFC_RH_Rev2.03_auto_reader\
+  MySQL   (LH): Continous_Developement\Nfc_Version\MySQL\NFC_OR_NON_NFC_LH_Rev2.03_progress\
+  Auto_Reader (LH): Continous_Developement\Nfc_Version\Barcode_Reader\Automatic_Reader\NFC_OR_NON_NFC_LH_Rev2.03_auto_reader\
+
+DESTINATION PROJECTS (new):
+  RH: Continous_Developement\Non_Nfc_Version\MySQL_Auto_Reader_Integration\NFC_OR_NON_NFC_RH_MySQL_Auto_Reader\
+  LH: Continous_Developement\Nfc_Version\MySQL_Auto_Reader_Integration\NFC_OR_NON_NFC_LH_MySQL_Auto_Reader\
+
+INTEGRATION STRATEGY:
+  Base: auto_reader project (most recent — has 19-char barcode, barcode_parser.py,
+        green/red visual feedback, auto-start on Enter, parsed fields in report)
+  Added from MySQL project:
+    1. mysql_logger.py           (MySQL insert logic)
+    2. MySQL block in integrated_automation.py
+       (insert_test_result() called after HTML report is saved)
+    3. requirements.txt          (added mysql-connector-python)
+    4. AutomationTest.bat        (rewritten: gui_main.py entry point + MySQL docs)
+    5. AutomationTest.vbs        (copied from MySQL project: gui_main.py + correct & operator)
+
+STEPS PERFORMED (both RH and LH):
+  Step 1: Copied entire auto_reader project to new destination directory
+  Step 2: Copied mysql_logger.py from MySQL project → AutomationScripts\
+  Step 3: Copied barcode_parser.py (explicitly, as initial copy missed it)
+  Step 4: Added 'mysql-connector-python' to AutomationScripts\requirements.txt
+  Step 5: Inserted MySQL block into integrated_automation.py
+          Location: after HTML report generation, before debugger close
+          Block:
+            # Insert overall result into MySQL database
+            insert_test_result(model=scan_code, scan_code=scan_code,
+                               all_passed=all_passed, timestamp=datetime.now())
+  Step 6: Replaced AutomationTest.bat with updated launcher documenting
+          barcode + MySQL flow, using 'python Gui_Main_Script\gui_main.py'
+  Step 7: Replaced AutomationTest.vbs from MySQL project source
+          (correct & string concatenation operator, gui_main.py entry point)
+
+COMPLETE OPERATOR FLOW (integrated project):
+  1. Double-click AutomationTest.vbs (silent) or AutomationTest.bat (with console)
+  2. GUI opens — 2D Scan field auto-focused
+  3. Operator places DUT in fixture, keyboard-wedge scanner reads barcode
+  4. 19-char barcode fills scan field → turns GREEN → ✓ Valid shown
+  5. Scanner sends Enter → tests start AUTOMATICALLY (no button click)
+  6. All tests run: LED, Battery, Motor, EOS, CAN, LIN, NFC (as applicable)
+  7. HTML report saved:  YYYYMMDD_HHMMSS_NNNNN_Test_Report_XXXX_PASS.html
+     (NNNNN = PCB serial from barcode, XXXX = 4-digit sequential count)
+  8. Report header shows barcode + Supplier / Part No / Year-Week / PCB Serial
+  9. MySQL: test result inserted into 'testbench.test_results' table
+     (Test_Date, Test_Time, Model=scan_code, 2D_Data=scan_code, Test_Result)
+ 10. PASS (green) / FAIL (red) indicator shown on GUI screen
+
+FILES IN INTEGRATED PROJECT (AutomationScripts):
+  barcode_parser.py            NEW — 19-char barcode validator & field parser
+  mysql_logger.py              NEW — MySQL insert_test_result() function
+  html_report_generator.py     has parsed_barcode second header line
+  report_generator.py          has parsed_barcode param, PCB serial in filename
+  core\gui_automation.py       19-char validation, green/red feedback, auto-start
+  core\integrated_automation.py barcode parsing + MySQL insert + report (all in one)
+  requirements.txt             pytest, pyvisa, pyvisa-py, mysql-connector-python
+
+MYSQL TABLE SCHEMA REQUIRED:
+  CREATE TABLE test_results (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      Test_Date   DATE         NOT NULL,
+      Test_Time   TIME         NOT NULL,
+      Model       VARCHAR(50)  NOT NULL,
+      `2D_Data`   VARCHAR(50)  NOT NULL,
+      Test_Result VARCHAR(10)  NOT NULL
+  );
+
+DB_CONFIG (default, edit mysql_logger.py to match your MySQL server):
+  host: localhost   port: 3306   database: testbench
+  user: root        password: password
+
+MASTER TABLE UPDATE:
+  NEW PROJECT  NFC_OR_NON_NFC_RH_MySQL_Auto_Reader  NON_NFC RH  full auto (barcode + MySQL)
+  NEW PROJECT  NFC_OR_NON_NFC_LH_MySQL_Auto_Reader  NFC LH      full auto (barcode + MySQL)
+  mysql_logger.py         RH + LH integrated    copied from MySQL project
+  barcode_parser.py       RH + LH integrated    copied from auto_reader project
+  integrated_automation.py RH + LH integrated   barcode parse + MySQL insert + HTML report
+  requirements.txt        RH + LH integrated    added mysql-connector-python
+  AutomationTest.bat      RH + LH integrated    gui_main.py, MySQL doc comments
+  AutomationTest.vbs      RH + LH integrated    gui_main.py, correct VBS & operator
+
+================================================================================
+TURN 16 — KEYENCE SR-X100 Hardware Procurement Status
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  Attached image of KEYENCE SR-X100 Autofocus Code Reader and asked whether
+  there is anything pending from KEYENCE.
+
+STATUS:
+  Software side: COMPLETE (barcode validation, auto-start, parsed fields,
+                 MySQL insert all coded and ready)
+  Hardware side: PENDING — physical SR-X100 unit not yet procured.
+                 A quotation was pending at the time of the PPTX specification.
+
+ACTION TAKEN:
+  Added OPEN ITEM #7 to the OPEN ITEMS / PENDING DECISIONS section of
+  this ChatHistory documenting the procurement status and all hardware
+  details needed for purchasing.
+
+KEYENCE SR-X100 KEY FACTS (for procurement):
+  Manufacturer : KEYENCE
+  Model        : SR-X100
+  Type         : Autofocus 2D Code Reader
+  Interface    : USB keyboard-wedge (HID) — no driver needed on Windows
+  Behaviour    : Reads barcode → types keystrokes → sends Enter
+  Required     : Must output exactly 19 characters + Enter for current
+                 software validation logic to accept and auto-start tests
+
+NO CODE CHANGES REQUIRED after hardware arrives.
+Test with integrated projects:
+  Non_Nfc_Version\MySQL_Auto_Reader_Integration\NFC_OR_NON_NFC_RH_MySQL_Auto_Reader
+  Nfc_Version\MySQL_Auto_Reader_Integration\NFC_OR_NON_NFC_LH_MySQL_Auto_Reader
+
+================================================================================
+TURN 17 — Bug Fix: Barcode GUI Features Missing in Integrated Projects
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "Please check with any build or run time error"
+
+ISSUE FOUND:
+  Both integrated projects (RH + LH MySQL_Auto_Reader) had the OLD version
+  of gui_automation.py — the one from BEFORE the Turn 14 barcode edits.
+  The recursive directory copy that created the integrated projects captured
+  the file before barcode edits were applied to it.
+
+  All syntax checks passed (12 files, no errors). The bug was a runtime
+  logic defect: barcode auto-start features were silently absent.
+
+4 BUGS FIXED in AutomationScripts\core\gui_automation.py (both RH + LH):
+
+  Bug 1 — _vcmd limit was <= 20 (allowed 20-char barcode entry)
+           Fix: changed to <= 19 (blocks any char beyond the 19th)
+
+  Bug 2 — scan_status_label widget was missing entirely
+           Fix: added ttk.Label next to scan_entry (width=10, bold)
+                shows "✓ Valid" (green) or "✗ Invalid" (red) in real time
+
+  Bug 3 — scan_entry had no <Return> binding
+           Fix: added self.scan_entry.bind("<Return>", self._on_barcode_enter)
+                so scanner's Enter keystroke auto-triggers Start
+
+  Bug 4 — _on_barcode_enter method was missing entirely
+           Fix: added method — checks len==19 then calls self._on_start()
+
+  Bug 5 — _update_start_button_state used "len > 15" (enabled too early)
+           Fix: replaced with exact len==19 check + background color change:
+                green (#90EE90) for valid, red (#FFB3B3) for invalid,
+                white for empty
+
+VERIFICATION:
+  All 12 Python files in both integrated projects pass AST syntax check.
+  All 4 barcode features confirmed present in both gui_automation.py files:
+    _on_barcode_enter  YES
+    scan_status_label  YES
+    <= 19              YES
+    exactly 19         YES
+
+FILES CHANGED:
+  NFC_OR_NON_NFC_RH_MySQL_Auto_Reader\AutomationScripts\core\gui_automation.py
+  NFC_OR_NON_NFC_LH_MySQL_Auto_Reader\AutomationScripts\core\gui_automation.py
+
+MASTER TABLE UPDATE:
+  gui_automation.py  RH integrated  FIXED: _vcmd <=19, scan_status_label,
+                                    <Return> binding, _on_barcode_enter,
+                                    exact-19 validation + green/red colors
+  gui_automation.py  LH integrated  FIXED: same as RH above
+
+================================================================================
+TURN 18 — Cleanup: Remove Duplicate Subfolder from Integrated Projects
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  Noticed a subfolder NFC_OR_NON_NFC_RH_Rev2.03_auto_reader sitting inside
+  NFC_OR_NON_NFC_RH_MySQL_Auto_Reader (same in LH). Asked to remove it with
+  no code/details lost.
+
+ROOT CAUSE:
+  When the integrated projects were created (Turn 15), the recursive
+  Copy-Item captured the entire auto_reader source directory including a
+  nested subfolder that was a copy of itself at the time. This left a
+  stale duplicate inside each integrated project root.
+
+VERIFICATION BEFORE DELETION:
+  Compared all files in duplicate AutomationScripts vs integrated root:
+  - Files unique to duplicate (would be lost) : NONE
+  - Files only in integrated root (not in dup) : mysql_logger.py
+    (correctly present only in the integrated root — confirms integration)
+
+DELETED:
+  Non_Nfc_Version\MySQL_Auto_Reader_Integration\
+    NFC_OR_NON_NFC_RH_MySQL_Auto_Reader\NFC_OR_NON_NFC_RH_Rev2.03_auto_reader\
+  Nfc_Version\MySQL_Auto_Reader_Integration\
+    NFC_OR_NON_NFC_LH_MySQL_Auto_Reader\NFC_OR_NON_NFC_LH_Rev2.03_auto_reader\
+
+RESULT:
+  Both integrated projects are now clean — no nested duplicates.
+  No code, configuration, or asset files were lost.
+
+MASTER TABLE UPDATE:
+  NFC_OR_NON_NFC_RH_MySQL_Auto_Reader  CLEANUP: stale auto_reader subfolder removed
+  NFC_OR_NON_NFC_LH_MySQL_Auto_Reader  CLEANUP: stale auto_reader subfolder removed
 
 ================================================================================
 ================================================================================

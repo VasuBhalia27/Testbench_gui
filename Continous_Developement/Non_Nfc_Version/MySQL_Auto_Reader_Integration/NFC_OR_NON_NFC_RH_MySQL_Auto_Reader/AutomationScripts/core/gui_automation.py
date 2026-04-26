@@ -234,7 +234,7 @@ class AutomationGUI:
                   font=("Arial", 11, "bold")).pack(side="left", padx=(0, 8))
         self.scan_code = tk.StringVar(master=self.root)
         self.scan_code.trace_add("write", lambda *_: self._update_start_button_state())
-        _vcmd = (self.root.register(lambda s: len(s) <= 20), "%P")
+        _vcmd = (self.root.register(lambda s: len(s) <= 19), "%P")
         self.scan_entry = tk.Entry(
             scan_row,
             textvariable=self.scan_code,
@@ -246,6 +246,13 @@ class AutomationGUI:
             validatecommand=_vcmd,
         )
         self.scan_entry.pack(side="left")
+        # Real-time validation status label (green ✓ / red ✗)
+        self.scan_status_label = ttk.Label(
+            scan_row, text="", font=("Arial", 10, "bold"), width=10
+        )
+        self.scan_status_label.pack(side="left", padx=(6, 0))
+        # Keyboard-wedge scanner sends Enter after typing the barcode — auto-trigger Start
+        self.scan_entry.bind("<Return>", self._on_barcode_enter)
         # Auto-focus the scan field when the GUI first appears
         self.root.after(200, self.scan_entry.focus_set)
 
@@ -339,12 +346,37 @@ class AutomationGUI:
         # Initially control_frame is not gridded; it will be shown on Start
 
     def _update_start_button_state(self) -> None:
-        """Enable Start button when more than 15 characters are entered in 2D Scan."""
+        """Enable Start button only when exactly 19 characters are entered in 2D Scan.
+
+        Also updates the scan entry background colour and status label to give
+        the operator immediate visual feedback on barcode validity.
+        """
         try:
-            if len(self.scan_code.get().strip()) > 15:
+            code = self.scan_code.get().strip()
+            valid = len(code) == 19
+            if valid:
                 self.start_button.config(state="normal")
+                self.scan_entry.config(background="#90EE90")        # light green
+                self.scan_status_label.config(text="\u2713 Valid", foreground="green")
             else:
                 self.start_button.config(state="disabled")
+                if code:
+                    self.scan_entry.config(background="#FFB3B3")    # light red
+                    self.scan_status_label.config(text="\u2717 Invalid", foreground="red")
+                else:
+                    self.scan_entry.config(background="white")
+                    self.scan_status_label.config(text="", foreground="black")
+        except Exception:
+            pass
+
+    def _on_barcode_enter(self, _event=None) -> None:
+        """Called when the barcode scanner sends Enter after completing a scan.
+
+        Auto-triggers the Start button if the scanned barcode is valid (exactly 19 chars).
+        """
+        try:
+            if len(self.scan_code.get().strip()) == 19:
+                self._on_start()
         except Exception:
             pass
 

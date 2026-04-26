@@ -2,3 +2,4 @@ pytest
 pytest-mock
 pyvisa
 pyvisa-py
+mysql-connector-python

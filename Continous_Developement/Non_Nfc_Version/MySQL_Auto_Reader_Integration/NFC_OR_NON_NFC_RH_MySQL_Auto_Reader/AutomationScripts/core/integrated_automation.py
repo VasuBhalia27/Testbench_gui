@@ -237,7 +237,21 @@ class IntegratedAutomationRunner:
                     pass
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
-
+            # Insert overall result into MySQL database
+            try:
+                from AutomationScripts.mysql_logger import insert_test_result
+                from datetime import datetime
+                insert_test_result(
+                    model=scan_code if scan_code else "UNKNOWN",
+                    scan_code=scan_code if scan_code else "UNKNOWN",
+                    all_passed=all_passed,
+                    timestamp=datetime.now(),
+                )
+                self._log("MySQL: test result inserted into database.")
+            except ImportError as _db_imp:
+                self._log(f"\u26a0 MySQL: {_db_imp}")
+            except Exception as _db_exc:
+                self._log(f"\u26a0 MySQL insert failed: {_db_exc}")
             # Close the T32 debugger automatically after report is saved
             try:
                 self._log("Closing debugger...")
