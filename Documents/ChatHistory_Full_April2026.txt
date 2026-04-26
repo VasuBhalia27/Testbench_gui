@@ -1,7 +1,7 @@
 ================================================================================
   FULL CHAT HISTORY — GitHub Copilot (Claude Sonnet 4.6) × Charan Singh
   Project  : SmartBU Testbench GUI Automation (NFC_LH / NON_NFC_RH variants)
-  Period   : April 1, 2026 — April 24, 2026
+  Period   : April 1, 2026 — April 26, 2026
   AI Model : Claude Sonnet 4.6 (GitHub Copilot)
 ================================================================================
 
@@ -52,6 +52,8 @@ PATH REFERENCE TABLE
                       NFC_OR_NON_NFC_RH_Rev2.02\
   NFC     Rev2.02   Continous_Developement\Nfc_Version\Html_Report\
                       NFC_OR_NON_NFC_LH_Rev2.02\
+  NON_NFC Rev2.03   Continous_Developement\Non_Nfc_Version\MySQL\
+  (MySQL)             NFC_OR_NON_NFC_RH_Rev2.03_progress\
   All paths under: C:\UShin\Testbench_gui_Charan\
 
 ================================================================================
@@ -682,7 +684,236 @@ COPILOT ANSWER:
   Saved to: C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
 
 ================================================================================
-COMPLETE FILE CHANGE MASTER TABLE — APRIL 1–24, 2026
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 5  —  APRIL 26, 2026  (confirmed date)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+--------------------------------------------------------------------------------
+TURN 7 — Step 3: MySQL Database Integration
+Date   : April 26, 2026
+Target : NON_NFC Rev2.03  (MySQL project variant)
+Path   : Continous_Developement\Non_Nfc_Version\MySQL\
+           NFC_OR_NON_NFC_RH_Rev2.03_progress\
+Files  : AutomationScripts/mysql_logger.py          ← NEW
+         AutomationScripts/core/integrated_automation.py
+         AutomationScripts/requirements.txt
+--------------------------------------------------------------------------------
+
+CONTEXT:
+  An attached image described three additional requirements for the Automatic
+  Test sequence on the NON_NFC_RH Rev2.03 project:
+
+    Step 1 — PASS/FAIL Display: Color-coded status label
+               (Green = PASS, Red = FAIL) embedded in the automation GUI.
+               STATUS: Already implemented and working.
+
+    Step 2 — 2D Scan Integration: A barcode/scanner input field on the GUI
+               ("2D Scan → Click Start" flow) that captures the PCB serial
+               number before each test run starts.
+               STATUS: Already implemented and working.
+
+    Step 3 — Database Integration: Insert the overall test result for each
+               PCB run into a MySQL database.
+               STATUS: NOT YET IMPLEMENTED → requested in this turn.
+
+  Required MySQL table columns (from the attached sample data):
+    Test_Date    DATE         e.g. 2026-04-20
+    Test_Time    TIME         e.g. 8:00:01
+    Model        VARCHAR(50)  e.g. XXXXXX  (= 2D scan code)
+    2D_Data      VARCHAR(50)  e.g. XXXXX01 (= 2D scan code)
+    Test_Result  VARCHAR(10)  e.g. PASS / FAIL
+
+COPILOT INVESTIGATION:
+  Read the following files to understand the integration points:
+    - Gui_Main_Script/gui_main.py
+    - AutomationScripts/core/integrated_automation.py  (_run_automation_thread)
+    - AutomationScripts/core/gui_automation.py         (scan_code field)
+    - AutomationScripts/report_generator.py            (existing report path)
+  Found that:
+    - scan_code is captured from gui.scan_code.get() at the start of every run
+    - all_passed boolean is available after _log_results() returns
+    - HTML report is generated immediately after _log_results()
+    - MySQL insert should follow the HTML report generation block
+
+COPILOT ACTION 1 — Create AutomationScripts/mysql_logger.py (NEW FILE):
+
+  Module design:
+    - DB_CONFIG dict at top of file — all credentials in one easy-to-find place:
+        host     = "localhost"
+        port     = 3306
+        database = "testbench"
+        user     = "root"
+        password = "password"
+    - TABLE_NAME = "test_results"
+    - Single public function:  insert_test_result(model, scan_code,
+                                all_passed, timestamp=None)
+    - Converts all_passed → "PASS" / "FAIL" string
+    - Opens connection, executes parameterised INSERT, commits, closes
+    - Raises ImportError (with install instructions) if
+      mysql-connector-python is not installed
+    - Raises all other DB exceptions (connection refused, auth failure)
+      to the caller so they can be logged without crashing automation
+
+  SQL INSERT used:
+    INSERT INTO `test_results`
+      (Test_Date, Test_Time, Model, `2D_Data`, Test_Result)
+    VALUES (%s, %s, %s, %s, %s)
+
+  Required table DDL (for server setup):
+    CREATE TABLE test_results (
+        id          INT AUTO_INCREMENT PRIMARY KEY,
+        Test_Date   DATE         NOT NULL,
+        Test_Time   TIME         NOT NULL,
+        Model       VARCHAR(50)  NOT NULL,
+        `2D_Data`   VARCHAR(50)  NOT NULL,
+        Test_Result VARCHAR(10)  NOT NULL
+    );
+
+COPILOT ACTION 2 — Modify integrated_automation.py (_run_automation_thread):
+
+  Insertion point: immediately after the HTML report try/except block, before
+  the T32 debugger close section.
+
+  Code added (AFTER):
+    # Insert overall result into MySQL database
+    try:
+        from AutomationScripts.mysql_logger import insert_test_result
+        from datetime import datetime
+        insert_test_result(
+            model=scan_code if scan_code else "UNKNOWN",
+            scan_code=scan_code if scan_code else "UNKNOWN",
+            all_passed=all_passed,
+            timestamp=datetime.now(),
+        )
+        self._log("MySQL: test result inserted into database.")
+    except ImportError as _db_imp:
+        self._log(f"⚠ MySQL: {_db_imp}")
+    except Exception as _db_exc:
+        self._log(f"⚠ MySQL insert failed: {_db_exc}")
+
+  Error handling strategy:
+    - ImportError → informational log (driver not installed), no crash
+    - Any other exception → log warning, no crash (automation still completes)
+    - MySQL failure never prevents T32 from closing or the next run starting
+
+COPILOT ACTION 3 — Update AutomationScripts/requirements.txt:
+
+  Added:  mysql-connector-python
+
+  Install command for factory PC:
+    pip install mysql-connector-python
+
+FILES MODIFIED:
+  NON_NFC Rev2.03 (MySQL): AutomationScripts/mysql_logger.py          ← NEW
+  NON_NFC Rev2.03 (MySQL): AutomationScripts/core/integrated_automation.py
+  NON_NFC Rev2.03 (MySQL): AutomationScripts/requirements.txt
+
+--------------------------------------------------------------------------------
+TURN 8 — ChatHistory_Full_April2026.txt Updated to April 26
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
+   Please update for till date"
+
+COPILOT ACTION:
+  Read the full existing ChatHistory_Full_April2026.txt (period April 1–24).
+  Appended Phase 5 (April 26, 2026) covering:
+    - Turn 7: MySQL Database Integration (Step 3) for Rev2.03_progress
+    - Turn 8: This update turn
+  Updated header period: April 1–24 → April 1–26.
+  Added NON_NFC Rev2.03 (MySQL) path to PATH REFERENCE TABLE.
+  Added Rev2.03 entries to COMPLETE FILE CHANGE MASTER TABLE.
+  Updated OPEN ITEMS list.
+
+FILES MODIFIED:
+  C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
+
+--------------------------------------------------------------------------------
+TURN 9 — MySQL Installation Guide & Program Execution Steps
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "Please add details of what need to install for MySQL and how to execute
+   the program"
+
+COPILOT ACTION:
+  Added this section (Turn 9) to ChatHistory and added the MySQL Setup &
+  Execution Guide appendix at the end of this file.
+
+FILES MODIFIED:
+  C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
+  AutomationScripts\README.md  (MySQL Setup section added)
+
+--------------------------------------------------------------------------------
+TURN 10 — MySQL Integration Applied to NFC (LH) Rev2.03
+Date   : April 26, 2026
+Target : NFC Rev2.03  (MySQL project variant)
+Path   : Continous_Developement\Nfc_Version\MySQL\
+           NFC_OR_NON_NFC_LH_Rev2.03_progress\
+Files  : AutomationScripts/mysql_logger.py          ← NEW
+         AutomationScripts/core/integrated_automation.py
+         AutomationScripts/requirements.txt
+         AutomationScripts/README.md
+--------------------------------------------------------------------------------
+
+USER:
+  "C:\UShin\Testbench_gui_Charan\Continous_Developement\Nfc_Version\MySQL\
+   NFC_OR_NON_NFC_LH_Rev2.03_progress
+   Please do same changes on the above project also"
+
+COPILOT INVESTIGATION:
+  Confirmed the LH Rev2.03 project exists at the given path with identical
+  folder structure to the NON_NFC RH Rev2.03 project.
+  Verified integrated_automation.py has the same HTML report block and the
+  same insertion point (after "⚠ Report generation failed" line).
+  Confirmed requirements.txt does NOT yet contain mysql-connector-python.
+  Confirmed mysql_logger.py does NOT yet exist.
+
+COPILOT ACTIONS APPLIED (identical to Turn 7 / NON_NFC RH):
+
+  ACTION 1 — Created AutomationScripts/mysql_logger.py (new file)
+    Exact copy of the RH version:
+      DB_CONFIG  = {host, port, database, user, password} at top of file
+      TABLE_NAME = "test_results"
+      insert_test_result(model, scan_code, all_passed, timestamp=None)
+
+  ACTION 2 — Modified integrated_automation.py
+    Inserted MySQL insert block immediately after the HTML report
+    try/except block, before the T32 debugger close section:
+      try:
+          from AutomationScripts.mysql_logger import insert_test_result
+          from datetime import datetime
+          insert_test_result(
+              model=scan_code if scan_code else "UNKNOWN",
+              scan_code=scan_code if scan_code else "UNKNOWN",
+              all_passed=all_passed,
+              timestamp=datetime.now(),
+          )
+          self._log("MySQL: test result inserted into database.")
+      except ImportError as _db_imp:
+          self._log(f"⚠ MySQL: {_db_imp}")
+      except Exception as _db_exc:
+          self._log(f"⚠ MySQL insert failed: {_db_exc}")
+
+  ACTION 3 — Updated requirements.txt
+    Added:  mysql-connector-python
+
+  ACTION 4 — Updated AutomationScripts/README.md
+    Added same MySQL Database Integration section (Steps 1–5 +
+    Troubleshooting table) as in the RH version.
+
+FILES MODIFIED:
+  NFC Rev2.03 (MySQL): AutomationScripts/mysql_logger.py          ← NEW
+  NFC Rev2.03 (MySQL): AutomationScripts/core/integrated_automation.py
+  NFC Rev2.03 (MySQL): AutomationScripts/requirements.txt
+  NFC Rev2.03 (MySQL): AutomationScripts/README.md
+
+================================================================================
+COMPLETE FILE CHANGE MASTER TABLE — APRIL 1–26, 2026
 ================================================================================
 
   File                              Rev/Path           Change
@@ -717,6 +948,22 @@ COMPLETE FILE CHANGE MASTER TABLE — APRIL 1–24, 2026
   timing_profile.py                 Rev2.02 (both)     supply_on_wait 1.5→3.0s
   [Apr 24]                                              bat_initial_wait 1.5→3.0s
                                                         bat_retry_wait 2.0→5.0s
+  mysql_logger.py                   Rev2.03 MySQL       NEW: DB_CONFIG, table name,
+  [Apr 26]                          NON_NFC RH          insert_test_result() func
+  integrated_automation.py          Rev2.03 MySQL       MySQL insert block added
+  [Apr 26]                          NON_NFC RH          after HTML report section
+  requirements.txt                  Rev2.03 MySQL       mysql-connector-python added
+  [Apr 26]                          NON_NFC RH
+  mysql_logger.py                   Rev2.03 MySQL       NEW: identical to RH version
+  [Apr 26]                          NFC LH
+  integrated_automation.py          Rev2.03 MySQL       MySQL insert block added
+  [Apr 26]                          NFC LH              after HTML report section
+  requirements.txt                  Rev2.03 MySQL       mysql-connector-python added
+  [Apr 26]                          NFC LH
+  README.md                         Rev2.03 MySQL       MySQL Setup section added
+  [Apr 26]                          NON_NFC RH + NFC LH
+  ChatHistory_Full_April2026.txt    Documents           Updated Apr 1–26 (this file)
+  [Apr 26]
 
   (both) = applied to NON_NFC (RH) and NFC (LH) variants
   Cts    = Continous_Developement path
@@ -763,6 +1010,251 @@ OPEN ITEMS / PENDING DECISIONS
   4. Screenshot 1 (8-minute Lauterbach timeout) — user stated no Lauterbach
      issue found. This may have been a transient hardware cable issue.
 
+  5. Rev2.03 MySQL — see APPENDIX A below for full installation and execution
+     steps. DB_CONFIG credentials in mysql_logger.py must be updated to match
+     the actual MySQL server before deployment.
+
+  6. Rev2.03 MySQL — NFC (LH) variant now updated (Turn 10, Apr 26).
+     Both NON_NFC (RH) and NFC (LH) Rev2.03 projects have MySQL integration.
+     Same DB_CONFIG credentials apply to both; both write to the same
+     'testbench'.'test_results' table on the MySQL server.
+
 ================================================================================
-END OF FULL CHAT HISTORY — April 1 to April 24, 2026
+================================================================================
+  APPENDIX A — MySQL Setup & Program Execution Guide
+  Target: NON_NFC Rev2.03 (MySQL)
+  Path  : Continous_Developement\Non_Nfc_Version\MySQL\
+             NFC_OR_NON_NFC_RH_Rev2.03_progress\
+================================================================================
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+PART 1 — WHAT TO INSTALL
+────────────────────────────────────────────────────────────────────────────────
+
+  STEP 1.1  Install MySQL Community Server (server side)
+  ───────────────────────────────────────────────────────
+  Download URL:
+    https://dev.mysql.com/downloads/mysql/
+    (Choose "MySQL Community Server" — free edition)
+
+  Recommended version: MySQL 8.0 LTS (stable, long-term support)
+
+  Windows installer options:
+    - Choose "Developer Default" or "Server Only" setup type
+    - Set the root password during installation (remember this password —
+      you will put it in DB_CONFIG["password"] in mysql_logger.py)
+    - Leave port at 3306 (default)
+    - Leave "Start MySQL Server at System Startup" checked for factory use
+
+  Verify MySQL server is running (PowerShell or Command Prompt):
+    > mysql --version
+    > mysql -u root -p
+    (Enter the root password; you should see the mysql> prompt)
+
+  STEP 1.2  Install Python MySQL connector (on factory test PC)
+  ───────────────────────────────────────────────────────────────
+  Open PowerShell or Command Prompt as a regular user:
+
+    pip install mysql-connector-python
+
+  Or, using the project requirements file (installs all dependencies at once):
+
+    cd C:\UShin\Testbench_gui_Charan\Continous_Developement\Non_Nfc_Version\
+           MySQL\NFC_OR_NON_NFC_RH_Rev2.03_progress\AutomationScripts
+    pip install -r requirements.txt
+
+  Verify connector installation:
+    python -c "import mysql.connector; print(mysql.connector.__version__)"
+
+  NOTE: If the factory PC uses a virtual environment (venv), activate it first:
+    .\venv\Scripts\activate
+    pip install mysql-connector-python
+
+────────────────────────────────────────────────────────────────────────────────
+PART 2 — DATABASE & TABLE SETUP (run once on MySQL server)
+────────────────────────────────────────────────────────────────────────────────
+
+  Open MySQL command-line client or MySQL Workbench and run these SQL commands
+  exactly once to prepare the database and table:
+
+  -- 1. Create the database (schema)
+  CREATE DATABASE IF NOT EXISTS testbench
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+  -- 2. Select the database
+  USE testbench;
+
+  -- 3. Create the test results table
+  CREATE TABLE IF NOT EXISTS test_results (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      Test_Date   DATE         NOT NULL,
+      Test_Time   TIME         NOT NULL,
+      Model       VARCHAR(50)  NOT NULL,
+      `2D_Data`   VARCHAR(50)  NOT NULL,
+      Test_Result VARCHAR(10)  NOT NULL
+  );
+
+  Verify table was created:
+    DESCRIBE testbench.test_results;
+
+  Expected columns:
+    Field        Type          Null  Key
+    id           int           NO    PRI  (auto increment)
+    Test_Date    date          NO
+    Test_Time    time          NO
+    Model        varchar(50)   NO
+    2D_Data      varchar(50)   NO
+    Test_Result  varchar(10)   NO
+
+────────────────────────────────────────────────────────────────────────────────
+PART 3 — CONFIGURE mysql_logger.py (one-time setup per deployment)
+────────────────────────────────────────────────────────────────────────────────
+
+  File to edit:
+    AutomationScripts\mysql_logger.py
+
+  Locate the DB_CONFIG section near the top of the file:
+
+    DB_CONFIG = {
+        "host":     "localhost",   # MySQL server hostname or IP
+        "port":     3306,          # MySQL server port
+        "database": "testbench",   # Database (schema) name
+        "user":     "root",        # MySQL username
+        "password": "password",    # MySQL password
+    }
+
+  Edit the values to match your MySQL server:
+
+    Field       Default        Change to
+    ─────────── ────────────── ──────────────────────────────────────
+    host        localhost      IP address if MySQL is on a separate PC
+                               Leave as "localhost" if on the same PC
+    port        3306           Change only if non-standard port is used
+    database    testbench      Must match the database created in Part 2
+    user        root           Use a dedicated user account if available
+    password    password       Enter the actual MySQL root / user password
+
+  Example (MySQL on same PC, custom password):
+    DB_CONFIG = {
+        "host":     "localhost",
+        "port":     3306,
+        "database": "testbench",
+        "user":     "root",
+        "password": "MyFactory2026!",
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+PART 4 — HOW TO EXECUTE THE PROGRAM
+────────────────────────────────────────────────────────────────────────────────
+
+  STEP 4.1  Navigate to the project root
+  ────────────────────────────────────────
+  Open PowerShell and change directory to the project root:
+
+    cd C:\UShin\Testbench_gui_Charan\Continous_Developement\Non_Nfc_Version\
+           MySQL\NFC_OR_NON_NFC_RH_Rev2.03_progress
+
+  STEP 4.2  Launch the main GUI (normal operation)
+  ──────────────────────────────────────────────────
+  Run the main testbench GUI (this is the primary program used by operators):
+
+    python Gui_Main_Script\gui_main.py
+
+  What the GUI does:
+    1. Opens the SmartBU Testbench GUI window
+    2. Operator navigates to the "Automation" tab (Tab 1)
+    3. Operator scans or types the 2D barcode into the "2D Scan" field
+    4. Operator clicks "Start"
+    5. Automation runs all functional tests automatically
+    6. At end of each run:
+         a) PASS (green) or FAIL (red) indicator is shown
+         b) HTML report is saved to AutomationTest\reports\
+         c) Test result row is inserted into MySQL database
+         d) GUI resets, ready for next PCB
+
+  STEP 4.3  Verify MySQL insertion after first run
+  ──────────────────────────────────────────────────
+  In the automation GUI status area, after a completed run, you should see:
+
+    MySQL: test result inserted into database.
+
+  To confirm in MySQL:
+    mysql -u root -p testbench
+    SELECT * FROM test_results ORDER BY id DESC LIMIT 5;
+
+  Expected output (example):
+    +----+------------+-----------+---------+---------+-------------+
+    | id | Test_Date  | Test_Time | Model   | 2D_Data | Test_Result |
+    +----+------------+-----------+---------+---------+-------------+
+    |  1 | 2026-04-26 | 08:00:01  | XXXXX01 | XXXXX01 | PASS        |
+    |  2 | 2026-04-26 | 08:05:01  | XXXXX02 | XXXXX02 | FAIL        |
+    +----+------------+-----------+---------+---------+-------------+
+
+────────────────────────────────────────────────────────────────────────────────
+PART 5 — TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────────────
+
+  SYMPTOM: GUI status shows "⚠ MySQL: mysql-connector-python is not installed"
+  FIX    : Run:  pip install mysql-connector-python
+           Then restart gui_main.py
+
+  SYMPTOM: GUI status shows "⚠ MySQL insert failed: Access denied for user"
+  FIX    : Wrong username or password in DB_CONFIG.
+           Check DB_CONFIG in AutomationScripts\mysql_logger.py
+
+  SYMPTOM: GUI status shows "⚠ MySQL insert failed: Can't connect to MySQL
+           server on 'localhost'"
+  FIX    : MySQL server is not running.
+           Start it: Windows Services → MySQL80 → Start
+           Or in PowerShell (admin): net start MySQL80
+
+  SYMPTOM: GUI status shows "⚠ MySQL insert failed: Unknown database
+           'testbench'"
+  FIX    : Database was not created. Run Part 2 SQL commands above.
+
+  SYMPTOM: GUI status shows "⚠ MySQL insert failed: Table 'testbench.
+           test_results' doesn't exist"
+  FIX    : Table was not created. Run the CREATE TABLE statement from Part 2.
+
+  SYMPTOM: Python version mismatch
+  FIX    : This project requires Python 3.8 or later.
+           Check version:  python --version
+
+  SYMPTOM: Automation runs normally but no MySQL row appears
+  FIX    : Check that the status area does NOT show a ⚠ MySQL warning.
+           If no warning and no row: check DB_CONFIG database/table names
+           match exactly (case-sensitive on some MySQL servers).
+
+────────────────────────────────────────────────────────────────────────────────
+PART 6 — QUICK REFERENCE CHECKLIST (print and keep at test station)
+────────────────────────────────────────────────────────────────────────────────
+
+  First-time setup (do once):
+  [ ] MySQL 8.0 Server installed and running on test PC
+  [ ] pip install mysql-connector-python  (or pip install -r requirements.txt)
+  [ ] CREATE DATABASE testbench executed in MySQL
+  [ ] CREATE TABLE test_results executed in MySQL
+  [ ] DB_CONFIG in mysql_logger.py updated with correct host/password
+
+  Daily startup:
+  [ ] MySQL server running  (check: Services → MySQL80 = Running)
+  [ ] Open PowerShell
+  [ ] cd C:\UShin\Testbench_gui_Charan\Continous_Developement\
+          Non_Nfc_Version\MySQL\NFC_OR_NON_NFC_RH_Rev2.03_progress
+  [ ] python Gui_Main_Script\gui_main.py
+  [ ] Lauterbach USB connected to PC and to PCB fixture
+  [ ] Power supply connected and powered on
+
+  Per-PCB test cycle:
+  [ ] Insert PCB into fixture
+  [ ] Scan 2D barcode (or type code) into "2D Scan" field
+  [ ] Click "Start"
+  [ ] Wait for PASS (green) or FAIL (red) indicator
+  [ ] Confirm "MySQL: test result inserted into database." in status area
+  [ ] Remove PCB → insert next PCB
+
+================================================================================
+END OF FULL CHAT HISTORY — April 1 to April 26, 2026
 ================================================================================
