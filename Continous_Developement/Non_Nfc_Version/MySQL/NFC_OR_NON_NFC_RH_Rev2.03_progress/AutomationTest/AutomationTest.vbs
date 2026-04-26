@@ -1,4 +1,4 @@
-' Silent launcher for SmartBU Testbench GUI (NFC_OR_NON_NFC_RH_Rev2.03).
+' Silent launcher for SmartBU Testbench GUI.
 ' Double-click this file to start the full GUI application without any
 ' CMD/console window appearing in the background.
 '

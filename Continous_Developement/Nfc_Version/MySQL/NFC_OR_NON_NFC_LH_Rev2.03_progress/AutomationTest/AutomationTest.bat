@@ -1,6 +1,6 @@
 @echo off
 REM --------------------------------------------
-REM Launcher for SmartBU Testbench GUI (NFC_OR_NON_NFC_LH_Rev2.03)
+REM Launcher for SmartBU Testbench GUI
 REM Double-click to open the full GUI application.
 REM
 REM Automation flow triggered by the operator:
