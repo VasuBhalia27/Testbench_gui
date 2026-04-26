@@ -197,6 +197,102 @@ commits.  Each function’s logic is kept in its own module (e.g.
 ``automation/core/led_test.py``) so problems can be debugged by running a
 single file instead of the entire suite.
 
+## Factory Launcher Files
+
+The `AutomationTest\` folder contains two ready-made launcher files so that
+factory operators can start the full application by simply double-clicking —
+no terminal or command knowledge required.
+
+### AutomationTest.bat — with console window
+
+```
+AutomationTest\
+    AutomationTest.bat
+```
+
+**What it does, step by step:**
+
+1. Sets the working directory to the project root (one level above `AutomationTest\`).
+2. Calls `python Gui_Main_Script\gui_main.py` — this opens the **full** testbench GUI
+   including the Automation tab.
+3. A console/Command Prompt window stays open in the background while the GUI
+   runs. If Python prints any error messages they appear there.
+4. When the GUI is closed, the console shows `Press any key to continue…` so
+   the operator can read any final messages before it disappears.
+
+**When to use:** During commissioning or troubleshooting, when you want to see
+Python error output.
+
+### AutomationTest.vbs — silent (no console window)
+
+```
+AutomationTest\
+    AutomationTest.vbs
+```
+
+**What it does, step by step:**
+
+1. Uses `WScript.Shell` (Windows Script Host) to set the working directory to
+   the project root.
+2. Calls `pythonw Gui_Main_Script\gui_main.py` — `pythonw` is the no-console
+   variant of Python, so **no black Command Prompt window ever appears**.
+3. The GUI opens directly — nothing else is visible on screen.
+4. If the launch itself fails (e.g. Python not found) the error description is
+   written to `AutomationTest\AutomationTest_error.log` so it is not lost.
+
+**When to use:** Normal factory production use — clean operator experience with
+no extra windows.
+
+### What happens after the GUI opens (both launchers)
+
+Both launchers open the identical application and trigger the identical flow:
+
+```
+[Operator double-clicks .bat or .vbs]
+        ↓
+  gui_main.py starts
+        ↓
+  Full testbench GUI opens (all tabs visible)
+        ↓
+  Operator types or scans 2D barcode → "2D Scan" field
+        ↓
+  Operator clicks  Start
+        ↓
+  IntegratedAutomationRunner._run_automation_thread() executes:
+    ├─ Hardware setup (T32 / Lauterbach connects, ECU starts)
+    ├─ Functional tests run (LED, BAT, MOTOR, EOS, SG, CAPA, CAN, LIN …)
+    ├─ PASS / FAIL result determined
+    ├─ HTML report saved to Html_Report\
+    └─ insert_test_result() called → row written to MySQL test_results table
+        ↓
+  Screen shows  PASS (green)  or  FAIL (red)
+  Status area shows  "MySQL: test result inserted into database."
+        ↓
+  Operator removes PCB → inserts next PCB → clicks Start again
+```
+
+### Why gui_main.py is the correct entry point
+
+`gui_main.py` constructs `IntegratedAutomationRunner` and passes it to the
+automation tab via `set_automation_runner()`. This is the object that runs
+the full test sequence and calls the MySQL insert at the end.
+
+Launching the standalone `gui_automation` module directly (old behaviour)
+would open only the Automation tab widget in isolation — `automation_runner`
+would be `None`, so clicking Start would do nothing.
+
+### Error log location
+
+| Launcher | Error output |
+|---|---|
+| `AutomationTest.bat` | Console window (visible while GUI is open) |
+| `AutomationTest.vbs` | `AutomationTest\AutomationTest_error.log` |
+
+If the GUI fails to open when using the `.vbs` file, open
+`AutomationTest_error.log` with Notepad to read the error message.
+
+---
+
 ## Notes
 
 - Avoid touching the main application logic. If a bug needs fixing in production code, create an issue and coordinate with the development team.
