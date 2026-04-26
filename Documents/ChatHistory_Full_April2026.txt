@@ -1413,6 +1413,94 @@ MASTER TABLE UPDATE:
   AutomationTest.vbs    NFC LH  Rev2.03 MySQL        Entry point → gui_main.py
 
 ================================================================================
+TURN 14 — Barcode Reader: 19-Char Validation, Auto-Start & Parsed Fields in Report
+Date: April 26, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "i need to implement according to the pptt in the above projects"
+  → Referring to Barcode Reader.pptx requirements for both barcode reader
+    variants (NFC LH auto_reader and NON_NFC RH auto_reader).
+
+PPTX REQUIREMENTS IMPLEMENTED:
+  1. Barcode is exactly 19 characters (was previously "> 15 chars")
+  2. Invalid barcode BLOCKS test start — Start button stays disabled until
+     exactly 19 characters are entered
+  3. GUI validates barcode in real-time as scanner types (keyboard-wedge USB)
+  4. Visual feedback: scan entry field turns GREEN when valid, RED when wrong length
+  5. Status label shows ✓ Valid / ✗ Invalid next to the scan field
+  6. Barcode scanner sends Enter after scanning — auto-triggers Start button
+     (operator does not need to click Start manually)
+  7. Parsed barcode fields stored in the HTML report header for quick tracking
+  8. Derived PCB serial (last 5 chars) used in the report filename
+
+BARCODE FORMAT (19 characters):
+  Chars  1– 2  [0:2]   Supplier code    — 2 chars  (e.g. "US")
+  Chars  3–10  [2:10]  Part number      — 8 chars  (e.g. "12345678")
+  Chars 11–14  [10:14] Production YYWW  — 4 chars  (e.g. "2501" = 2025 wk 01)
+  Chars 15–19  [14:19] PCB serial       — 5 chars  (e.g. "00001")
+  NOTE: Slice positions in barcode_parser.py can be adjusted if format differs.
+
+NEW FILE CREATED (both projects):
+  AutomationScripts/barcode_parser.py
+    — is_valid(barcode: str) -> bool        (True if exactly 19 chars)
+    — parse(barcode: str)    -> dict        (returns all 4 fields, or {} if invalid)
+
+FILES MODIFIED — gui_automation.py (both projects):
+  • _vcmd max: len(s) <= 20  →  len(s) <= 19     (hard-limit input to 19 chars)
+  • _update_start_button_state():
+      len > 15  →  len == 19  (exact match required)
+      scan_entry background: #90EE90 (green) when valid, #FFB3B3 (red) when not
+      scan_status_label shows ✓ Valid / ✗ Invalid in real-time
+  • scan_entry.bind("<Return>", _on_barcode_enter) — new method:
+      auto-calls _on_start() when scanner sends Enter after a valid 19-char scan
+  • scan_status_label widget added next to scan entry (width=10, bold)
+
+FILES MODIFIED — integrated_automation.py (both projects):
+  • Imports barcode_parser.parse after capturing scan_code
+  • Logs all 4 parsed fields (Supplier, Part No, Year/Week, PCB Serial) at run start
+  • Passes parsed_barcode dict to generate_report()
+
+FILES MODIFIED — report_generator.py (both projects):
+  • generate_report() gains new parameter: parsed_barcode: Optional[Dict[str, str]] = None
+  • Report filename now uses pcb_serial (5 chars) instead of full 19-char barcode
+    (shorter filenames, faster to identify on filesystem)
+  • Forwards parsed_barcode to generate_html_report()
+
+FILES MODIFIED — html_report_generator.py (both projects):
+  • generate_html_report() gains new parameter: parsed_barcode: Optional[Dict[str, str]] = None
+  • Report header gets a second metadata line when parsed_barcode is present:
+      "Supplier: XX | Part No: XXXXXXXX | Year/Week: YYWW | PCB Serial: NNNNN"
+
+TARGET PROJECTS:
+  NFC LH  : Continous_Developement\Nfc_Version\Barcode_Reader\Automatic_Reader\
+             NFC_OR_NON_NFC_LH_Rev2.03_auto_reader\
+  NON_NFC RH: Continous_Developement\Non_Nfc_Version\Barcode_Reader\Automatic_Reader\
+               NFC_OR_NON_NFC_RH_Rev2.03_auto_reader\
+
+OPERATOR FLOW (after this change):
+  1. GUI opens (scan field auto-focused)
+  2. Operator places DUT in fixture, scanner reads barcode
+  3. 19-char scan auto-fills field → turns green → ✓ Valid
+  4. Scanner sends Enter → _on_barcode_enter() fires → _on_start() called
+  5. All tests run automatically (no button click needed)
+  6. HTML report saved with filename:  YYYYMMDD_HHMMSS_NNNNN_Test_Report_XXXX_PASS.html
+     (NNNNN = PCB serial, XXXX = 4-digit sequential count)
+  7. Report header shows barcode + all parsed fields for quick tracking
+
+MASTER TABLE UPDATE:
+  barcode_parser.py          NFC LH  auto_reader    NEW — 19-char parser & validator
+  barcode_parser.py          NON_NFC RH auto_reader  NEW — 19-char parser & validator
+  gui_automation.py          NFC LH  auto_reader    19-char validation, green/red feedback, auto-start
+  gui_automation.py          NON_NFC RH auto_reader  19-char validation, green/red feedback, auto-start
+  integrated_automation.py   NFC LH  auto_reader    parse + log barcode fields, pass to report
+  integrated_automation.py   NON_NFC RH auto_reader  parse + log barcode fields, pass to report
+  report_generator.py        NFC LH  auto_reader    parsed_barcode param, PCB serial in filename
+  report_generator.py        NON_NFC RH auto_reader  parsed_barcode param, PCB serial in filename
+  html_report_generator.py   NFC LH  auto_reader    parsed_barcode param, second header meta line
+  html_report_generator.py   NON_NFC RH auto_reader  parsed_barcode param, second header meta line
+
+================================================================================
 ================================================================================
   APPENDIX B — March 2026 Development Log (merged from changes.txt)
   Source : C:\UShin\Testbench_gui_Charan\changes.txt
