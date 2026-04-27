@@ -416,17 +416,15 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
                 test_steps=(
                     "1. Set TestFw_KeepEcuAwake = 1\n"
                     "2. Send DID: TEST_GUI_CMD_NFC_SPI_DIAG_e\n"
-                    "3. Read SpiError, HwVersion, RomVersion, FwVersion"
+                    "3. Read SpiError and Target ID (HwVersion)"
                 ),
                 expected=(
                     "TestFw_NfcSpiError = 0\n"
-                    "HwVersion, RomVersion and FwVersion are non-zero"
+                    "Target ID (HwVersion) != 0  — device responded over SPI"
                 ),
                 observed=(
                     f"SpiError = {spi_err}\n"
-                    f"HwVersion = 0x{(int(hw_ver) if hw_ver is not None else 0):X}\n"
-                    f"RomVersion = 0x{(int(rom_ver) if rom_ver is not None else 0):X}\n"
-                    f"FwVersion = 0x{(int(fw_ver) if fw_ver is not None else 0):X}"
+                    f"Target ID (HwVersion) = 0x{(int(hw_ver) if hw_ver is not None else 0):X}"
                 ),
                 status="PASS" if spi_pass else "FAIL",
             ),

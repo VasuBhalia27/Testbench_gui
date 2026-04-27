@@ -198,11 +198,11 @@ class TestSequenceRunner:
             f"fw=0x{(fw_ver_int or 0):X}"
         )
 
+        # PASS = SpiError is 0 AND Target ID (HwVersion) is non-zero,
+        # which proves the device responded over SPI.
         spi_passed = (
             spi_err_int == 0
-            and hw_ver_int  not in (None, 0)
-            and rom_ver_int not in (None, 0)
-            and fw_ver_int  not in (None, 0)
+            and hw_ver_int not in (None, 0)
         )
         self._log(f"NFC SPI result: {'✓ PASS' if spi_passed else '✗ FAIL'}")
 

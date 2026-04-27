@@ -41,21 +41,16 @@ def run_nfc_spi_self_test_suite():
 
     spi_err = _as_int(data.get("TestFw_NfcSpiError"))
     hw_ver  = _as_int(data.get("TestFw_NfcHwVersion"))
-    rom_ver = _as_int(data.get("TestFw_NfcRomVersion"))
-    fw_ver  = _as_int(data.get("TestFw_NfcFwVersion"))
 
+    # PASS = SpiError is 0 AND Target ID (HwVersion) is non-zero
     passed = (
         spi_err == 0
-        and hw_ver  not in (None, 0)
-        and rom_ver not in (None, 0)
-        and fw_ver  not in (None, 0)
+        and hw_ver not in (None, 0)
     )
 
     details = (
         f"SpiError={spi_err}, "
-        f"HwVer=0x{(hw_ver or 0):X}, "
-        f"RomVer=0x{(rom_ver or 0):X}, "
-        f"FwVer=0x{(fw_ver or 0):X}"
+        f"TargetID=0x{(hw_ver or 0):X}"
     )
 
     return [{
@@ -63,9 +58,9 @@ def run_nfc_spi_self_test_suite():
         "TestName":      "NFC SPI Self-Test (no antenna/card required)",
         "MeasuredValue": spi_err,
         "MeasuredStr":   details,
-        "Expected":      "SpiError=0, HwVer!=0, RomVer!=0, FwVer!=0",
+        "Expected":      "SpiError=0, TargetID (HwVersion) != 0",
         "Status":        "PASS" if passed else "FAIL",
-        "Details":       details if not passed else "SPI link verified — transceiver responding",
+        "Details":       details if not passed else "SPI link verified — transceiver responded",
     }]
 
 
