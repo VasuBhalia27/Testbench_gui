@@ -222,9 +222,6 @@ def preset_minsizerel(selected_preset):
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
 
-# Select the second tab (Settings) by default on startup
-notebook.select(tab2)
-
 tab2_frame = tk.Frame(tab2, bg="#DFDFDF")
 tab2_frame.pack(fill="both", expand=True)
 
@@ -1641,6 +1638,14 @@ canvas11.create_text(
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()
+
+# Automation-only mode: hide all tabs except the Automation tab
+for _hidden_tab in [tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11]:
+    try:
+        notebook.hide(_hidden_tab)
+    except Exception:
+        pass
+notebook.select(tab1)
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 

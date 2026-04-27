@@ -57,7 +57,7 @@ class AutomationGUI:
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("NFC_OR_NON_NFC_RH_Rev2.03")
+            self.root.title("NON_NFC_Rev2.06")
             self.root.geometry("1050x550")
             self.root.minsize(1000, 450)
         else:
@@ -179,6 +179,17 @@ class AutomationGUI:
             activebackground="#333333", activeforeground="#FFFFFF",
             relief="flat", cursor="hand2",
             command=self._reset_pcb_counts,
+        ).pack(side="top", fill="x", padx=4, pady=(0, 2))
+
+        # View DB Records button
+        tk.Button(
+            counter_panel,
+            text="View DB",
+            font=("Arial", 9, "bold"),
+            fg="#FFFFFF", bg="#1565C0",
+            activebackground="#0D47A1", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._view_db_records,
         ).pack(side="top", fill="x", padx=4, pady=(0, 4))
 
         # --- RIGHT PANEL ---
@@ -186,12 +197,12 @@ class AutomationGUI:
         right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
 
         # Welcome header
-        header = ttk.Label(right_panel, text="NFC_OR_NON_NFC_RH_Rev2.03",
+        header = ttk.Label(right_panel, text="NON_NFC_Rev2.06",
                            font=(None, 16, "bold"))
         header.pack(pady=(10, 4))
 
         welcome = ttk.Label(right_panel,
-                            text="Welcome to NFC_OR_NON_NFC_RH_Rev2.03\n"
+                            text="Welcome to NON_NFC_Rev2.06\n"
                                  "Click 'Start' to begin the setup and test sequence.",
                             font=(None, 10), justify="center")
         welcome.pack(pady=(0, 6))
@@ -700,6 +711,256 @@ class AutomationGUI:
         self.pass_counter_label.config(text="PASS\n0")
         self.fail_counter_label.config(text="FAIL\n0")
         self._save_pcb_counts()
+
+    def _view_db_records(self) -> None:
+        """Open a popup window showing all rows from the MySQL test_results table."""
+        try:
+            import mysql.connector  # type: ignore[import]
+        except ImportError:
+            from tkinter import messagebox
+            messagebox.showerror(
+                "MySQL not installed",
+                "mysql-connector-python is not installed.\nRun: pip install mysql-connector-python",
+            )
+            return
+
+        # Import DB config from mysql_logger
+        try:
+            from AutomationScripts.mysql_logger import DB_CONFIG, TABLE_NAME
+        except ImportError:
+            from mysql_logger import DB_CONFIG, TABLE_NAME  # type: ignore[import]
+
+        try:
+            conn = mysql.connector.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            cursor.execute(
+                f"SELECT id, Test_Date, Test_Time, Model, `2D_Data`, Test_Result "
+                f"FROM `{TABLE_NAME}` ORDER BY id DESC LIMIT 200"
+            )
+            rows = cursor.fetchall()
+            conn.close()
+        except Exception as exc:
+            from tkinter import messagebox
+            messagebox.showerror("DB Error", f"Could not fetch records:\n{exc}")
+            return
+
+        # Build popup window
+        popup = tk.Toplevel(self.root)
+        popup.title(f"MySQL — {TABLE_NAME} ({len(rows)} records, latest first)")
+        popup.geometry("820x420")
+        popup.resizable(True, True)
+
+        columns = ("id", "Test_Date", "Test_Time", "Model", "2D_Data", "Test_Result")
+        col_widths = (45, 95, 80, 180, 180, 90)
+
+        frame = tk.Frame(popup)
+        frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+        tree = ttk.Treeview(frame, columns=columns, show="headings", height=16)
+        for col, w in zip(columns, col_widths):
+            tree.heading(col, text=col)
+            tree.column(col, width=w, anchor="center")
+
+        # Tag colours for PASS/FAIL rows
+        tree.tag_configure("PASS", background="#E8F5E9", foreground="#1B5E20")
+        tree.tag_configure("FAIL", background="#FFEBEE", foreground="#B71C1C")
+
+        for row in rows:
+            result = str(row[-1]).upper()
+            tag = "PASS" if result == "PASS" else "FAIL"
+            tree.insert("", "end", values=row, tags=(tag,))
+
+        vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+        hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+
+        tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        # Refresh, Delete Selected, Delete All, and Close buttons
+        btn_row = tk.Frame(popup)
+        btn_row.pack(fill="x", padx=8, pady=(0, 8))
+        tk.Button(
+            btn_row, text="Refresh",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#1565C0",
+            activebackground="#0D47A1", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=lambda: self._refresh_db_tree(tree, TABLE_NAME, DB_CONFIG),
+        ).pack(side="left", padx=4)
+        tk.Button(
+            btn_row, text="Delete Selected",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#E65100",
+            activebackground="#BF360C", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=lambda: self._delete_selected_rows(tree, TABLE_NAME, DB_CONFIG),
+        ).pack(side="left", padx=4)
+        tk.Button(
+            btn_row, text="Delete All Records",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#C62828",
+            activebackground="#7F0000", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=lambda: self._delete_all_rows(tree, TABLE_NAME, DB_CONFIG),
+        ).pack(side="left", padx=4)
+        tk.Button(
+            btn_row, text="Close",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#555555",
+            activebackground="#333333", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=popup.destroy,
+        ).pack(side="left", padx=4)
+
+    def _refresh_db_tree(self, tree: "ttk.Treeview", table: str, db_config: dict) -> None:
+        """Re-query the DB and repopulate the Treeview in the popup."""
+        try:
+            import mysql.connector  # type: ignore[import]
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(
+                f"SELECT id, Test_Date, Test_Time, Model, `2D_Data`, Test_Result "
+                f"FROM `{table}` ORDER BY id DESC LIMIT 200"
+            )
+            rows = cursor.fetchall()
+            conn.close()
+        except Exception as exc:
+            from tkinter import messagebox
+            messagebox.showerror("DB Error", f"Could not refresh:\n{exc}")
+            return
+
+        tree.delete(*tree.get_children())
+        for row in rows:
+            result = str(row[-1]).upper()
+            tag = "PASS" if result == "PASS" else "FAIL"
+            tree.insert("", "end", values=row, tags=(tag,))
+
+    def _delete_selected_rows(self, tree: "ttk.Treeview", table: str, db_config: dict) -> None:
+        """Delete the rows currently selected in the Treeview from the database and their reports."""
+        from tkinter import messagebox
+        selected = tree.selection()
+        if not selected:
+            messagebox.showinfo("No selection", "Please select one or more rows to delete.")
+            return
+
+        # Capture full row values before deletion (id, Test_Date, Test_Time, Model, 2D_Data, Test_Result)
+        row_data = [tree.item(item, "values") for item in selected]
+        ids = [vals[0] for vals in row_data]
+        id_list = ", ".join(str(i) for i in ids)
+
+        if not messagebox.askyesno(
+            "Confirm Delete",
+            f"Delete {len(ids)} selected record(s) with ID(s): {id_list}?\n"
+            "The matching HTML report file(s) will also be deleted.\nThis cannot be undone.",
+        ):
+            return
+
+        try:
+            import mysql.connector  # type: ignore[import]
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM `{table}` WHERE id IN ({id_list})")
+            conn.commit()
+            conn.close()
+        except Exception as exc:
+            messagebox.showerror("DB Error", f"Could not delete records:\n{exc}")
+            return
+
+        reports_deleted = self._delete_reports_for_rows(row_data)
+
+        for item in selected:
+            tree.delete(item)
+
+        msg = f"Deleted {len(ids)} record(s) from the database."
+        if reports_deleted:
+            msg += f"\nAlso removed {reports_deleted} HTML report file(s)."
+        messagebox.showinfo("Done", msg)
+
+    def _delete_all_rows(self, tree: "ttk.Treeview", table: str, db_config: dict) -> None:
+        """Delete ALL rows in the table and all HTML reports after double confirmation."""
+        from tkinter import messagebox
+        if not messagebox.askyesno(
+            "Confirm Delete All",
+            f"This will permanently delete ALL records in '{table}' "
+            "and ALL HTML report files.\n\nAre you sure?",
+            icon="warning",
+        ):
+            return
+        if not messagebox.askyesno(
+            "Final Confirmation",
+            "All records and report files will be lost and cannot be recovered.\n\nProceed?",
+            icon="warning",
+        ):
+            return
+
+        try:
+            import mysql.connector  # type: ignore[import]
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM `{table}`")
+            conn.commit()
+            conn.close()
+        except Exception as exc:
+            messagebox.showerror("DB Error", f"Could not delete records:\n{exc}")
+            return
+
+        # Delete all HTML files in the reports folder
+        import glob as _glob
+        import os as _os
+        reports_deleted = 0
+        try:
+            from AutomationScripts.report_generator import REPORTS_DIR
+            for f in _glob.glob(_os.path.join(REPORTS_DIR, "*.html")):
+                try:
+                    _os.remove(f)
+                    reports_deleted += 1
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        tree.delete(*tree.get_children())
+        msg = "All records have been deleted from the database."
+        if reports_deleted:
+            msg += f"\nAlso removed {reports_deleted} HTML report file(s)."
+        messagebox.showinfo("Done", msg)
+
+    def _delete_reports_for_rows(self, row_data) -> int:
+        """Find and delete HTML report files matching the given DB row data tuples.
+
+        Each tuple is (id, Test_Date, Test_Time, Model, 2D_Data, Test_Result).
+        Matches reports by the YYYYMMDD_HHMMSS timestamp prefix in the filename.
+        Returns the number of files successfully deleted.
+        """
+        import glob as _glob
+        import os as _os
+        try:
+            from AutomationScripts.report_generator import REPORTS_DIR
+        except Exception:
+            return 0
+
+        deleted = 0
+        for vals in row_data:
+            try:
+                # Build timestamp prefix from Test_Date (YYYY-MM-DD) + Test_Time (HH:MM:SS)
+                date_prefix = str(vals[1]).replace("-", "")          # "20260427"
+                time_str = str(vals[2])                               # "14:30:45" or "4:30:45"
+                time_parts = time_str.split(":")
+                if len(time_parts) == 4:                              # "D:HH:MM:SS" edge case
+                    time_parts = time_parts[1:]
+                time_prefix = "".join(p.zfill(2) for p in time_parts[:3])  # "143045"
+                ts_prefix = f"{date_prefix}_{time_prefix}"
+
+                pattern = _os.path.join(REPORTS_DIR, f"{ts_prefix}_*.html")
+                for f in _glob.glob(pattern):
+                    try:
+                        _os.remove(f)
+                        deleted += 1
+                    except Exception:
+                        pass
+            except Exception:
+                continue
+        return deleted
 
     def _load_saved_psu_type(self) -> str:
         """Load persisted PSU type from local settings file."""
