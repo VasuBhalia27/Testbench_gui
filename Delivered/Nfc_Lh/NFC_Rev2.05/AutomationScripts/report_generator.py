@@ -393,6 +393,61 @@ def results_from_run(run_results: Dict[str, Any]) -> Dict[str, List[Dict[str, An
     if capa_rows:
         by_sheet["Capa"] = capa_rows
 
+    # ── NFC SPI Self-Test ─────────────────────────────────────────────────────
+    nfc_spi = run_results.get("nfc_spi_self_test", {})
+    if isinstance(nfc_spi, dict):
+        spi_err  = nfc_spi.get("spi_error")
+        hw_ver   = nfc_spi.get("hw_ver")
+        rom_ver  = nfc_spi.get("rom_ver")
+        fw_ver   = nfc_spi.get("fw_ver")
+        led_v    = nfc_spi.get("led_voltage", 0.0)
+        spi_pass = nfc_spi.get("spi_pass", False)
+        led_pass = nfc_spi.get("led_pass", False)
+
+        _nfc_spi_pre = (
+            _PRE_COMMON + "\n"
+            "5. NFC SPI self-test — no antenna or card required"
+        )
+        nfc_spi_rows = [
+            _row(
+                "TC_NFC_SPI_01",
+                "NFC SPI Self-Test — verify transceiver SPI link (no antenna/card required)",
+                pre_action=_nfc_spi_pre,
+                test_steps=(
+                    "1. Set TestFw_KeepEcuAwake = 1\n"
+                    "2. Send DID: TEST_GUI_CMD_NFC_SPI_DIAG_e\n"
+                    "3. Read SpiError, HwVersion, RomVersion, FwVersion"
+                ),
+                expected=(
+                    "TestFw_NfcSpiError = 0\n"
+                    "HwVersion, RomVersion and FwVersion are non-zero"
+                ),
+                observed=(
+                    f"SpiError = {spi_err}\n"
+                    f"HwVersion = 0x{(int(hw_ver) if hw_ver is not None else 0):X}\n"
+                    f"RomVersion = 0x{(int(rom_ver) if rom_ver is not None else 0):X}\n"
+                    f"FwVersion = 0x{(int(fw_ver) if fw_ver is not None else 0):X}"
+                ),
+                status="PASS" if spi_pass else "FAIL",
+            ),
+            _row(
+                "TC_NFC_LED_01",
+                "NFC Output Check — LED ON (verify output path after SPI self-test)",
+                pre_action=_nfc_spi_pre,
+                test_steps=(
+                    "1. Set LedTest_LedCanLinRequest = 1 (LED ON)\n"
+                    "2. Wait 1.5 s for voltage to stabilise\n"
+                    "3. Send DID: TESTFW_GUI_CMD_LED_TEST_e\n"
+                    "4. Read TestFw_LedVoltage\n"
+                    "5. Restore LedTest_LedCanLinRequest = 0 (LED OFF)"
+                ),
+                expected="LedVoltage > 0 mV",
+                observed=f"LedVoltage = {led_v:.1f} mV",
+                status="PASS" if led_pass else "FAIL",
+            ),
+        ]
+        by_sheet["NFC SPI"] = nfc_spi_rows
+
     # ── NFC ───────────────────────────────────────────────────────────────────
     nfc = run_results.get("nfc", {})
     if isinstance(nfc, dict):

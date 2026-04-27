@@ -163,6 +163,78 @@ class TestSequenceRunner:
         except Exception:
             return None
 
+    def _run_nfc_spi_self_test_with_logging(self) -> dict:
+        """Run NFC SPI self-test and LED output check.
+
+        Sends TEST_GUI_CMD_NFC_SPI_DIAG_e (no antenna or card required).
+        If the SPI link is confirmed healthy, turns the LED ON as a visual
+        output check, then restores it to OFF.
+
+        Returns a dict with keys:
+            pass, spi_pass, led_pass, spi_error, hw_ver, rom_ver, fw_ver,
+            led_voltage.
+        """
+        self._log("NFC SPI self-test: preparing variables")
+        self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
+
+        self._log("NFC SPI self-test: sending SPI diagnostic command (no card required)")
+        self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_NFC_SPI_DIAG_e)
+        time.sleep(2)
+
+        spi_error = self.adapter.read_variable("TestFw_NfcSpiError")
+        hw_ver    = self.adapter.read_variable("TestFw_NfcHwVersion")
+        rom_ver   = self.adapter.read_variable("TestFw_NfcRomVersion")
+        fw_ver    = self.adapter.read_variable("TestFw_NfcFwVersion")
+
+        spi_err_int = self._as_int(spi_error)
+        hw_ver_int  = self._as_int(hw_ver)
+        rom_ver_int = self._as_int(rom_ver)
+        fw_ver_int  = self._as_int(fw_ver)
+
+        self._log(
+            f"NFC SPI diag: spi_error={spi_err_int}, "
+            f"hw=0x{(hw_ver_int or 0):X}, "
+            f"rom=0x{(rom_ver_int or 0):X}, "
+            f"fw=0x{(fw_ver_int or 0):X}"
+        )
+
+        spi_passed = (
+            spi_err_int == 0
+            and hw_ver_int  not in (None, 0)
+            and rom_ver_int not in (None, 0)
+            and fw_ver_int  not in (None, 0)
+        )
+        self._log(f"NFC SPI result: {'✓ PASS' if spi_passed else '✗ FAIL'}")
+
+        # Output check: turn LED ON to confirm the output path is functional
+        self._log("NFC output check: turning LED ON for output verification")
+        led_passed, led_voltage = LedTest.run_with_voltage(
+            adapter=self.adapter,
+            on=True,
+            status_callback=self._log,
+            timeout=3.0,
+        )
+        self._log(
+            f"NFC output check (LED ON): voltage={led_voltage:.1f} mV — "
+            f"{'✓ PASS' if led_passed else '✗ FAIL'}"
+        )
+
+        # Restore LED to OFF after output check
+        self._log("NFC output check: restoring LED OFF")
+        self.adapter.set_variable("LedTest_LedCanLinRequest", 0)
+        time.sleep(0.5)
+
+        return {
+            "pass":      spi_passed and led_passed,
+            "spi_pass":  spi_passed,
+            "led_pass":  led_passed,
+            "spi_error": spi_err_int,
+            "hw_ver":    hw_ver_int,
+            "rom_ver":   rom_ver_int,
+            "fw_ver":    fw_ver_int,
+            "led_voltage": led_voltage,
+        }
+
     def _run_nfc_test_with_logging(self) -> dict:
         """Run NFC test, log fetched data, and evaluate strict pass/fail."""
         self._log("NFC: preparing test variables")
@@ -393,6 +465,16 @@ class TestSequenceRunner:
 
         # placeholder logic for other tests; vary by variant
         if variant == 2:
+            try:
+                results['nfc_spi_self_test'] = self._run_nfc_spi_self_test_with_logging()
+            except Exception as exc:
+                self._log(f"NFC SPI self-test: failed with exception: {exc}")
+                results['nfc_spi_self_test'] = {
+                    'pass': False, 'spi_pass': False, 'led_pass': False,
+                    'spi_error': None, 'hw_ver': None, 'rom_ver': None,
+                    'fw_ver': None, 'led_voltage': 0.0,
+                }
+
             try:
                 results['nfc'] = self._run_nfc_test_with_logging()
             except Exception as exc:
