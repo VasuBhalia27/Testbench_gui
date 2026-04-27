@@ -788,21 +788,21 @@ class AutomationGUI:
             font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#1565C0",
             activebackground="#0D47A1", activeforeground="#FFFFFF",
             relief="flat", cursor="hand2",
-            command=lambda: self._refresh_db_tree(tree, TABLE_NAME, DB_CONFIG),
+            command=lambda: self._refresh_db_tree(tree, TABLE_NAME, DB_CONFIG, popup),
         ).pack(side="left", padx=4)
         tk.Button(
             btn_row, text="Delete Selected",
             font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#E65100",
             activebackground="#BF360C", activeforeground="#FFFFFF",
             relief="flat", cursor="hand2",
-            command=lambda: self._delete_selected_rows(tree, TABLE_NAME, DB_CONFIG),
+            command=lambda: self._delete_selected_rows(tree, TABLE_NAME, DB_CONFIG, popup),
         ).pack(side="left", padx=4)
         tk.Button(
             btn_row, text="Delete All Records",
             font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#C62828",
             activebackground="#7F0000", activeforeground="#FFFFFF",
             relief="flat", cursor="hand2",
-            command=lambda: self._delete_all_rows(tree, TABLE_NAME, DB_CONFIG),
+            command=lambda: self._delete_all_rows(tree, TABLE_NAME, DB_CONFIG, popup),
         ).pack(side="left", padx=4)
         tk.Button(
             btn_row, text="Close",
@@ -812,7 +812,7 @@ class AutomationGUI:
             command=popup.destroy,
         ).pack(side="left", padx=4)
 
-    def _refresh_db_tree(self, tree: "ttk.Treeview", table: str, db_config: dict) -> None:
+    def _refresh_db_tree(self, tree: "ttk.Treeview", table: str, db_config: dict, popup=None) -> None:
         """Re-query the DB and repopulate the Treeview in the popup."""
         try:
             import mysql.connector  # type: ignore[import]
@@ -835,7 +835,13 @@ class AutomationGUI:
             tag = "PASS" if result == "PASS" else "FAIL"
             tree.insert("", "end", values=row, tags=(tag,))
 
-    def _delete_selected_rows(self, tree: "ttk.Treeview", table: str, db_config: dict) -> None:
+        if popup is not None:
+            try:
+                popup.title(f"MySQL — {table} ({len(rows)} records, latest first)")
+            except Exception:
+                pass
+
+    def _delete_selected_rows(self, tree: "ttk.Treeview", table: str, db_config: dict, popup=None) -> None:
         """Delete the rows currently selected in the Treeview from the database and their reports."""
         from tkinter import messagebox
         selected = tree.selection()
@@ -861,6 +867,14 @@ class AutomationGUI:
             cursor = conn.cursor()
             cursor.execute(f"DELETE FROM `{table}` WHERE id IN ({id_list})")
             conn.commit()
+            # Check if the table is now empty; if so, TRUNCATE to reliably reset
+            # AUTO_INCREMENT to 1. ALTER TABLE AUTO_INCREMENT=1 is silently ignored
+            # by InnoDB 8.0+ when the engine's internal counter is higher.
+            cursor.execute(f"SELECT COUNT(*) FROM `{table}`")
+            remaining = cursor.fetchone()[0]
+            if remaining == 0:
+                cursor.execute(f"TRUNCATE TABLE `{table}`")
+                conn.commit()
             conn.close()
         except Exception as exc:
             messagebox.showerror("DB Error", f"Could not delete records:\n{exc}")
@@ -875,8 +889,9 @@ class AutomationGUI:
         if reports_deleted:
             msg += f"\nAlso removed {reports_deleted} HTML report file(s)."
         messagebox.showinfo("Done", msg)
+        self._refresh_db_tree(tree, table, db_config, popup)
 
-    def _delete_all_rows(self, tree: "ttk.Treeview", table: str, db_config: dict) -> None:
+    def _delete_all_rows(self, tree: "ttk.Treeview", table: str, db_config: dict, popup=None) -> None:
         """Delete ALL rows in the table and all HTML reports after double confirmation."""
         from tkinter import messagebox
         if not messagebox.askyesno(
@@ -897,7 +912,8 @@ class AutomationGUI:
             import mysql.connector  # type: ignore[import]
             conn = mysql.connector.connect(**db_config)
             cursor = conn.cursor()
-            cursor.execute(f"DELETE FROM `{table}`")
+            # TRUNCATE removes all rows AND resets the AUTO_INCREMENT counter to 1
+            cursor.execute(f"TRUNCATE TABLE `{table}`")
             conn.commit()
             conn.close()
         except Exception as exc:
@@ -924,6 +940,7 @@ class AutomationGUI:
         if reports_deleted:
             msg += f"\nAlso removed {reports_deleted} HTML report file(s)."
         messagebox.showinfo("Done", msg)
+        self._refresh_db_tree(tree, table, db_config, popup)
 
     def _delete_reports_for_rows(self, row_data) -> int:
         """Find and delete HTML report files matching the given DB row data tuples.

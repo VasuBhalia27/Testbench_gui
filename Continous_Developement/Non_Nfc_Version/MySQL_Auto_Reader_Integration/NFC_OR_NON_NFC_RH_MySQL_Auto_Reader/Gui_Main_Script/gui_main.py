@@ -180,18 +180,20 @@ automation_gui = gui_automation.AutomationGUI(parent_widget=tab1_frame)
 
 # Callbacks to lock/unlock other tabs
 def lock_other_tabs():
-    """Disable all tabs except TAB 1 during automation."""
+    """Disable all visible tabs except TAB 1 during automation."""
     for idx in range(1, notebook.index("end")):
         try:
-            notebook.tab(idx, state="disabled")
+            if notebook.tab(idx, "state") == "normal":
+                notebook.tab(idx, state="disabled")
         except:
             pass
 
 def unlock_other_tabs():
-    """Re-enable all tabs after automation completes."""
+    """Re-enable only tabs that were disabled (leave hidden tabs hidden)."""
     for idx in range(1, notebook.index("end")):
         try:
-            notebook.tab(idx, state="normal")
+            if notebook.tab(idx, "state") == "disabled":
+                notebook.tab(idx, state="normal")
         except:
             pass
 
