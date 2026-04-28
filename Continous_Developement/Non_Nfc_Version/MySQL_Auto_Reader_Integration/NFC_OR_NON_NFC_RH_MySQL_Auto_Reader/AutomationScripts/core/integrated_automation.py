@@ -241,8 +241,13 @@ class IntegratedAutomationRunner:
             try:
                 from AutomationScripts.mysql_logger import insert_test_result
                 from datetime import datetime
+                # Retrieve the PCBA model selected by the operator from the GUI combobox
+                _model_var = getattr(self.gui, "selected_model", None)
+                selected_model = (
+                    _model_var.get().strip() if _model_var is not None else ""
+                ) or (scan_code if scan_code else "UNKNOWN")
                 insert_test_result(
-                    model=scan_code if scan_code else "UNKNOWN",
+                    model=selected_model,
                     scan_code=scan_code if scan_code else "UNKNOWN",
                     all_passed=all_passed,
                     timestamp=datetime.now(),

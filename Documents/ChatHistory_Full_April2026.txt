@@ -1,7 +1,7 @@
 ================================================================================
   FULL CHAT HISTORY — GitHub Copilot (Claude Sonnet 4.6) × Charan Singh
   Project  : SmartBU Testbench GUI Automation (NFC_LH / NON_NFC_RH variants)
-  Period   : April 1, 2026 — April 26, 2026
+  Period   : April 1, 2026 — April 28, 2026
   AI Model : Claude Sonnet 4.6 (GitHub Copilot)
 ================================================================================
 
@@ -2608,5 +2608,536 @@ END OF APPENDIX B — March 2026 Development Log
 ================================================================================
 
 ================================================================================
-END OF FULL CHAT HISTORY — April 1 to April 26, 2026
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 6  —  APRIL 28, 2026  (confirmed date)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+  Project focus this phase:
+    PRIMARY  : NON_NFC RH MySQL Auto Reader Integration project
+               Path: Continous_Developement\Non_Nfc_Version\
+                       MySQL_Auto_Reader_Integration\
+                       NFC_OR_NON_NFC_RH_MySQL_Auto_Reader\
+    SECONDARY: NFC LH Rev2.05 (hardware timing fixes)
+               Path: Delivered\Nfc_Lh\NFC_Rev2.05\
+
+--------------------------------------------------------------------------------
+TURN 13 — Delete DB Records Also Deletes Matching HTML Reports
+Date   : April 28, 2026
+Target : NON_NFC RH MySQL Auto Reader
+File   : AutomationScripts/core/gui_automation.py
+--------------------------------------------------------------------------------
+
+FEATURE REQUEST:
+  When operator deletes records from the "View DB" popup (either single rows
+  or all rows), the corresponding HTML report files in the
+  AutomationTest/reports/ folder should also be deleted automatically.
+
+COPILOT IMPLEMENTATION:
+
+  New helper method added: _delete_reports_for_rows(row_data)
+    - Receives list of (id, Test_Date, Test_Time, Model, 2D_Data, Result)
+    - Builds timestamp prefix string: YYYYMMDD_HHMMSS
+      (e.g. date 2026-04-28 + time 08:30:01 → "20260428_083001")
+    - Globs REPORTS_DIR for .html files starting with that prefix
+    - Removes each matched file using Path.unlink()
+
+  REPORTS_DIR constant added at module top:
+    _REPORTS_DIR = Path(__file__).parent.parent.parent /
+                   "AutomationTest" / "reports"
+
+  _delete_selected_rows() updated:
+    - After SQL DELETE executes, calls _delete_reports_for_rows(deleted_rows)
+    - deleted_rows are captured BEFORE the DELETE query executes
+
+  _delete_all_rows() updated:
+    - Queries all rows BEFORE TRUNCATE
+    - Calls _delete_reports_for_rows(all_rows)
+    - Then executes TRUNCATE TABLE
+
+FILES MODIFIED:
+  NON_NFC RH MySQL Auto Reader:
+    AutomationScripts/core/gui_automation.py
+      - Added _REPORTS_DIR path constant
+      - Added _delete_reports_for_rows() method
+      - Updated _delete_selected_rows() to call _delete_reports_for_rows()
+      - Updated _delete_all_rows() to call _delete_reports_for_rows()
+
+--------------------------------------------------------------------------------
+TURN 14 — Fix: Other Tabs Reappear After Automation Run
+Date   : April 28, 2026
+Target : NON_NFC RH MySQL Auto Reader
+File   : Gui_Main_Script/gui_main.py
+--------------------------------------------------------------------------------
+
+PROBLEM:
+  After an automation run completed, the non-automation tabs (View, Settings,
+  Manual, etc.) that were supposed to stay hidden would become visible again.
+  The unlock_other_tabs() function was setting ALL tabs to "normal" state,
+  including tabs that were originally hidden (state="hidden").
+
+COPILOT INVESTIGATION:
+  Found unlock_other_tabs() iterating all tabs and calling:
+    notebook.tab(idx, state="normal")
+  This converted hidden tabs back to normal (visible) after each run.
+
+COPILOT FIX — gui_main.py:
+
+  lock_other_tabs() — updated to only disable NORMAL tabs (not hidden ones):
+    def lock_other_tabs():
+        for idx in range(1, notebook.index("end")):
+            try:
+                if notebook.tab(idx, "state") == "normal":
+                    notebook.tab(idx, state="disabled")
+            except: pass
+
+  unlock_other_tabs() — updated to only restore DISABLED tabs (not hidden):
+    def unlock_other_tabs():
+        for idx in range(1, notebook.index("end")):
+            try:
+                if notebook.tab(idx, "state") == "disabled":
+                    notebook.tab(idx, state="normal")
+            except: pass
+
+  Result: Hidden tabs remain hidden before, during, and after automation run.
+
+FILES MODIFIED:
+  NON_NFC RH MySQL Auto Reader:
+    Gui_Main_Script/gui_main.py
+      - lock_other_tabs(): added state check before disabling
+      - unlock_other_tabs(): added state check before restoring
+
+--------------------------------------------------------------------------------
+TURN 15 — Fix: AUTO_INCREMENT ID Not Resetting to 1 After All Records Deleted
+Date   : April 28, 2026
+Target : NON_NFC RH MySQL Auto Reader
+File   : AutomationScripts/core/gui_automation.py
+--------------------------------------------------------------------------------
+
+PROBLEM:
+  After deleting all rows from the test_results table, the next inserted record
+  would have id=N+1 (continuing from the last deleted record) instead of id=1.
+  MySQL 8.0+ InnoDB ignores ALTER TABLE AUTO_INCREMENT=1 if the current
+  maximum ID in the table is already higher — the instruction is silently
+  discarded.
+
+COPILOT INVESTIGATION:
+  Old code after delete:
+    cursor.execute("ALTER TABLE test_results AUTO_INCREMENT = 1")
+  This is silently ignored by MySQL 8.0+ InnoDB.
+
+COPILOT FIX:
+
+  In _delete_selected_rows():
+    After DELETing selected rows, check COUNT(*):
+      If COUNT(*) == 0:
+        Execute TRUNCATE TABLE test_results
+        (TRUNCATE always resets AUTO_INCREMENT to 1, regardless of version)
+
+  In _delete_all_rows():
+    Changed from DELETE + ALTER → TRUNCATE TABLE directly:
+      cursor.execute(f"TRUNCATE TABLE `{table}`")
+    TRUNCATE simultaneously:
+      - Removes all rows (faster than DELETE)
+      - Resets AUTO_INCREMENT counter to 1 (guaranteed by MySQL standard)
+
+  Code (new _delete_all_rows logic):
+    cursor.execute(f"TRUNCATE TABLE `{table}`")
+    # TRUNCATE resets AUTO_INCREMENT to 1 automatically
+
+FILES MODIFIED:
+  NON_NFC RH MySQL Auto Reader:
+    AutomationScripts/core/gui_automation.py
+      - _delete_selected_rows(): TRUNCATE when table is empty after deletion
+      - _delete_all_rows(): replaced DELETE+ALTER with TRUNCATE
+
+--------------------------------------------------------------------------------
+TURN 16 — Fix: "View DB" Popup Title Shows Stale Record Count
+Date   : April 28, 2026
+Target : NON_NFC RH MySQL Auto Reader
+File   : AutomationScripts/core/gui_automation.py
+--------------------------------------------------------------------------------
+
+PROBLEM:
+  After clicking "Refresh" or "Delete" in the View DB popup, the treeview
+  data would update correctly but the window title still showed the old record
+  count (e.g. still said "35 records" after deleting 10 rows).
+
+COPILOT INVESTIGATION:
+  _refresh_db_tree() re-queried the DB and repopulated the Treeview but
+  never updated popup.title() — the title was only set once when the popup
+  first opened.
+
+COPILOT FIX:
+  Modified _refresh_db_tree() signature to accept an optional popup argument:
+    def _refresh_db_tree(tree, table, db_config, popup=None):
+        ...
+        rows = cursor.fetchall()
+        # Repopulate tree (existing code)
+        ...
+        if popup is not None:
+            popup.title(
+                f"MySQL — {table} ({len(rows)} records, latest first)"
+            )
+
+  All callers updated to pass popup= reference:
+    _delete_selected_rows(): _refresh_db_tree(tree, table, db_config, popup=popup)
+    _delete_all_rows():      _refresh_db_tree(tree, table, db_config, popup=popup)
+    Refresh button command:  _refresh_db_tree(tree, table, db_config, popup=popup)
+
+FILES MODIFIED:
+  NON_NFC RH MySQL Auto Reader:
+    AutomationScripts/core/gui_automation.py
+      - _refresh_db_tree(): added optional popup= param; updates title after query
+      - All three callers updated to pass popup reference
+
+--------------------------------------------------------------------------------
+TURN 17 — Fix: NFC Rev2.05 PODBUS "Device Already Used" Debugger Failure
+Date   : April 28, 2026
+Target : NFC LH Rev2.05
+Path   : Delivered\Nfc_Lh\NFC_Rev2.05\
+File   : Functional/trace32.py
+--------------------------------------------------------------------------------
+
+PROBLEM:
+  On the factory test bench, when launching Trace32 for the first time (or
+  after a PCB swap), the automation occasionally failed with:
+    "PODBUS device already used"
+  This is a Lauterbach/PODBUS error indicating the USB driver had not yet
+  fully released the device before Trace32 attempted to claim it.
+
+ROOT CAUSE:
+  In LaunchTrace32(), after calling:
+    subprocess.run(["taskkill", "/F", "/IM", "t32marm.exe"], ...)
+  the code waited only 2 seconds before launching the new T32 process:
+    time.sleep(2)
+    subprocess.Popen(command)
+  On this specific tester's bench PC, the USB driver needed more than 2 seconds
+  to release the PODBUS (JLINK) device after the taskkill.
+
+COPILOT FIX — Functional/trace32.py (LaunchTrace32):
+  BEFORE:
+    time.sleep(2)   # sleep before Popen
+  AFTER:
+    time.sleep(5)   # increased 2→5s: PODBUS USB driver needs more time to release
+
+FILES MODIFIED:
+  NFC LH Rev2.05: Functional/trace32.py — LaunchTrace32(): sleep 2→5s
+
+--------------------------------------------------------------------------------
+TURN 18 — Fix: NFC Rev2.05 BAT 0.0 mV Hardware Stabilisation Failure
+Date   : April 28, 2026
+Target : NFC LH Rev2.05
+Path   : Delivered\Nfc_Lh\NFC_Rev2.05\
+Files  : AutomationScripts/core/hardware_setup.py
+         AutomationScripts/core/timing_profile.py
+--------------------------------------------------------------------------------
+
+PROBLEM:
+  On the factory tester's bench, the BAT (battery voltage) test was reading
+  0.0 mV on every run. Two consecutive 0.0 mV readings triggered the
+  show_restart_warning() dialog which forcibly closed the debugger and
+  application.
+
+  The tester's bench power supply (PSU) takes longer than the standard timing
+  profile allowed for voltage to stabilise.
+
+COPILOT FIX 1 — timing_profile.py (NORMAL profile):
+  BEFORE:                     AFTER:
+  supply_off_wait = 1.0s      supply_off_wait = 2.0s   ← increased 1.0→2.0s
+  supply_on_wait  = 3.0s      supply_on_wait  = 5.0s   ← increased 3.0→5.0s
+  bat_initial_wait= 3.0s      bat_initial_wait= 5.0s   ← increased 3.0→5.0s
+  bat_retry_wait  = 5.0s      bat_retry_wait  = 8.0s   ← increased 5.0→8.0s
+
+COPILOT FIX 2 — hardware_setup.py:
+  run_code_and_verify() timeout:
+  BEFORE: 10.0s  →  AFTER: 20.0s
+  (Tester bench needs more time for firmware to reach running state after
+   SYStem.Up + Go command sequence.)
+
+FILES MODIFIED:
+  NFC LH Rev2.05: AutomationScripts/core/timing_profile.py
+    - supply_off_wait  1.0 → 2.0s
+    - supply_on_wait   3.0 → 5.0s
+    - bat_initial_wait 3.0 → 5.0s
+    - bat_retry_wait   5.0 → 8.0s
+  NFC LH Rev2.05: AutomationScripts/core/hardware_setup.py
+    - run_code_and_verify() timeout: 10.0 → 20.0s
+
+--------------------------------------------------------------------------------
+TURN 19 — New Feature: PCBA Model Select Combobox + Prefix Validation
+Date   : April 28, 2026
+Target : NON_NFC RH MySQL Auto Reader
+Path   : Continous_Developement\Non_Nfc_Version\
+           MySQL_Auto_Reader_Integration\NFC_OR_NON_NFC_RH_MySQL_Auto_Reader\
+Files  : AutomationScripts/models.json                  ← NEW
+         AutomationScripts/core/gui_automation.py
+         AutomationScripts/core/integrated_automation.py
+--------------------------------------------------------------------------------
+
+FEATURE REQUEST:
+  Add a "PCBA Model Select" combobox to the automation GUI tab so the operator
+  selects the PCBA model before each run. The selected model should:
+    1. Be stored and shown in the MySQL database (Model column)
+    2. Gate the Start button — scan code prefix must match the selected model
+    3. Be manageable (add / delete models) by Ban-wa Thailand via a
+       password-protected editor popup
+
+  Model → 2D Scan Prefix mapping (from user specification):
+    No  Model                  2D Prefix (first 4 digits)  Total digits
+    1   C654-NFC-L-I470        8875                         19
+    2   C654-NONNFC-L-I470     8877                         19
+    3   C652-NFC-R-I470        8876                         19
+    4   C652-NONNFC-R-I470     8878                         19
+
+COPILOT ACTION 1 — Create AutomationScripts/models.json (NEW FILE):
+
+  [
+    {"model": "C654-NFC-L-I470",    "prefix": "8875"},
+    {"model": "C654-NONNFC-L-I470", "prefix": "8877"},
+    {"model": "C652-NFC-R-I470",    "prefix": "8876"},
+    {"model": "C652-NONNFC-R-I470", "prefix": "8878"}
+  ]
+
+  This file is the single source of truth for model names and prefixes.
+  It can be updated via the Manage Models UI or by direct file edit.
+
+COPILOT ACTION 2 — gui_automation.py: module-level additions
+
+  New path constant:
+    _MODELS_FILE = Path(__file__).parent.parent / "models.json"
+
+  Management password constant:
+    _MANAGE_PASSWORD = "banwa"
+
+  Two new module-level helper functions:
+    _load_models() → list of {model, prefix} dicts (reads _MODELS_FILE)
+    _save_models(models) → writes list back to _MODELS_FILE (JSON, indent=2)
+
+COPILOT ACTION 3 — gui_automation.py: __init__ additions
+
+  New instance variables:
+    self._models = _load_models()          # list loaded from models.json
+    self.selected_model = tk.StringVar()   # bound to the combobox
+
+COPILOT ACTION 4 — gui_automation.py: _build_ui() — new UI block
+
+  Added between welcome label and the Start/PSU btn_frame:
+
+    # PCBA Model Selection labelframe
+    model_outer = ttk.Frame(right_panel)
+    model_lf = ttk.Labelframe(model_outer, text="PCBA Model Select")
+    self.model_cb = ttk.Combobox(model_lf, textvariable=self.selected_model,
+                                 values=[m["model"] for m in self._models],
+                                 state="readonly", width=24)
+    self.model_cb.bind("<<ComboboxSelected>>",
+                       lambda _e: self._update_start_button_state())
+
+    # Manage Models button (purple, password-protected)
+    tk.Button(model_outer, text="Manage Models",
+              bg="#6A1B9A", fg="#FFFFFF",
+              command=self._open_manage_models).pack(side="left")
+
+COPILOT ACTION 5 — gui_automation.py: _update_start_button_state() — rewritten
+
+  Old logic: Start enabled only when scan code is exactly 19 chars.
+
+  New logic (3-stage validation):
+    Stage A — No model selected:
+      Start disabled, scan field white, status label empty
+
+    Stage B — Model selected, scan length ≠ 19:
+      Start disabled
+      If scan has chars: field red, label "✗ Invalid"
+      If scan empty: field white, label empty
+
+    Stage C — Model selected, length = 19, wrong prefix:
+      Start disabled, field red, label "✗ Prefix XXXX"
+      (shows the actual 4-digit prefix scanned so operator can see mismatch)
+
+    Stage D — All checks pass (model + length 19 + prefix matches):
+      Start enabled, field light green, label "✓ Valid"
+
+  New helper: _get_selected_prefix() → returns the 4-digit prefix string for
+  the currently selected model by looking it up in self._models.
+
+COPILOT ACTION 6 — gui_automation.py: _on_barcode_enter() — updated
+
+  Old logic: auto-trigger Start when Enter pressed if len(scan)==19
+  New logic: auto-trigger Start only when all three checks pass
+    (model selected + length 19 + prefix matches)
+
+COPILOT ACTION 7 — gui_automation.py: _open_manage_models() — new method
+
+  Flow:
+    1. Calls tkinter.simpledialog.askstring() with show="*" (masked password)
+    2. Compares input to _MANAGE_PASSWORD ("banwa")
+    3. If wrong: shows error dialog, returns
+    4. If correct: calls _open_model_editor()
+
+COPILOT ACTION 8 — gui_automation.py: _open_model_editor() — new method
+
+  Opens a Toplevel editor window (modal, grab_set):
+    - Treeview showing all models + their prefixes (from self._models)
+    - Entry fields for new model name + prefix
+    - "Add Model" button:
+        Validates name not empty and prefix is exactly 4 digits
+        Checks no duplicate name exists
+        Appends to self._models and calls _save_models()
+        Calls _refresh_model_combobox() to update the main GUI combobox
+    - "Delete Selected" button:
+        Confirms via messagebox
+        Removes selected model from self._models
+        Calls _save_models() and _refresh_model_combobox()
+    - "Close" button: destroys the editor window
+
+COPILOT ACTION 9 — gui_automation.py: _refresh_model_combobox() — new method
+
+  Rebuilds the combobox values from self._models after add/delete.
+  Clears selected_model if the previously selected model was deleted.
+  Calls _update_start_button_state() to re-evaluate Start button.
+
+COPILOT ACTION 10 — integrated_automation.py: MySQL model column fix
+
+  BEFORE (wrong — model column received the 2D scan code instead of model):
+    insert_test_result(
+        model=scan_code if scan_code else "UNKNOWN",
+        ...
+    )
+
+  AFTER (correct — reads selected model from GUI combobox):
+    _model_var = getattr(self.gui, "selected_model", None)
+    selected_model = (
+        _model_var.get().strip() if _model_var is not None else ""
+    ) or (scan_code if scan_code else "UNKNOWN")
+    insert_test_result(
+        model=selected_model,
+        scan_code=scan_code if scan_code else "UNKNOWN",
+        ...
+    )
+
+  Fallback: if selected_model StringVar is missing (compatibility),
+  falls back to scan_code (preserving old behaviour).
+
+FILES MODIFIED:
+  NON_NFC RH MySQL Auto Reader:
+    AutomationScripts/models.json                         ← NEW
+    AutomationScripts/core/gui_automation.py
+      - Module constants: _MODELS_FILE, _MANAGE_PASSWORD
+      - Module helpers: _load_models(), _save_models()
+      - __init__: self._models, self.selected_model
+      - _build_ui(): PCBA Model Select labelframe + Manage Models button
+      - _update_start_button_state(): full rewrite with prefix validation
+      - _get_selected_prefix(): new helper
+      - _on_barcode_enter(): prefix-aware auto-trigger
+      - _open_manage_models(): password gate
+      - _open_model_editor(): model add/delete editor
+      - _refresh_model_combobox(): combobox rebuild after edit
+    AutomationScripts/core/integrated_automation.py
+      - MySQL insert: model= reads self.gui.selected_model instead of scan_code
+
+--------------------------------------------------------------------------------
+TURN 20 — ChatHistory_Full_April2026.txt Updated to April 28
+Date: April 28, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "Please update ChatHistory_Full_April2026 for all changes"
+
+COPILOT ACTION:
+  Read the existing ChatHistory_Full_April2026.txt (2612 lines, period Apr 1–26).
+  Appended Phase 6 (April 28, 2026) covering:
+    - Turn 13: Delete DB records also deletes HTML reports
+    - Turn 14: Fix tabs reappearing after automation run
+    - Turn 15: Fix AUTO_INCREMENT ID not resetting to 1
+    - Turn 16: Fix popup title showing stale record count
+    - Turn 17: NFC Rev2.05 PODBUS "device already used" fix
+    - Turn 18: NFC Rev2.05 BAT 0.0 mV hardware stabilisation fix
+    - Turn 19: PCBA Model Select combobox + 2D prefix validation + Manage Models popup
+    - Turn 20: This update turn
+  Updated master file change table and open items.
+  Updated header period: April 1–26 → April 1–28.
+
+FILES MODIFIED:
+  C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
+
+================================================================================
+COMPLETE FILE CHANGE MASTER TABLE — APRIL 28, 2026 ADDITIONS
+================================================================================
+
+  File                              Rev/Path                Change
+  ──────────────────────────────────────────────────────────────────────────────
+  gui_automation.py                 MySQL Auto Reader RH     _REPORTS_DIR constant;
+  [Apr 28]                                                   _delete_reports_for_rows();
+                                                             delete methods call it
+  gui_main.py                       MySQL Auto Reader RH     lock/unlock only affect
+  [Apr 28]                                                   normal/disabled tabs,
+                                                             not hidden tabs
+  gui_automation.py                 MySQL Auto Reader RH     _delete_selected_rows:
+  [Apr 28]                                                   TRUNCATE when empty;
+                                                             _delete_all_rows: TRUNCATE
+  gui_automation.py                 MySQL Auto Reader RH     _refresh_db_tree: optional
+  [Apr 28]                                                   popup= param; updates title
+  trace32.py                        NFC LH Rev2.05           LaunchTrace32 sleep 2→5s
+  [Apr 28]
+  timing_profile.py                 NFC LH Rev2.05           supply_off_wait 1.0→2.0s
+  [Apr 28]                                                   supply_on_wait  3.0→5.0s
+                                                             bat_initial_wait 3.0→5.0s
+                                                             bat_retry_wait  5.0→8.0s
+  hardware_setup.py                 NFC LH Rev2.05           run_code_and_verify
+  [Apr 28]                                                   timeout 10→20s
+  models.json                       MySQL Auto Reader RH     NEW: 4 default models
+  [Apr 28]                                                   with 4-digit prefixes
+  gui_automation.py                 MySQL Auto Reader RH     _MODELS_FILE, _MANAGE_PASSWORD
+  [Apr 28]                                                   _load_models(), _save_models();
+                                                             self._models + selected_model;
+                                                             model combobox UI block;
+                                                             _update_start_button_state
+                                                             rewrite with prefix check;
+                                                             _get_selected_prefix();
+                                                             _on_barcode_enter update;
+                                                             _open_manage_models();
+                                                             _open_model_editor();
+                                                             _refresh_model_combobox()
+  integrated_automation.py          MySQL Auto Reader RH     MySQL insert: model= reads
+  [Apr 28]                                                   gui.selected_model.get()
+  ChatHistory_Full_April2026.txt    Documents                Updated Apr 1–28 (this file)
+  [Apr 28]
+
+================================================================================
+OPEN ITEMS / PENDING DECISIONS — Updated April 28, 2026
+================================================================================
+
+  1. Standalone LoopbackTest class (loopback_test.py) — not yet created.
+     User has not confirmed whether they want this extracted.
+
+  2. Rev1.09 Delivered — confirmed STABLE, do not modify.
+
+  3. Rev2.02 battery fix — awaiting test results from factory floor.
+
+  4. KEYENCE SR-X100 Autofocus Code Reader — hardware not yet procured.
+     All software is ready. No code changes needed after hardware arrives.
+
+  5. MySQL Connection Details Dialog (gui_automation.py) — not yet implemented.
+     Planned: Toplevel dialog + save to JSON + "DB Settings" button in UI.
+     Applies to: both NON_NFC RH and NFC LH Rev2.03 MySQL projects.
+
+  6. NFC LH MySQL Auto Reader project (sister to the RH project):
+     Path: Continous_Developement\Nfc_Version\
+             MySQL_Auto_Reader_Integration\NFC_OR_NON_NFC_LH_MySQL_Auto_Reader\
+     The PCBA Model Select combobox + prefix validation + Manage Models changes
+     from Turn 19 were applied to the RH project only.
+     If the LH project exists and is in active use, the same changes should
+     be applied to it.
+
+  7. NFC Rev2.05 timing fixes (Turn 17–18) — awaiting confirmation from tester
+     that PODBUS error and BAT 0.0 mV issue are resolved with new timing values.
+
+  8. models.json (NON_NFC RH MySQL Auto Reader) — currently contains 4 default
+     models for the RH project. If this project evolves to cover additional
+     PCBAs, new models can be added via the Manage Models UI (password: banwa)
+     or by directly editing models.json.
+
+================================================================================
+END OF FULL CHAT HISTORY — April 1 to April 28, 2026
 ================================================================================

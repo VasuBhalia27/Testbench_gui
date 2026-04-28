@@ -31,6 +31,26 @@ from pathlib import Path
 
 _ASSETS_DIR = Path(__file__).parent.parent.parent / "assets_GC" / "Page_12(Auto)" / "assets" / "frame0"
 _SETTINGS_FILE = Path(__file__).parent.parent.parent / "AutomationScripts" / "automation_gui_settings.json"
+_MODELS_FILE = Path(__file__).parent.parent / "models.json"
+_MANAGE_PASSWORD = "banwa"  # password required to add / delete models
+
+
+def _load_models() -> list:
+    """Load model list from models.json.  Returns list of dicts with 'model' and 'prefix'."""
+    try:
+        import json as _json
+        if _MODELS_FILE.exists():
+            return _json.loads(_MODELS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return []
+
+
+def _save_models(models: list) -> None:
+    """Persist the model list back to models.json."""
+    import json as _json
+    _MODELS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _MODELS_FILE.write_text(_json.dumps(models, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 class AutomationGUI:
@@ -92,6 +112,10 @@ class AutomationGUI:
         saved_counts = self._load_pcb_counts()
         self.pass_count = saved_counts[0]
         self.fail_count = saved_counts[1]
+
+        # Model selection — loaded from models.json
+        self._models = _load_models()  # list of {"model": ..., "prefix": ...}
+        self.selected_model = tk.StringVar(master=self.root, value="")
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -207,6 +231,36 @@ class AutomationGUI:
                             font=(None, 10), justify="center")
         welcome.pack(pady=(0, 6))
 
+        # ── PCBA Model Selection ────────────────────────────────────────────
+        model_outer = ttk.Frame(right_panel)
+        model_outer.pack(pady=(0, 4))
+
+        model_lf = ttk.Labelframe(model_outer, text="PCBA Model Select")
+        model_lf.pack(side="left", padx=(0, 6))
+
+        model_names = [m["model"] for m in self._models]
+        self.model_cb = ttk.Combobox(
+            model_lf,
+            textvariable=self.selected_model,
+            values=model_names,
+            state="readonly",
+            width=24,
+        )
+        self.model_cb.pack(padx=6, pady=4)
+        self.model_cb.bind("<<ComboboxSelected>>", lambda _e: self._update_start_button_state())
+
+        # Manage Models button (password-protected)
+        tk.Button(
+            model_outer,
+            text="Manage Models",
+            font=("Arial", 8, "bold"),
+            fg="#FFFFFF", bg="#6A1B9A",
+            activebackground="#4A148C", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._open_manage_models,
+        ).pack(side="left", padx=(0, 0), pady=4, ipady=4)
+        # ───────────────────────────────────────────────────────────────────
+
         # Button row: Start / Power Supply
         btn_frame = ttk.Frame(right_panel)
         btn_frame.pack(pady=(0, 8))
@@ -214,7 +268,7 @@ class AutomationGUI:
         self.start_button = ttk.Button(btn_frame, text="Start",
                                        command=self._on_start)
         self.start_button.pack(side="left", padx=8)
-        self.start_button.config(state="disabled")  # enabled only after 2D scan entered
+        self.start_button.config(state="disabled")  # enabled only after 2D scan + model selected
 
         # Power Supply frame — always visible so it can be changed before Start.
         self.psu_frame = ttk.Labelframe(btn_frame, text="Power Supply")
@@ -356,38 +410,82 @@ class AutomationGUI:
 
         # Initially control_frame is not gridded; it will be shown on Start
 
-    def _update_start_button_state(self) -> None:
-        """Enable Start button only when exactly 19 characters are entered in 2D Scan.
+    def _get_selected_prefix(self) -> str:
+        """Return the expected 4-digit prefix for the currently selected model, or ''."""
+        try:
+            sel = self.selected_model.get()
+            for entry in self._models:
+                if entry.get("model") == sel:
+                    return entry.get("prefix", "")
+        except Exception:
+            pass
+        return ""
 
-        Also updates the scan entry background colour and status label to give
-        the operator immediate visual feedback on barcode validity.
+    def _update_start_button_state(self) -> None:
+        """Enable Start button only when a model is selected AND the 2D scan is exactly
+        19 characters with a prefix matching the selected model.
+
+        Updates scan entry background and status label for immediate operator feedback.
         """
         try:
             code = self.scan_code.get().strip()
-            valid = len(code) == 19
-            if valid:
-                self.start_button.config(state="normal")
-                self.scan_entry.config(background="#90EE90")        # light green
-                self.scan_status_label.config(text="\u2713 Valid", foreground="green")
+            model = self.selected_model.get()
+            expected_prefix = self._get_selected_prefix()
+
+            length_ok = len(code) == 19
+            model_ok = bool(model)
+
+            if length_ok and model_ok and expected_prefix:
+                prefix_ok = code[:4] == expected_prefix
+            elif length_ok and model_ok:
+                # No prefix defined for this model — length alone is enough
+                prefix_ok = True
             else:
+                prefix_ok = False
+
+            valid = length_ok and model_ok and prefix_ok
+
+            if not model_ok:
+                # No model selected — grey out scan field
+                self.start_button.config(state="disabled")
+                self.scan_entry.config(background="white")
+                self.scan_status_label.config(text="", foreground="black")
+            elif not length_ok:
                 self.start_button.config(state="disabled")
                 if code:
-                    self.scan_entry.config(background="#FFB3B3")    # light red
+                    self.scan_entry.config(background="#FFB3B3")
                     self.scan_status_label.config(text="\u2717 Invalid", foreground="red")
                 else:
                     self.scan_entry.config(background="white")
                     self.scan_status_label.config(text="", foreground="black")
+            elif not prefix_ok:
+                # Right length but wrong prefix for the selected model
+                self.start_button.config(state="disabled")
+                self.scan_entry.config(background="#FFB3B3")
+                self.scan_status_label.config(
+                    text=f"\u2717 Prefix {code[:4]}",
+                    foreground="red",
+                )
+            else:
+                # All checks passed
+                self.start_button.config(state="normal")
+                self.scan_entry.config(background="#90EE90")
+                self.scan_status_label.config(text="\u2713 Valid", foreground="green")
         except Exception:
             pass
 
     def _on_barcode_enter(self, _event=None) -> None:
         """Called when the barcode scanner sends Enter after completing a scan.
 
-        Auto-triggers the Start button if the scanned barcode is valid (exactly 19 chars).
+        Auto-triggers the Start button if the scanned barcode is valid (exactly 19 chars,
+        correct model prefix, and a model is selected).
         """
         try:
-            if len(self.scan_code.get().strip()) == 19:
-                self._on_start()
+            code = self.scan_code.get().strip()
+            if len(code) == 19 and self.selected_model.get():
+                expected = self._get_selected_prefix()
+                if (not expected) or code[:4] == expected:
+                    self._on_start()
         except Exception:
             pass
 
@@ -711,6 +809,125 @@ class AutomationGUI:
         self.pass_counter_label.config(text="PASS\n0")
         self.fail_counter_label.config(text="FAIL\n0")
         self._save_pcb_counts()
+
+    # ------------------------------------------------------------------
+    # Model management (password-protected — for Ban-wa Thailand only)
+    # ------------------------------------------------------------------
+
+    def _open_manage_models(self) -> None:
+        """Prompt for the management password, then open the model editor popup."""
+        from tkinter import simpledialog, messagebox
+
+        pwd = simpledialog.askstring(
+            "Manage Models",
+            "Enter the management password:",
+            show="*",
+            parent=self.root,
+        )
+        if pwd is None:
+            return  # cancelled
+        if pwd != _MANAGE_PASSWORD:
+            messagebox.showerror("Access Denied", "Incorrect password.", parent=self.root)
+            return
+        self._open_model_editor()
+
+    def _open_model_editor(self) -> None:
+        """Open the model editor Toplevel window."""
+        import tkinter as _tk
+        from tkinter import ttk as _ttk, simpledialog, messagebox
+
+        win = _tk.Toplevel(self.root)
+        win.title("Manage PCBA Models")
+        win.resizable(False, False)
+        win.grab_set()
+
+        _ttk.Label(win, text="Models (name → 4-digit prefix)",
+                   font=(None, 10, "bold")).grid(row=0, column=0, columnspan=3,
+                                                  padx=10, pady=(10, 4))
+
+        # Treeview listing models + prefixes
+        tree = _ttk.Treeview(win, columns=("model", "prefix"), show="headings",
+                              height=8, selectmode="browse")
+        tree.heading("model", text="Model Name")
+        tree.heading("prefix", text="Prefix (4 digits)")
+        tree.column("model", width=220, anchor="w")
+        tree.column("prefix", width=100, anchor="center")
+        tree.grid(row=1, column=0, columnspan=3, padx=10, pady=4, sticky="nsew")
+
+        def _refresh_tree():
+            tree.delete(*tree.get_children())
+            for entry in self._models:
+                tree.insert("", "end", values=(entry.get("model", ""), entry.get("prefix", "")))
+
+        _refresh_tree()
+
+        # Entry fields for new model
+        entry_frame = _ttk.Frame(win)
+        entry_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=4, sticky="ew")
+
+        _ttk.Label(entry_frame, text="Model Name:").grid(row=0, column=0, padx=4, sticky="e")
+        model_var = _tk.StringVar()
+        model_entry = _ttk.Entry(entry_frame, textvariable=model_var, width=26)
+        model_entry.grid(row=0, column=1, padx=4, sticky="w")
+
+        _ttk.Label(entry_frame, text="Prefix:").grid(row=0, column=2, padx=(8, 4), sticky="e")
+        prefix_var = _tk.StringVar()
+        prefix_entry = _ttk.Entry(entry_frame, textvariable=prefix_var, width=8)
+        prefix_entry.grid(row=0, column=3, padx=4, sticky="w")
+
+        def _add_model():
+            name = model_var.get().strip()
+            prefix = prefix_var.get().strip()
+            if not name:
+                messagebox.showerror("Input Error", "Model name cannot be empty.", parent=win)
+                return
+            if not prefix.isdigit() or len(prefix) != 4:
+                messagebox.showerror("Input Error", "Prefix must be exactly 4 digits.", parent=win)
+                return
+            # Check duplicate
+            for e in self._models:
+                if e.get("model") == name:
+                    messagebox.showerror("Duplicate", f"'{name}' already exists.", parent=win)
+                    return
+            self._models.append({"model": name, "prefix": prefix})
+            _save_models(self._models)
+            self._refresh_model_combobox()
+            model_var.set("")
+            prefix_var.set("")
+            _refresh_tree()
+
+        def _delete_selected():
+            sel = tree.selection()
+            if not sel:
+                messagebox.showinfo("Select Model", "Please select a model to delete.", parent=win)
+                return
+            row_vals = tree.item(sel[0], "values")
+            name = row_vals[0] if row_vals else ""
+            if not messagebox.askyesno("Confirm Delete",
+                                       f"Delete model '{name}'?", parent=win):
+                return
+            self._models = [e for e in self._models if e.get("model") != name]
+            _save_models(self._models)
+            self._refresh_model_combobox()
+            _refresh_tree()
+
+        btn_row = _ttk.Frame(win)
+        btn_row.grid(row=3, column=0, columnspan=3, pady=(4, 10))
+        _ttk.Button(btn_row, text="Add Model", command=_add_model).pack(side="left", padx=6)
+        _ttk.Button(btn_row, text="Delete Selected", command=_delete_selected).pack(side="left", padx=6)
+        _ttk.Button(btn_row, text="Close", command=win.destroy).pack(side="left", padx=6)
+
+    def _refresh_model_combobox(self) -> None:
+        """Rebuild the model combobox values after models.json has been modified."""
+        try:
+            names = [m["model"] for m in self._models]
+            self.model_cb.config(values=names)
+            # If the currently selected model was deleted, clear the selection
+            if self.selected_model.get() not in names:
+                self.selected_model.set("")
+            self._update_start_button_state()
+        except Exception:
+            pass
 
     def _view_db_records(self) -> None:
         """Open a popup window showing all rows from the MySQL test_results table."""
