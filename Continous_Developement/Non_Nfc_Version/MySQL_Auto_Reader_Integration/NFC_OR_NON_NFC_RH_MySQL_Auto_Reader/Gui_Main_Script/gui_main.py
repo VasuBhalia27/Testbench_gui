@@ -141,7 +141,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
 
 # Create the main window
 window = tk.Tk()
-window.title("NON_NFC_Rev2.07")
+window.title("SmartBU Testbench GUI")
 
 
 window.geometry("973x670")
@@ -180,20 +180,18 @@ automation_gui = gui_automation.AutomationGUI(parent_widget=tab1_frame)
 
 # Callbacks to lock/unlock other tabs
 def lock_other_tabs():
-    """Disable all visible tabs except TAB 1 during automation."""
+    """Disable all tabs except TAB 1 during automation."""
     for idx in range(1, notebook.index("end")):
         try:
-            if notebook.tab(idx, "state") == "normal":
-                notebook.tab(idx, state="disabled")
+            notebook.tab(idx, state="disabled")
         except:
             pass
 
 def unlock_other_tabs():
-    """Re-enable only tabs that were disabled (leave hidden tabs hidden)."""
+    """Re-enable all tabs after automation completes."""
     for idx in range(1, notebook.index("end")):
         try:
-            if notebook.tab(idx, "state") == "disabled":
-                notebook.tab(idx, state="normal")
+            notebook.tab(idx, state="normal")
         except:
             pass
 
@@ -223,6 +221,9 @@ def preset_minsizerel(selected_preset):
 
 tab2 = ttk.Frame(notebook)
 notebook.add(tab2, text="Settings")
+
+# Select the second tab (Settings) by default on startup
+notebook.select(tab2)
 
 tab2_frame = tk.Frame(tab2, bg="#DFDFDF")
 tab2_frame.pack(fill="both", expand=True)
@@ -1640,14 +1641,6 @@ canvas11.create_text(
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()
-
-# Automation-only mode: hide all tabs except the Automation tab
-for _hidden_tab in [tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11]:
-    try:
-        notebook.hide(_hidden_tab)
-    except Exception:
-        pass
-notebook.select(tab1)
 # ==================================================================================================================
 # ========== EXIT ==================================================================================================
 
@@ -1667,12 +1660,14 @@ def poll_target_state(label, window):
         poll_id = window.after(1000, lambda: poll_target_state(label, window))
 
 def on_closing():
-    try:
-        window.after_cancel(poll_id)
-    except Exception:
-        pass
-    QuitTrace32()
-    window.destroy()
+    if messagebox.askokcancel("Quit", "Do you want to quit and disconnect Trace32?"):
+        # Stop the polling loop if it exists
+        try:
+            window.after_cancel(poll_id)
+        except:
+            pass
+        QuitTrace32() # Ensure this function kills the process (see step 3)
+        window.destroy()
 
 #window = tk.Tk()
 window.protocol("WM_DELETE_WINDOW", on_closing) # This line catches the 'X' button click
