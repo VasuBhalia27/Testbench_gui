@@ -1667,14 +1667,12 @@ def poll_target_state(label, window):
         poll_id = window.after(1000, lambda: poll_target_state(label, window))
 
 def on_closing():
-    if messagebox.askokcancel("Quit", "Do you want to quit and disconnect Trace32?"):
-        # Stop the polling loop if it exists
-        try:
-            window.after_cancel(poll_id)
-        except:
-            pass
-        QuitTrace32() # Ensure this function kills the process (see step 3)
-        window.destroy()
+    try:
+        window.after_cancel(poll_id)
+    except Exception:
+        pass
+    QuitTrace32()
+    window.destroy()
 
 #window = tk.Tk()
 window.protocol("WM_DELETE_WINDOW", on_closing) # This line catches the 'X' button click
