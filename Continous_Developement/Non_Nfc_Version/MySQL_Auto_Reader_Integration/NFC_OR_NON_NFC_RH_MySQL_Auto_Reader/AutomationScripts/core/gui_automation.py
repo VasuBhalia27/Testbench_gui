@@ -77,7 +77,7 @@ class AutomationGUI:
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("NON_NFC_Rev2.06")
+            self.root.title("NON_NFC_Rev2.07")
             self.root.geometry("1050x550")
             self.root.minsize(1000, 450)
         else:
@@ -137,39 +137,9 @@ class AutomationGUI:
         try:
             self._logo_image = PhotoImage(file=str(_ASSETS_DIR / "minebea_logo_12.png"))
             logo_label = tk.Label(left_panel, image=self._logo_image, bg="#DFDFDF")
-            logo_label.pack(anchor="w", padx=6, pady=(4, 2))
+            logo_label.pack(anchor="w", padx=6, pady=(4, 6))
         except Exception:
             self._logo_image = None  # logo file missing — skip silently
-
-        # ── PCBA Model Selection (left panel — below logo) ──────────────────
-        model_outer = tk.Frame(left_panel, bg="#DFDFDF")
-        model_outer.pack(fill="x", padx=6, pady=(2, 4))
-
-        model_lf = ttk.Labelframe(model_outer, text="PCBA Model Select")
-        model_lf.pack(side="left", fill="x", expand=True)
-
-        model_names = [m["model"] for m in self._models]
-        self.model_cb = ttk.Combobox(
-            model_lf,
-            textvariable=self.selected_model,
-            values=model_names,
-            state="readonly",
-            width=20,
-        )
-        self.model_cb.pack(padx=6, pady=4, fill="x")
-        self.model_cb.bind("<<ComboboxSelected>>", lambda _e: self._update_start_button_state())
-
-        # Manage Models button (password-protected)
-        tk.Button(
-            model_outer,
-            text="Manage\nModels",
-            font=("Arial", 7, "bold"),
-            fg="#FFFFFF", bg="#6A1B9A",
-            activebackground="#4A148C", activeforeground="#FFFFFF",
-            relief="flat", cursor="hand2",
-            command=self._open_manage_models,
-        ).pack(side="left", padx=(4, 0), pady=2, ipadx=2, ipady=2)
-        # ───────────────────────────────────────────────────────────────────
 
         # Test Result Status box occupies the rest of the left panel
         self.result_frame = tk.Frame(left_panel, bg="#DFDFDF", bd=2, relief="groove")
@@ -250,16 +220,34 @@ class AutomationGUI:
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
         right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
 
-        # Welcome header
-        header = ttk.Label(right_panel, text="NON_NFC_Rev2.06",
-                           font=(None, 16, "bold"))
-        header.pack(pady=(10, 4))
+        # ── PCBA Model Selection ────────────────────────────────────────────
+        model_outer = tk.Frame(right_panel, bg="#DFDFDF")
+        model_outer.pack(pady=(10, 4))
 
-        welcome = ttk.Label(right_panel,
-                            text="Welcome to NON_NFC_Rev2.06\n"
-                                 "Click 'Start' to begin the setup and test sequence.",
-                            font=(None, 10), justify="center")
-        welcome.pack(pady=(0, 6))
+        model_lf = ttk.Labelframe(model_outer, text="PCBA Model Select")
+        model_lf.pack(side="left", padx=(0, 6))
+
+        model_names = [m["model"] for m in self._models]
+        self.model_cb = ttk.Combobox(
+            model_lf,
+            textvariable=self.selected_model,
+            values=model_names,
+            state="readonly",
+            width=24,
+        )
+        self.model_cb.pack(padx=6, pady=6)
+        self.model_cb.bind("<<ComboboxSelected>>", lambda _e: self._update_start_button_state())
+
+        tk.Button(
+            model_outer,
+            text="Manage Models",
+            font=("Arial", 8, "bold"),
+            fg="#FFFFFF", bg="#6A1B9A",
+            activebackground="#4A148C", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._open_manage_models,
+        ).pack(side="left", ipady=4)
+        # ───────────────────────────────────────────────────────────────────
 
         # Button row: Start / Power Supply
         btn_frame = ttk.Frame(right_panel)

@@ -141,7 +141,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
 
 # Create the main window
 window = tk.Tk()
-window.title("SmartBU Testbench GUI")
+window.title("NON_NFC_Rev2.07")
 
 
 window.geometry("973x670")
