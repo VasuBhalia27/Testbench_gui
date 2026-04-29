@@ -334,8 +334,8 @@ go_button.place(x=200, y=305, width=34, height=34)
 #Disconnect Trace32 Button
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], 
-                            command=lambda: QuitTrace32(code_status_label), 
+disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"],
+                            command=lambda: [_collect_and_save_all_manual_tests(), QuitTrace32(code_status_label)],
                             bd = 0)
 disconnect_trace32.place(x=500, y=260, width=34, height=34)
 
@@ -432,15 +432,9 @@ def _parse_num(entry):
     except (ValueError, TypeError, IndexError):
         return None
 
-def _save_report_with_feedback(test_name, fields, overall_ok, status_label=None):
-    """Save a manual test report and show result in an optional status label."""
-    try:
-        path = _save_manual_report(test_name, fields, overall_ok)
-        msg = f"Report saved: {path}"
-    except Exception as exc:
-        msg = f"Report save failed: {exc}"
-    if status_label is not None:
-        status_label.config(text=msg)
+# Create ManualTest/reports/ once at application startup
+_REPORTS_DIR = _REPO_ROOT / "ManualTest" / "reports"
+_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # ===================================================================================================================
 # ========== TAB 3 (LED Test) =======================================================================================
@@ -514,22 +508,6 @@ tab3_run_btn.place(x=225, y=106, width=34, height=34)
 reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: [clear_entries(led_entries), _reset_pf_labels(tab3_lbl_overall, tab3_lbl_voltage)])
 reset_entries.place(x=300, y=110, width=85, height=32)
 
-tab3_report_status = tk.Label(tab3_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab3_report_status.place(x=73, y=250, width=700, height=18)
-
-def _save_led_report():
-    v = tab3_entry_1.get().strip()
-    passed_v = _parse_num(tab3_entry_1) is not None and (
-        (led_input_condition.get() == 2 and 0 <= _parse_num(tab3_entry_1) <= 10) or
-        (led_input_condition.get() != 2 and _parse_num(tab3_entry_1) > 0)
-    )
-    fields = [("LedVoltage", v, passed_v)]
-    overall = passed_v
-    _save_report_with_feedback("LED Test", fields, overall, tab3_report_status)
-
-tab3_save_btn = ttk.Button(tab3, text="Save Report", command=_save_led_report)
-tab3_save_btn.place(x=430, y=200, width=90, height=28)
-
 canvas3.create_text(
     260.0,
     20.0,
@@ -597,19 +575,6 @@ tab4_run_btn.place(x=225, y=106, width=34, height=34)
 
 reset_entries = ttk.Button(tab4, text="Reset Results", command=lambda: [clear_entries(batmon_entries), _reset_pf_labels(tab4_lbl_overall, tab4_lbl_voltage)])
 reset_entries.place(x=300, y=106, width=85, height=32)
-
-tab4_report_status = tk.Label(tab4_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab4_report_status.place(x=73, y=250, width=700, height=18)
-
-def _save_bat_report():
-    v = tab4_entry_1.get().strip()
-    vn = _parse_num(tab4_entry_1)
-    passed_v = vn is not None and 8000 <= vn <= 16000
-    fields = [("AiBatRef", v, passed_v)]
-    _save_report_with_feedback("BAT Test", fields, passed_v, tab4_report_status)
-
-tab4_save_btn = ttk.Button(tab4, text="Save Report", command=_save_bat_report)
-tab4_save_btn.place(x=430, y=165, width=90, height=28)
 
 canvas4.create_text(
     260.0,
@@ -725,21 +690,6 @@ motor_decouple_couple_cb.place(x=73.0, y=150, width=125.0, height=32.0)
 reset_entries = ttk.Button(tab5, text="Reset Results", command=lambda: [clear_entries(motor_entries), _reset_pf_labels(tab5_lbl_overall, tab5_lbl_voltage, tab5_lbl_current, tab5_lbl_loaderr)])
 reset_entries.place(x=306, y=150, width=85, height=32)
 
-tab5_report_status = tk.Label(tab5_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab5_report_status.place(x=73, y=440, width=700, height=18)
-
-def _save_mot_report():
-    vv = tab5_entry1.get().strip(); vc = tab5_entry2.get().strip(); ve = tab5_entry3.get().strip()
-    vn = _parse_num(tab5_entry1); cn = _parse_num(tab5_entry2); en = _parse_num(tab5_entry3)
-    p_v = vn is not None and vn > 0
-    p_c = cn is not None and cn > 0
-    p_e = en is not None and en == 0
-    fields = [("MotorVoltage", vv, p_v), ("MotorCurrentValue", vc, p_c), ("MotorLoadError", ve, p_e)]
-    _save_report_with_feedback("Motor Test", fields, all([p_v, p_c, p_e]), tab5_report_status)
-
-tab5_save_btn = ttk.Button(tab5, text="Save Report", command=_save_mot_report)
-tab5_save_btn.place(x=460, y=148, width=90, height=28)
-
 canvas5.create_text(
     260.0,
     20.0,
@@ -841,22 +791,6 @@ eos_reset_cb.place(x=225.0, y=150, width=125.0, height=32.0)
 
 reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: [clear_entries(eos_entries), _reset_pf_labels(tab6_lbl_overall, tab6_lbl_voltage)])
 reset_entries.place(x=225, y=110, width=125, height=32)
-
-tab6_report_status = tk.Label(tab6_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab6_report_status.place(x=73, y=300, width=700, height=18)
-
-def _save_eos_report():
-    v = tab6_entry1.get().strip()
-    vn = _parse_num(tab6_entry1)
-    if eos_value.get() == 1:
-        passed_v = vn is not None and 1400 <= vn <= 1600
-    else:
-        passed_v = vn is not None and 2800 <= vn <= 3000
-    fields = [("EosDiagVoltage", v, passed_v)]
-    _save_report_with_feedback("EOS Test", fields, passed_v, tab6_report_status)
-
-tab6_save_btn = ttk.Button(tab6, text="Save Report", command=_save_eos_report)
-tab6_save_btn.place(x=390, y=110, width=90, height=28)
 
 canvas6.create_text(
     260.0,
@@ -1031,25 +965,6 @@ sg_results_cb.place(x=225, y=75, width=115, height=32)
 
 sg_reset_entries = ttk.Button(tab7, text="Reset Results", command=lambda: [clear_entries(sg_entries), _reset_pf_labels(tab7_lbl_overall, *sg_pf_labels)]) #browse button to get repo path
 sg_reset_entries.place(x=510, y=75, width=115, height=32)
-
-tab7_report_status = tk.Label(tab7_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab7_report_status.place(x=20, y=530, width=700, height=18)
-
-_sg_field_names = ["DoPwrSg", "Sg1PlusOpamp", "Sg1MinusOpamp", "Sg1Opamp", "Sg2PlusOpamp", "Sg2MinusOpamp", "Sg2Opamp"]
-
-def _save_sg_report():
-    fields = []
-    results = []
-    for name, entry in zip(_sg_field_names, sg_entries):
-        v = entry.get().strip()
-        vn = _parse_num(entry)
-        passed = vn is not None and vn != 0
-        fields.append((name, v, passed))
-        results.append(passed)
-    _save_report_with_feedback("SG Test", fields, all(results), tab7_report_status)
-
-tab7_save_btn = ttk.Button(tab7, text="Save Report", command=_save_sg_report)
-tab7_save_btn.place(x=640, y=75, width=90, height=28)
 
 running_status = tk.Label(tab7_frame, text="Running Status: None")
 running_status.config(bg = "#DFDFDF")
@@ -1226,29 +1141,6 @@ run_test_btn.place(x=225, y=106, width=34, height=34)
 # Reset button
 reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
 reset_entries.place(x=350, y=65, width=115, height=32)
-
-tab8_report_status = tk.Label(tab8_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab8_report_status.place(x=73, y=450, width=700, height=18)
-
-_capa_field_names = ["CapaApproach", "CapaLock", "CapaUnlock", "CapaApproachRawValue", "CapaLockRawValue", "CapaUnlockRawValue"]
-_capa_thresholds = [
-    lambda v: v == 1, lambda v: v == 1, lambda v: v == 1,
-    lambda v: v > 8900, lambda v: v > 8900, lambda v: v > 8900,
-]
-
-def _save_capa_report():
-    fields = []
-    results = []
-    for name, entry, check in zip(_capa_field_names, capa_entries, _capa_thresholds):
-        v = entry.get().strip()
-        vn = _parse_num(entry)
-        passed = vn is not None and check(vn)
-        fields.append((name, v, passed))
-        results.append(passed)
-    _save_report_with_feedback("CAPA Test", fields, all(results), tab8_report_status)
-
-tab8_save_btn = ttk.Button(tab8, text="Save Report", command=_save_capa_report)
-tab8_save_btn.place(x=490, y=65, width=90, height=28)
 
 canvas8.create_text(
     260.0,
@@ -1432,32 +1324,6 @@ run_test_btn.place(x=325, y=106, width=34, height=34)
 reset_entries = ttk.Button(tab9, text="Reset Results", command=_reset_nfc_results)
 reset_entries.place(x=500, y=110, width=85, height=32)
 
-tab9_report_status = tk.Label(tab9_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab9_report_status.place(x=73, y=500, width=700, height=18)
-
-def _save_nfc_report():
-    spi_val  = tab9_spi_err.get().strip()
-    hw_val   = tab9_hw_ver.get().strip()
-    rom_val  = tab9_rom_ver.get().strip()
-    fw_val   = tab9_fw_ver.get().strip()
-    card_val = tab9_entry_1.get().strip()
-    p_spi  = spi_val  in ("OK", "0")
-    p_hw   = hw_val  not in ("", "0", "0x0")
-    p_rom  = rom_val not in ("", "0", "0x0")
-    p_fw   = fw_val  not in ("", "0", "0x0")
-    p_card = card_val == "Yes"
-    fields = [
-        ("SpiError",        spi_val,  p_spi),
-        ("HwVersion",       hw_val,   p_hw),
-        ("RomVersion",      rom_val,  p_rom),
-        ("FwVersion",       fw_val,   p_fw),
-        ("IsNfcDetectedCard", card_val, p_card),
-    ]
-    _save_report_with_feedback("NFC Test", fields, all([p_spi, p_hw, p_rom, p_fw]), tab9_report_status)
-
-tab9_save_btn = ttk.Button(tab9, text="Save Report", command=_save_nfc_report)
-tab9_save_btn.place(x=620, y=110, width=90, height=28)
-
 canvas9.create_text(
     260.0,
     20.0,
@@ -1601,29 +1467,6 @@ spi_self_test_btn.place(x=325, y=106, width=34, height=34)
 
 reset_spi_st_btn = ttk.Button(tab_nfc_self, text="Reset Results", command=_reset_nfc_spi_self_test_results)
 reset_spi_st_btn.place(x=500, y=110, width=85, height=32)
-
-tab_nfc_self_report_status = tk.Label(tab_nfc_self_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab_nfc_self_report_status.place(x=73, y=340, width=700, height=18)
-
-def _save_nfc_self_report():
-    spi_val = tab9_st_spi_err.get().strip()
-    hw_val  = tab9_st_hw_ver.get().strip()
-    led_val = tab9_st_led_v.get().strip()
-    p_spi = spi_val in ("OK", "0")
-    p_hw  = hw_val not in ("", "0", "0x0")
-    try:
-        p_led = float(led_val.split()[0]) > 0
-    except (ValueError, IndexError):
-        p_led = led_val not in ("", "N/A", "SKIP")
-    fields = [
-        ("SpiError",   spi_val, p_spi),
-        ("Target ID",  hw_val,  p_hw),
-        ("LedVoltage", led_val, p_led),
-    ]
-    _save_report_with_feedback("NFC Self-Test", fields, all([p_spi, p_hw, p_led]), tab_nfc_self_report_status)
-
-tab_nfc_self_save_btn = ttk.Button(tab_nfc_self, text="Save Report", command=_save_nfc_self_report)
-tab_nfc_self_save_btn.place(x=620, y=110, width=90, height=28)
 
 # ===================================================================================================================
 # ===================================================================================================================
@@ -1785,24 +1628,6 @@ run_test_btn.place(x=225, y=106, width=34, height=34)
 reset_entries = ttk.Button(tab10, text="Reset Results", command=lambda: [clear_entries(can_entries + can_tx_entries), _reset_pf_labels(tab10_lbl_overall, *can_pf_labels)])
 reset_entries.place(x=500, y=110, width=85, height=32)
 
-tab10_report_status = tk.Label(tab10_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab10_report_status.place(x=61, y=490, width=700, height=18)
-
-def _save_can_report():
-    valid_val  = tab10_rx_valid.get().strip()
-    active_val = tab10_com_active.get().strip()
-    rx_vals    = [e.get().strip() for e in can_rx_entries]
-    vn = _parse_num(tab10_rx_valid)
-    an = _parse_num(tab10_com_active)
-    p_rx  = vn is not None and vn == 1
-    p_act = (True if can_loopback_var.get() else (an is not None and an == 1))
-    rx_fields = [(f"RxByte{i}", v, True) for i, v in enumerate(rx_vals)]
-    fields = [("CanRxDataValid", valid_val, p_rx), ("CanIsActiveState", active_val, p_act)] + rx_fields
-    _save_report_with_feedback("CAN Test", fields, all([p_rx, p_act]), tab10_report_status)
-
-tab10_save_btn = ttk.Button(tab10, text="Save Report", command=_save_can_report)
-tab10_save_btn.place(x=620, y=110, width=90, height=28)
-
 canvas10.create_text(
     260.0,
     20.0,
@@ -1949,24 +1774,6 @@ canvas11.create_text(266.0, 110.0, anchor="nw", text="Transmit", fill="#FFFFFF",
 reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: [clear_entries(lin_entry_list + lin_tx_entries), _reset_pf_labels(tab11_lbl_overall, *lin_pf_labels)])
 reset_entries.place(x=350, y=110, width=115, height=32)
 
-tab11_report_status = tk.Label(tab11_frame, text="", bg="#DFDFDF", font=("Inter", 9), anchor="w")
-tab11_report_status.place(x=61, y=490, width=700, height=18)
-
-def _save_lin_report():
-    valid_val = tab11_rx_valid.get().strip()
-    pid_val   = tab11_rx_pid.get().strip()
-    rx_vals   = [e.get().strip() for e in lin_rx_entries]
-    vn = _parse_num(tab11_rx_valid)
-    any_nz = any(_parse_num(e) not in (None, 0) for e in lin_rx_entries)
-    p_rx = vn is not None and vn == 1 and any_nz
-    rx_fields = [(f"RxByte{i}", v, True) for i, v in enumerate(rx_vals)]
-    fields = [("LinRxDataValid", valid_val, p_rx), ("LinRxPid", pid_val, True)] + rx_fields
-    _save_report_with_feedback("LIN Test", fields, p_rx, tab11_report_status)
-
-tab11_save_btn = ttk.Button(tab11, text="Save Report", command=_save_lin_report)
-tab11_save_btn.place(x=490, y=110, width=90, height=28)
-
-
 canvas11.create_text(
     260.0,
     20.0,
@@ -1978,6 +1785,120 @@ canvas11.create_text(
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 12 (AUTO) =======================================================================================
+
+# ─── Combined manual test report (all tabs → one HTML on Disconnect) ──────────
+def _collect_and_save_all_manual_tests():
+    """Collect current entry values from every manual-test tab and save one report."""
+    sections = []
+
+    # ── LED ───────────────────────────────────────────────────────────────────
+    v_led = tab3_entry_1.get().strip()
+    if v_led:
+        vn = _parse_num(tab3_entry_1)
+        p = (vn is not None and 0 <= vn <= 10) if led_input_condition.get() == 2 else (vn is not None and vn > 0)
+        sections.append({"name": "LED Test", "fields": [("LedVoltage", v_led, p)], "overall": p})
+
+    # ── BAT ───────────────────────────────────────────────────────────────────
+    v_bat = tab4_entry_1.get().strip()
+    if v_bat:
+        vn = _parse_num(tab4_entry_1)
+        p = vn is not None and 8000 <= vn <= 16000
+        sections.append({"name": "BAT Test", "fields": [("AiBatRef", v_bat, p)], "overall": p})
+
+    # ── MOTOR ─────────────────────────────────────────────────────────────────
+    if tab5_entry1.get().strip():
+        vn = _parse_num(tab5_entry1); cn = _parse_num(tab5_entry2); en = _parse_num(tab5_entry3)
+        p_v = vn is not None and vn > 0
+        p_c = cn is not None and cn > 0
+        p_e = en is not None and en == 0
+        fields = [("MotorVoltage", tab5_entry1.get().strip(), p_v),
+                  ("MotorCurrentValue", tab5_entry2.get().strip(), p_c),
+                  ("MotorLoadError", tab5_entry3.get().strip(), p_e)]
+        sections.append({"name": "Motor Test", "fields": fields, "overall": all([p_v, p_c, p_e])})
+
+    # ── EOS ───────────────────────────────────────────────────────────────────
+    v_eos = tab6_entry1.get().strip()
+    if v_eos:
+        vn = _parse_num(tab6_entry1)
+        p = (vn is not None and 1400 <= vn <= 1600) if eos_value.get() == 1 else (vn is not None and 2800 <= vn <= 3000)
+        sections.append({"name": "EOS Test", "fields": [("EosDiagVoltage", v_eos, p)], "overall": p})
+
+    # ── SG ────────────────────────────────────────────────────────────────────
+    if tab7_entry_1.get().strip():
+        sg_names = ["DoPwrSg","Sg1PlusOpamp","Sg1MinusOpamp","Sg1Opamp","Sg2PlusOpamp","Sg2MinusOpamp","Sg2Opamp"]
+        fields = []
+        for nm, e in zip(sg_names, sg_entries):
+            vn = _parse_num(e)
+            fields.append((nm, e.get().strip(), vn is not None and vn != 0))
+        sections.append({"name": "SG Test", "fields": fields, "overall": all(f[2] for f in fields)})
+
+    # ── CAPA ──────────────────────────────────────────────────────────────────
+    if tab8_entry_1.get().strip():
+        capa_names   = ["CapaApproach","CapaLock","CapaUnlock","CapaApproachRawValue","CapaLockRawValue","CapaUnlockRawValue"]
+        capa_checks  = [lambda v: v==1, lambda v: v==1, lambda v: v==1,
+                        lambda v: v>8900, lambda v: v>8900, lambda v: v>8900]
+        fields = []
+        for nm, e, chk in zip(capa_names, capa_entries, capa_checks):
+            vn = _parse_num(e)
+            fields.append((nm, e.get().strip(), vn is not None and chk(vn)))
+        sections.append({"name": "CAPA Test", "fields": fields, "overall": all(f[2] for f in fields)})
+
+    # ── NFC ───────────────────────────────────────────────────────────────────
+    if tab9_spi_err.get().strip():
+        spi_v = tab9_spi_err.get().strip(); hw_v = tab9_hw_ver.get().strip()
+        rom_v = tab9_rom_ver.get().strip();  fw_v = tab9_fw_ver.get().strip()
+        card_v = tab9_entry_1.get().strip()
+        p_spi = spi_v in ("OK", "0")
+        p_hw  = hw_v  not in ("", "0", "0x0")
+        p_rom = rom_v not in ("", "0", "0x0")
+        p_fw  = fw_v  not in ("", "0", "0x0")
+        p_card = card_v == "Yes"
+        fields = [("SpiError", spi_v, p_spi), ("HwVersion", hw_v, p_hw),
+                  ("RomVersion", rom_v, p_rom), ("FwVersion", fw_v, p_fw),
+                  ("IsNfcDetectedCard", card_v, p_card)]
+        sections.append({"name": "NFC Test", "fields": fields, "overall": all([p_spi, p_hw, p_rom, p_fw])})
+
+    # ── NFC SELF ──────────────────────────────────────────────────────────────
+    if tab9_st_spi_err.get().strip():
+        spi_v = tab9_st_spi_err.get().strip(); hw_v = tab9_st_hw_ver.get().strip()
+        led_v = tab9_st_led_v.get().strip()
+        p_spi = spi_v in ("OK", "0")
+        p_hw  = hw_v  not in ("", "0", "0x0")
+        try:    p_led = float(led_v.split()[0]) > 0
+        except: p_led = led_v not in ("", "N/A", "SKIP")
+        fields = [("SpiError", spi_v, p_spi), ("TargetID", hw_v, p_hw), ("LedVoltage", led_v, p_led)]
+        sections.append({"name": "NFC Self-Test", "fields": fields, "overall": all([p_spi, p_hw, p_led])})
+
+    # ── CAN ───────────────────────────────────────────────────────────────────
+    if tab10_rx_valid.get().strip():
+        vn = _parse_num(tab10_rx_valid); an = _parse_num(tab10_com_active)
+        p_rx  = vn is not None and vn == 1
+        p_act = True if can_loopback_var.get() else (an is not None and an == 1)
+        rx_fields = [(f"RxByte{i}", e.get().strip(), True) for i, e in enumerate(can_rx_entries)]
+        fields = [("CanRxDataValid", tab10_rx_valid.get().strip(), p_rx),
+                  ("CanIsActiveState", tab10_com_active.get().strip(), p_act)] + rx_fields
+        sections.append({"name": "CAN Test", "fields": fields, "overall": all([p_rx, p_act])})
+
+    # ── LIN ───────────────────────────────────────────────────────────────────
+    if tab11_rx_valid.get().strip():
+        vn = _parse_num(tab11_rx_valid)
+        any_nz = any(_parse_num(e) not in (None, 0) for e in lin_rx_entries)
+        p_rx   = vn is not None and vn == 1 and any_nz
+        rx_fields = [(f"RxByte{i}", e.get().strip(), True) for i, e in enumerate(lin_rx_entries)]
+        fields = [("LinRxDataValid", tab11_rx_valid.get().strip(), p_rx),
+                  ("LinRxPid", tab11_rx_pid.get().strip(), True)] + rx_fields
+        sections.append({"name": "LIN Test", "fields": fields, "overall": p_rx})
+
+    if not sections:
+        code_status_label.config(text="No manual test results to save.")
+        return
+
+    try:
+        path = _save_manual_report(sections, _REPORTS_DIR)
+        code_status_label.config(text=f"Manual report saved: {Path(path).name}")
+    except Exception as exc:
+        code_status_label.config(text=f"Manual report save failed: {exc}")
+
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()

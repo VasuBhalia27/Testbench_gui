@@ -3493,7 +3493,7 @@ END OF FULL CHAT HISTORY — April 1 to April 28, 2026
 ================================================================================
 
 ================================================================================
-  PHASE 7  —  APRIL 30, 2026
+  PHASE 7  —  APRIL 30, 2026  (REVISED — REDESIGN completed same session)
 ================================================================================
 
 TURN 17 — Timestamped Manual Test HTML Reports (both projects)
@@ -3506,61 +3506,76 @@ USER:
 
   "Above both projects" = NFC_Rev2.07 and NON_NFC_Rev2.05
 
+  (Subsequent request, same session):
+  "Can you please create a single report for every test module for each test
+   and the reports folder shall be fixed created one time and the report shall
+   save when Disconnect Trace32 button is pressed"
+
 ROOT CAUSE / NEED:
   Operators performing manual tests via the GUI (LED, BAT, MOT, EOS, SG, CAP,
-  NFC, NFC SELF, CAN, LIN tabs) had no way to save or trace results. Each test
-  result was only visible on screen with no permanent record.
+  NFC, NFC SELF, CAN, LIN tabs) had no way to save or trace results.
 
-COPILOT SOLUTION:
+INITIAL APPROACH (discarded):
+  Per-tab "Save Report" buttons and status labels were added. User then
+  requested a redesign: one combined report triggered by Disconnect Trace32.
 
-  1. Created ManualTest/manual_report.py in BOTH projects:
-     - save_manual_report(test_name, fields, overall_ok)
+FINAL COPILOT SOLUTION:
+
+  1. ManualTest/manual_report.py — REWRITTEN in BOTH projects:
+     - New API: save_manual_report(sections, output_dir)
+       sections = list of {name, fields[(field_name, value, passed)], overall}
      - Generates ManualTest/reports/Manual_Report_YYYYMMDD_HHMMSS.html
-     - Directory created automatically (os.makedirs, exist_ok=True)
-     - HTML: coloured PASS (green) / FAIL (red) per field + overall banner
-     - PASS thresholds match automation test criteria for each test type
+     - HTML contains: Summary table (all modules, PASS/FAIL) +
+       Detailed results table per module with coloured field-level PASS/FAIL
+     - Directory is NOT created inside manual_report.py; caller passes dir.
 
-  2. Modified Gui_Main_Script/gui_main.py in BOTH projects:
-     - Added: from ManualTest.manual_report import save_manual_report as _save_manual_report
-     - Added: _save_report_with_feedback() helper that calls save and displays
-       the saved file path in a small status label below test controls
-     - Added "Save Report" button + status label to every manual test tab:
-         NFC_Rev2.07:    LED, BAT, MOT, EOS, SG, CAP, NFC, NFC SELF, CAN, LIN (10 tabs)
-         NON_NFC_Rev2.05: LED, BAT, MOT, EOS, SG, CAP, NFC, CAN, LIN (9 tabs)
+  2. Gui_Main_Script/gui_main.py — MODIFIED in BOTH projects:
+     - _REPORTS_DIR = _REPO_ROOT / "ManualTest" / "reports"
+       _REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+       → folder created once at application startup (after _parse_num helper)
+     - All per-tab "Save Report" buttons and status labels REMOVED
+     - _collect_and_save_all_manual_tests() added before update_tab_visibility():
+       Reads current values from every entry widget, builds sections list,
+       calls _save_manual_report(sections, _REPORTS_DIR), shows filename in
+       code_status_label. Tabs with empty entries are silently skipped.
+     - Disconnect Trace32 button command changed to:
+       lambda: [_collect_and_save_all_manual_tests(), QuitTrace32(code_status_label)]
 
-  PASS CRITERIA per tab:
+  TABS COLLECTED per project:
+    NFC_Rev2.07:     LED, BAT, Motor, EOS, SG, CAPA, NFC, NFC Self-Test, CAN, LIN
+    NON_NFC_Rev2.05: LED, BAT, Motor, EOS, SG, CAPA, NFC, CAN, LIN
+
+  PASS CRITERIA per module (same as before):
     LED (Off): 0–10 mV         | LED (On): > 0 mV
     BAT: 8000–16000 mV
     Motor: Voltage>0, Current>0, LoadError==0
     EOS Set: 1400–1600 mV      | EOS Reset: 2800–3000 mV
     SG: all OpAmp values != 0
     CAPA: bool fields==1, raw values > 8900
-    NFC: SpiError==0, HwVer/RomVer/FwVer != 0 (card detection shown informational)
-    CAN: CanRxDataValid==1
+    NFC: SpiError in (OK,0), HwVer/RomVer/FwVer != 0
+    CAN: CanRxDataValid==1 AND (loopback OR CanIsActiveState==1)
     LIN: LinRxDataValid==1 AND at least one Rx byte != 0
 
 FILES CHANGED:
-  NFC_Rev2.07\ManualTest\manual_report.py              NEW
-  NFC_Rev2.07\Gui_Main_Script\gui_main.py              MODIFIED
-  NON_NFC_Rev2.05\ManualTest\manual_report.py          NEW
-  NON_NFC_Rev2.05\Gui_Main_Script\gui_main.py          MODIFIED
+  NFC_Rev2.07\ManualTest\manual_report.py              REWRITTEN (multi-section API)
+  NFC_Rev2.07\Gui_Main_Script\gui_main.py              MODIFIED (redesign)
+  NON_NFC_Rev2.05\ManualTest\manual_report.py          REWRITTEN (multi-section API)
+  NON_NFC_Rev2.05\Gui_Main_Script\gui_main.py          MODIFIED (redesign)
   changes.txt                                          FIX 70 appended
-  ChatHistory_Full_April2026.txt                       Phase 7 appended
+  ChatHistory_Full_April2026.txt                       Phase 7 updated
 
-MASTER TABLE UPDATE (Phase 7):
+MASTER TABLE UPDATE (Phase 7 — revised):
   File                              Project           Change
   ────────────────────────────────  ───────────────   ────────────────────────
-  ManualTest/manual_report.py       NFC_Rev2.07       NEW — HTML report generator
-  Gui_Main_Script/gui_main.py       NFC_Rev2.07       Save Report button ×10 tabs
-  ManualTest/manual_report.py       NON_NFC_Rev2.05   NEW — HTML report generator
-  Gui_Main_Script/gui_main.py       NON_NFC_Rev2.05   Save Report button ×9 tabs
+  ManualTest/manual_report.py       NFC_Rev2.07       REWRITTEN — multi-section HTML
+  Gui_Main_Script/gui_main.py       NFC_Rev2.07       Single report on Disconnect
+  ManualTest/manual_report.py       NON_NFC_Rev2.05   REWRITTEN — multi-section HTML
+  Gui_Main_Script/gui_main.py       NON_NFC_Rev2.05   Single report on Disconnect
   changes.txt                       Root project      FIX 70 appended
-  ChatHistory_Full_April2026.txt    Documents         Phase 7 appended
+  ChatHistory_Full_April2026.txt    Documents         Phase 7 updated
 
 OPEN ITEMS / PENDING DECISIONS  (updated April 30, 2026)
   1–8. All items from Phase 6 still apply (see above).
-  9. Manual test reports — verify button layout does not overlap existing
-     controls on small screen resolutions; adjust x/y placement if needed.
 
 ================================================================================
 END OF FULL CHAT HISTORY — April 1 to April 30, 2026
