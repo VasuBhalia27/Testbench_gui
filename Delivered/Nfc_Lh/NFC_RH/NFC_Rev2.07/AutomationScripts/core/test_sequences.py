@@ -12,6 +12,7 @@ added later as the automation coverage expands.
 import time
 from typing import Any, Callable, Optional
 
+import Functional.trace32 as _t32_mod
 from AutomationScripts.core.trace32_adapter import Trace32Interface
 
 # individual sequence modules
@@ -410,10 +411,22 @@ class TestSequenceRunner:
 
         if bat_voltage == 0.0:
             self._log(
-                "BAT: 0.0 mV — ADC not ready yet, waiting "
-                f"{TIMING.bat_retry_wait:.1f} s and retrying..."
+                "BAT: 0.0 mV — performing MCU hardware reset (SYStem.Up) and retrying (attempt 2/2)"
             )
-            time.sleep(TIMING.bat_retry_wait)
+            # Perform a full target hardware reset via Trace32 instead of just
+            # waiting.  SYStem.Up drives the RESET pin on the MCU, clears any
+            # ADC/NFC initialisation fault that persisted across the first boot,
+            # and lets the firmware run a clean power-on sequence.
+            try:
+                if _t32_mod.dbg and hasattr(_t32_mod.dbg, 'cmd'):
+                    _t32_mod.dbg.cmd("Break")          # halt MCU
+                    time.sleep(0.5)
+                    _t32_mod.dbg.cmd("SYStem.Up")      # full hardware reset of target
+                    time.sleep(3.0)                     # wait for MCU power-on reset
+                    _t32_mod.dbg.cmd("Go")             # resume firmware execution
+                    time.sleep(TIMING.first_run_fw_init_wait)  # wait for TestFw to re-init
+            except Exception as exc:
+                self._log(f"BAT: MCU reset via SYStem.Up failed ({exc}), continuing anyway")
             bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
             results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
