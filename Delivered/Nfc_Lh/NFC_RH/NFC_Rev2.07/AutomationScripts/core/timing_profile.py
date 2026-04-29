@@ -36,12 +36,12 @@ class TimingProfile:
 
 
 NORMAL = TimingProfile(
-    supply_off_wait=1.0,
-    supply_on_wait=3.0,    # increased 1.5→3.0 s: PSU needs more time to reach full voltage before firmware ADC reads
+    supply_off_wait=2.0,    # increased 1.0→2.0 s: allow more time for supply rails to discharge
+    supply_on_wait=5.0,     # increased 3.0→5.0 s: bench PSU needs more time to reach full voltage before ADC reads
     first_run_fw_init_wait=5.0,
     before_go_wait=0.2,
-    bat_initial_wait=3.0,   # increased 1.5→3.0 s: ADC not ready within 1.5 s after DID trigger
-    bat_retry_wait=5.0,     # increased 2.0→5.0 s: give supply more time between retries
+    bat_initial_wait=5.0,   # increased 3.0→5.0 s: ADC needs more stabilisation time on tester bench
+    bat_retry_wait=8.0,     # increased 5.0→8.0 s: give supply more time between retries
     led_stabilize_wait=0.5,
     led_off_stabilize_wait=2.0,   # increased: LED voltage needs ~2 s to discharge to ≤ 10 mV
     motor_actuate_wait=1.0,

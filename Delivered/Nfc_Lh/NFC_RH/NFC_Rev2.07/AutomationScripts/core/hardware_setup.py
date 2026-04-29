@@ -107,7 +107,7 @@ class HardwareSetupVerifier:
             pass
         raise HardwareSetupVerificationError("Timeout waiting for Trace32 breakpoint")
 
-    def run_code_and_verify(self, timeout: float = 10.0) -> None:
+    def run_code_and_verify(self, timeout: float = 20.0) -> None:
         """
         Wait 1 second, then start code execution and verify "running" status.
 

@@ -237,7 +237,8 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     # Kill any stale T32 process before launching to avoid PODBUS "device already used" error
     os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-    time.sleep(2)  # Give the PODBUS driver time to release before new instance starts
+    time.sleep(5)  # Give the PODBUS driver time to release before new instance starts
+                   # 5 s is required on some benches; 2 s caused "device already used" PODBUS error on retry
     subprocess.Popen(command)
     # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
     time.sleep(8) 
