@@ -37,17 +37,20 @@ _DEFAULT_REPORTS_DIR = Path(__file__).resolve().parent / "reports"
 def save_manual_report(
     sections: list[dict],
     output_dir: "Path | str | None" = None,
+    sw_revision: str = "",
 ) -> str:
     """
     Write a single timestamped HTML report covering multiple test sections.
 
     Parameters
     ----------
-    sections   : list of dicts, each with:
-                   name    (str)  — test tab name, e.g. "LED Test"
-                   fields  (list) — [(field_name, measured_value, passed), ...]
-                   overall (bool) — True if the section overall passed
-    output_dir : directory to save the report (default: ManualTest/reports/)
+    sections     : list of dicts, each with:
+                     name    (str)  — test tab name, e.g. "LED Test"
+                     fields  (list) — [(field_name, measured_value, passed), ...]
+                     overall (bool) — True if the section overall passed
+    output_dir   : directory to save the report (default: ManualTest/reports/)
+    sw_revision  : software revision string, e.g. "Rev2.07" — appended to
+                   the filename and shown on the report header.
 
     Returns
     -------
@@ -59,7 +62,8 @@ def save_manual_report(
     ts          = datetime.now()
     ts_str      = ts.strftime("%Y%m%d_%H%M%S")
     ts_readable = ts.strftime("%Y-%m-%d  %H:%M:%S")
-    filename    = f"Manual_Report_{ts_str}.html"
+    rev_suffix  = f"_{sw_revision}" if sw_revision else ""
+    filename    = f"Manual_Report_{ts_str}{rev_suffix}.html"
     filepath    = out / filename
 
     # ── Summary table ────────────────────────────────────────────────────────
@@ -98,7 +102,7 @@ def save_manual_report(
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>Manual Test Report — {ts_readable}</title>
+  <title>Manual Test Report — {ts_readable}{' — ' + sw_revision if sw_revision else ''}</title>
   <style>
     body                  {{ font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px; }}
     h1                    {{ color:#2C3E50; margin-bottom:4px; }}
@@ -129,7 +133,7 @@ def save_manual_report(
 </head>
 <body>
   <h1>Manual Test Report</h1>
-  <div class="meta">Generated: {ts_readable}</div>
+  <div class="meta">Generated: {ts_readable}{'&emsp;|&emsp;Software Revision: ' + sw_revision if sw_revision else ''}</div>
   <h2 style="color:#2C3E50;font-size:15px;margin-bottom:6px;">Summary</h2>
   <table class="summary">
     <thead><tr><th>Test Module</th><th>Result</th></tr></thead>

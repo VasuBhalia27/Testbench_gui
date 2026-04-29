@@ -20,6 +20,9 @@ from AutomationScripts.core import gui_automation, integrated_automation
 
 # Manual test report generator
 from ManualTest.manual_report import save_manual_report as _save_manual_report
+
+# Software revision — shown in window title and embedded in report filename/header
+_SW_REVISION = "Rev2.07"
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
@@ -147,7 +150,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
 
 # Create the main window
 window = tk.Tk()
-window.title("SmartBU Testbench GUI")
+window.title(f"SmartBU Testbench GUI  —  {_SW_REVISION}")
 
 
 window.geometry("973x670")
@@ -1894,7 +1897,7 @@ def _collect_and_save_all_manual_tests():
         return
 
     try:
-        path = _save_manual_report(sections, _REPORTS_DIR)
+        path = _save_manual_report(sections, _REPORTS_DIR, _SW_REVISION)
         code_status_label.config(text=f"Manual report saved: {Path(path).name}")
     except Exception as exc:
         code_status_label.config(text=f"Manual report save failed: {exc}")
