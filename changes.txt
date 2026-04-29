@@ -1147,3 +1147,111 @@ Recommended next steps:
   - Evaluate alternative debugger if firmware flashing is critical requirement
 
 
+================================================================================
+SESSION — April 29, 2026
+================================================================================
+
+Project: C:\UShin\Testbench_gui_Charan\Delivered\Nfc_Lh\NFC_RH\NFC_Rev2.07
+Problem: NFC RH PCBs failing on NON-NFC-RH fixture.
+         Error 1: "FATAL ERROR from PODBUS-driver TRACE32 device already used by other GUI"
+         Error 2: BAT voltage reads 0.0 mV repeatedly — "voltage never stabilised within timeout"
+
+[FIX 65] NFC_Rev2.07 — Version label correction in Automation GUI  (April 29, 2026)
+  File: AutomationScripts/core/gui_automation.py
+  Changed 3 occurrences of "NFC_Rev2.06" → "NFC_Rev2.07":
+    Line 60:  self.root.title("NFC_Rev2.07")
+    Line 189: header label text="NFC_Rev2.07"
+    Line 194: welcome text "Welcome to NFC_Rev2.07"
+
+[FIX 66] NFC_Rev2.07 — Unique Trace32 RCL UDP port to prevent conflict  (April 29, 2026)
+  Root cause: Both NFC-LH (NFC_Rev2.06) and NFC-RH (NFC_Rev2.07) GUIs bind to
+  port 20006 for Trace32 RCL UDP communication. If both run on the same PC,
+  the second instance sees "TRACE32 device already used by other GUI".
+  Fix: Changed NFC_Rev2.07 exclusively to PORT=20007.
+
+  Files modified:
+    Config/config.t32
+      - PORT=20006  →  PORT=20007
+    Functional/trace32.py  (ConnectToTraceUDP)
+      - t32.connect(..., port=20006, ...)  →  port=20007
+
+[FIX 67] NFC_Rev2.07 — Kill all T32 process names in LaunchTrace32  (April 29, 2026)
+  Root cause: LaunchTrace32() only killed t32marm.exe. If T32 was started via
+  the Lauterbach Start Center, t32mstart.exe and t32mtc.exe could still hold
+  the USB/PODBUS driver handle, causing "device already used" on next launch.
+  Fix: Extended the kill list to ['t32marm.exe', 't32mstart.exe', 't32mtc.exe']
+  in both the STEP 1 cleanup loop and the pre-Popen taskkill call.
+
+  File: Functional/trace32.py  (LaunchTrace32)
+    - os.system("taskkill /F /IM t32marm.exe ...")  →  kill all three T32 executables
+    - tasklist polling loop now checks for any of the three process names
+
+[FIX 68] NFC_Rev2.07 — MCU SYStem.Up hardware reset on BAT 0.0 mV retry  (April 29, 2026)
+  Root cause: When BAT voltage reads 0.0 mV, increasing wait time (same fix as
+  NFC_Rev2.06) does not help because the MCU may be in a bad ADC/NFC init state
+  that only a hardware reset can clear. Extra waiting never resolves a firmware
+  initialisation fault.
+  Fix: On the first 0.0 mV reading, instead of waiting, issue:
+       Break → SYStem.Up (hardware RESET pin) → wait 3 s → Go → wait first_run_fw_init_wait
+  If the second attempt still returns 0.0 mV, the test is marked FAIL.
+  Timing profile values reverted to the same values as NFC_Rev2.06 NORMAL.
+
+  Files modified:
+    AutomationScripts/core/test_sequences.py
+      - Added import: import Functional.trace32 as _t32_mod
+      - On bat_voltage == 0.0: issues SYStem.Up reset before retry (attempt 2/2)
+      - Removed 3rd retry attempt (was added in error; only 2 attempts now)
+    AutomationScripts/core/timing_profile.py
+      - NORMAL profile values reverted to NFC_Rev2.06 values:
+          supply_on_wait        10.0 s  →  5.0 s
+          first_run_fw_init_wait 10.0 s  →  5.0 s
+          bat_initial_wait       8.0 s  →  5.0 s
+          bat_retry_wait        12.0 s  →  8.0 s
+
+================================================================================
+
+Project: C:\UShin\Testbench_gui_Charan\Delivered\Non_Nfc_Rh\NON_NFC_Rev2.05
+Problem: Alternating pass/fail on every second PCB. Second PCB always fails with
+         "Hardware setup attempt 1 timed out" then "Connection to Trace32 Failed!!!"
+         Debugger shows "running (locked up)" state on failing PCBs.
+         Tester must unplug/replug the SWD cable to recover.
+
+[FIX 69] NON_NFC_Rev2.05 — Detect and auto-recover ARM Cortex-M0+ lockup  (April 29, 2026)
+  Root cause (Bug 1): When a PCB is swapped while the SWD probe is still
+  connected, the PSoC4 (Cortex-M0+) can boot into "running (locked up)" state —
+  an ARM HardFault-on-HardFault or reset glitch that causes the CPU to execute
+  address 0xEFFFFFFE in an infinite loop. The firmware never starts, so
+  TestFw_IsEcuSleeping is never updated and run_code_and_verify() times out.
+  Fix: After issuing Go, also poll STATE.RUN() each loop iteration. If the
+  result contains "locked", issue SYStem.Up (drives MCU RESET pin via SWD for
+  a clean power-on reset), wait 2 s, issue Go, reset the timeout, and continue
+  polling. This is done at most once per boot (guarded by _lockup_reset_done).
+
+  Root cause (Bug 2): After the timeout in attempt 1, verify_setup() called
+  connect_trace32() for attempt 2 — which kills t32marm.exe and launches a new
+  instance with only a 2 s pre-launch wait. The USB/PODBUS driver had not yet
+  released, so ConnectToTraceUDP() failed immediately with
+  "Connection to Trace32 Failed!!!" (Image 3 from user).
+  Fix: On a timeout retry, set _skip=True so the existing T32 session is
+  reused — no process kill, no relaunch. T32 re-launch (_skip=False) is now
+  only triggered for genuine connection-level errors (not timeouts).
+
+  File modified:
+    AutomationScripts/core/hardware_setup.py
+      - run_code_and_verify(): added lockup detection block:
+          * Polls STATE.RUN() every loop iteration
+          * On "locked": logs WARNING, issues SYStem.Up, waits 2 s, issues Go,
+            resets start time, sets _lockup_reset_done=True, continues
+          * On second lockup (reset already attempted): raises
+            HardwareSetupVerificationError with clear message
+      - verify_setup(): replaced bare `for` with _skip local variable:
+          * On timeout error: sets _skip=True (reuse T32, do not re-launch)
+          * On connection error: sets _skip=False (allow T32 re-launch on retry)
+
+  Expected log output when lockup occurs (PCB 2 placed in fixture):
+    "WARNING: target is in 'running (locked up)' state (ARM Cortex-M0+ lockup detected).
+     Issuing SYStem.Up to perform hardware MCU reset..."
+    "Running: target is executing (TestFw_IsEcuSleeping = 0)"
+    "Hardware setup verified successfully!"
+
+

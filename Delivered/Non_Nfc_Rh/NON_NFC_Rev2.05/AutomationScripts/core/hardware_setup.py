@@ -124,8 +124,46 @@ class HardwareSetupVerifier:
             raise HardwareSetupVerificationError(f"Failed to run code: {e}")
 
         self._log("Verifying running status...")
+        _lockup_reset_done = False
         start = time.time()
         while time.time() - start < timeout:
+            # --- Cortex-M0+ lockup detection ---------------------------------
+            # When the PSoC4 boots into "running (locked up)" state (ARM lockup
+            # caused by a HardFault-on-HardFault or a reset glitch on PCB swap),
+            # TestFw_IsEcuSleeping is never updated and the poll times out.
+            # Detect the lockup via STATE.RUN() and recover with SYStem.Up once.
+            try:
+                run_state = str(t32.dbg.fnc("STATE.RUN()")).lower()
+                if "locked" in run_state:
+                    if not _lockup_reset_done:
+                        self._log(
+                            "WARNING: target is in 'running (locked up)' state "
+                            "(ARM Cortex-M0+ lockup detected). "
+                            "Issuing SYStem.Up to perform hardware MCU reset..."
+                        )
+                        try:
+                            t32.dbg.cmd("SYStem.Up")
+                        except Exception:
+                            pass
+                        time.sleep(2.0)   # wait for MCU power-on reset to complete
+                        try:
+                            t32.dbg.cmd("Go")
+                        except Exception:
+                            pass
+                        _lockup_reset_done = True
+                        start = time.time()  # reset verification timeout after recovery
+                        time.sleep(0.5)
+                        continue
+                    else:
+                        raise HardwareSetupVerificationError(
+                            "Target remains in 'running (locked up)' state after "
+                            "SYStem.Up recovery — check PCB power and SWD connection"
+                        )
+            except HardwareSetupVerificationError:
+                raise
+            except Exception:
+                pass
+            # -----------------------------------------------------------------
             try:
                 # Poll the sleeping flag.  The ECU must be AWAKE (value == 0)
                 # before we declare the setup verified.  Accepting any response
@@ -150,10 +188,17 @@ class HardwareSetupVerifier:
         :return: True if fully verified, False otherwise
         """
         max_attempts = 2
+        _skip = skip_connect  # local copy so we can change it per-attempt
         for attempt in range(1, max_attempts + 1):
             try:
-                # Only connect on first run; reuse connection for subsequent runs
-                if not skip_connect:
+                # Only connect (re-launch T32) when _skip is False.
+                # IMPORTANT: on a timeout retry we do NOT re-launch T32.
+                # Killing and restarting t32marm.exe requires a 2–5 s USB driver
+                # release delay; if that delay is too short, ConnectToTraceUDP
+                # fails with "Connection to Trace32 Failed".
+                # The lockup recovery (SYStem.Up) inside run_code_and_verify()
+                # handles the target reset without touching the T32 process.
+                if not _skip:
                     self.connect_trace32(preset)
                 self.run_code_and_verify()
                 self._log("Hardware setup verified successfully!")
@@ -167,10 +212,14 @@ class HardwareSetupVerifier:
                             f"Hardware setup attempt {attempt} timed out — "
                             "target did not reach running state. Retrying once..."
                         )
+                        # Keep the existing T32 session — do NOT re-launch.
+                        _skip = True
                     else:
                         self._log(
                             f"Hardware setup attempt {attempt} failed: {e} — retrying once..."
                         )
+                        # Connection-level failure: allow T32 re-launch on retry.
+                        _skip = False
                 else:
                     self._log(f"Hardware setup failed after {max_attempts} attempts: {e}")
                     if is_timeout:

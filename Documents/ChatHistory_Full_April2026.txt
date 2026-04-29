@@ -1379,6 +1379,356 @@ PART 6 — QUICK REFERENCE CHECKLIST (print and keep at test station)
   [ ] Confirm "MySQL: test result inserted into database." in status area
   [ ] Remove PCB → insert next PCB
 
+================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 6  —  APRIL 29, 2026  (confirmed date)
+════════════════════════════════════════════════════════════════════════════════
+================================================================================
+
+--------------------------------------------------------------------------------
+TURN 13 — NFC RH PCBs Failing on NON-NFC-RH Fixture
+Date   : April 29, 2026
+Target : NFC_Rev2.07  (NEW project created)
+Path   : Delivered\Nfc_Lh\NFC_RH\NFC_Rev2.07\
+Source : Copied from NFC_Rev2.06 (NFC-LH project) as starting point
+Problem: NFC RH PCBs fail when tested on the NON-NFC-RH fixture.
+         Error 1 (Image 1): "FATAL ERROR from PODBUS-driver TRACE32 device
+                            already used by other GUI. CONFIG: C:\UShin\
+                            NON_NFC_Rev2.04\Config\config.t32  PORT=20006"
+         Error 2 (Image 2): BAT voltage reads 0.0 mV repeatedly —
+                            "BAT: voltage never stabilised within timeout"
+                            FAIL after 2 attempts
+--------------------------------------------------------------------------------
+
+USER:
+  "With 2. NON-NFC-RH fixture Non-Nfc RH PCBs are getting passed with
+   NON_NFC_Rev2.04 software but Nfc RH PCBs are getting failed with
+   NFC_Rev2.05/NFC_Rev2.06 here i attached the images which shows the errors.
+   Please provide the solution on this project path
+   C:\UShin\Testbench_gui_Charan\Delivered\Nfc_Lh\NFC_RH\NFC_Rev2.07"
+
+COPILOT INVESTIGATION:
+  Read gui_automation.py, timing_profile.py, test_sequences.py, config.t32,
+  trace32.py, hardware_setup.py, integrated_automation.py in NFC_Rev2.07.
+
+  ERROR 1 ROOT CAUSE — PODBUS "device already used":
+    Both NON_NFC_Rev2.04 (port 20006) and NFC_Rev2.07 (also port 20006) bind
+    to the SAME Trace32 RCL UDP port. If the NON_NFC_Rev2.04 GUI is open or
+    its T32 process is still alive when NFC_Rev2.07 starts, the second T32
+    instance fails to acquire the PODBUS USB handle → fatal error.
+    Additionally LaunchTrace32() only killed t32marm.exe, not t32mstart.exe
+    or t32mtc.exe (left alive by the Lauterbach Start Center).
+
+  ERROR 2 ROOT CAUSE — BAT 0.0 mV:
+    NFC RH PCBs have the NFC chip + antenna which draw more inrush current on
+    startup, so the ADC/firmware initialisation can fail during the first boot.
+    Simply waiting longer (same approach already used in NFC_Rev2.06 LH) does
+    not help once the firmware is in a bad ADC state — only a hardware MCU
+    reset can clear it.
+
+COPILOT FIX 1 — gui_automation.py (version label correction):
+  Three occurrences of "NFC_Rev2.06" → "NFC_Rev2.07":
+    Line 60:  self.root.title("NFC_Rev2.07")
+    Line 189: header label text="NFC_Rev2.07"
+    Line 194: welcome text "Welcome to NFC_Rev2.07\n"
+
+COPILOT FIX 2 — Config/config.t32 (unique RCL UDP port):
+  PORT=20006  →  PORT=20007
+  NFC_Rev2.07 (RH fixture) now uses port 20007.
+  NON_NFC_Rev2.04 / NFC_Rev2.06 (LH fixture) keep port 20006.
+  → Two T32 instances can coexist on the same PC without conflict.
+
+COPILOT FIX 3 — Functional/trace32.py ConnectToTraceUDP():
+  t32.connect(..., port=20006, ...)  →  port=20007
+  Python RCL client now connects to the matching port 20007.
+
+COPILOT FIX 4 — Functional/trace32.py LaunchTrace32() — kill all T32 processes:
+  BEFORE (only one process killed):
+    os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+    tasklist polling loop checks only 't32marm.exe'
+
+  AFTER (all T32 executables killed):
+    _T32_PROCS = ['t32marm.exe', 't32mstart.exe', 't32mtc.exe']
+    for _proc in _T32_PROCS:
+        os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")
+    tasklist polling loop checks for any of the three names
+  Applied to both the STEP 1 cleanup loop AND the pre-Popen taskkill.
+
+COPILOT FIX 5 — AutomationScripts/core/test_sequences.py — SYStem.Up reset on BAT retry:
+  BEFORE (attempt 2 just waited):
+    time.sleep(TIMING.bat_retry_wait)
+    bat_passed, bat_voltage = self.run_battery_test_with_voltage(...)
+
+  AFTER (attempt 2 issues MCU hardware reset first):
+    try:
+        _t32_mod.dbg.cmd("Break")
+        time.sleep(0.5)
+        _t32_mod.dbg.cmd("SYStem.Up")   # drives MCU RESET pin via SWD
+        time.sleep(3.0)                  # wait for MCU power-on reset
+        _t32_mod.dbg.cmd("Go")
+        time.sleep(TIMING.first_run_fw_init_wait)
+    except Exception as exc:
+        self._log(f"BAT: MCU reset via SYStem.Up failed ({exc}), continuing anyway")
+    bat_passed, bat_voltage = self.run_battery_test_with_voltage(...)
+  Also: 3rd retry attempt removed (was added by mistake in previous session);
+  back to 2 attempts total.
+  Also: Added import Functional.trace32 as _t32_mod at top of file.
+
+  Timing profile reverted to same values as NFC_Rev2.06 NORMAL
+  (increasing wait times was not the right fix since NFC_Rev2.06 already
+  has larger values and it works on LH fixture):
+    supply_on_wait        10.0 s  →  5.0 s
+    first_run_fw_init_wait 10.0 s  →  5.0 s
+    bat_initial_wait       8.0 s  →  5.0 s
+    bat_retry_wait        12.0 s  →  8.0 s
+
+FILES MODIFIED (NFC_Rev2.07):
+  AutomationScripts/core/gui_automation.py    — version strings (3 locations)
+  AutomationScripts/core/timing_profile.py    — NORMAL values reverted to Rev2.06
+  AutomationScripts/core/test_sequences.py    — SYStem.Up reset + import added
+  Config/config.t32                           — PORT 20006 → 20007
+  Functional/trace32.py                       — UDP port 20007; kill all T32 procs
+
+NOTE (firmware):
+  NFC_Rev2.07 uses the same XNF-Handle_Driver_C2_App.elf as NFC_Rev2.06 LH.
+  If BAT 0.0 mV persists after the SYStem.Up fix, the firmware team may need
+  to provide a dedicated NFC RH ELF with correct ADC pin mapping for the RH
+  PCB hardware.
+
+--------------------------------------------------------------------------------
+TURN 14 — NON_NFC_Rev2.05: Alternating Pass/Fail on Every Second PCB
+Date   : April 29, 2026
+Target : NON_NFC_Rev2.05
+Path   : Delivered\Non_Nfc_Rh\NON_NFC_Rev2.05\
+Problem: First PCB passes. Second PCB always fails. Third PCB (after cable
+         replug) passes. Alternating pass/fail pattern requires tester to
+         physically unplug/replug the SWD debugger cable between every failing
+         PCB to recover.
+         Screenshot 1: Trace32 PowerView shows "running (locked up)" status bar.
+         Screenshot 2: GUI shows "FATAL ERROR from PODBUS-driver TRACE32 device
+                       already used by other GUI."
+         Screenshot 3: GUI shows "Connection to Trace32 Failed!!!" after
+                       "Hardware setup attempt 1 timed out — target did not
+                       reach running state. Retrying once..."
+--------------------------------------------------------------------------------
+
+USER:
+  "I have another problem on this project
+   C:\UShin\Testbench_gui_Charan\Delivered\Non_Nfc_Rh\NON_NFC_Rev2.05,
+   when tester place a first PCB in the fixture, the PCB test run successfully
+   then tester remove the PCB from the fixture and place the second PCB in the
+   fixture and start automatic test, second PCB test gets fail and i attached
+   the failure image here, after second PCB fail then tester has to unplug and
+   replug the debugger cable and test the third PCB now third PCB gets passed,
+   so every time tester has to unplug and replug the debugger power cable that
+   need to get rid from it and every alternate PCB test pass and fail, as you
+   can see in the first screenshot when debugger state is 'running(locked up)'
+   this test gets fail and when debugger state is 'running' PCB test gets pass,
+   Please give me the root cause of this random failure and provide the fix"
+
+COPILOT INVESTIGATION:
+  Read hardware_setup.py, Functional/trace32.py (LaunchTrace32, QuitTrace32,
+  ConnectToTraceUDP), and the complete verify_setup() and run_code_and_verify()
+  methods in NON_NFC_Rev2.05.
+
+  ROOT CAUSE — BUG 1 (MCU Cortex-M0+ lockup NOT detected):
+    When a PCB is physically swapped while the SWD probe is still attached,
+    the PSoC4 (Cortex-M0+) can boot into "running (locked up)" state — an ARM
+    hardware lockup caused by a HardFault-on-HardFault or a reset glitch on
+    PCB swap. In this state the CPU is stuck executing address 0xEFFFFFFE in
+    an infinite loop. The firmware never runs, so TestFw_IsEcuSleeping is
+    never updated. The 10 s poll times out and the test fails with
+    "Hardware setup attempt 1 timed out".
+
+  ROOT CAUSE — BUG 2 (Wrong retry kills and relaunches T32):
+    After the timeout in attempt 1, verify_setup() called connect_trace32()
+    for attempt 2. This taskkill'd t32marm.exe and launched a new instance
+    with only a 2 s pre-launch sleep (too short for USB driver to release).
+    ConnectToTraceUDP() failed immediately with "Connection to Trace32
+    Failed!!!" — the exact error shown in Screenshot 3.
+
+  WHY EVERY ALTERNATE PCB:
+    PCB 1 (first insert, cold start) — T32 launches fresh, no lockup → PASS
+    PCB 2 (swap while SWD attached) — MCU boot glitch → lockup → timeout →
+    bad retry (T32 killed + relaunched too fast) → "Trace32 Failed" → FAIL
+    PCB 3 (tester unplugs/replugs cable) — physical reset clears lockup →
+    T32 relaunches cleanly → PASS
+    Pattern repeats every swap.
+
+COPILOT FIX — hardware_setup.py (NON_NFC_Rev2.05):
+
+  FIX 1: run_code_and_verify() — ARM lockup detection and auto-recovery:
+    Added STATE.RUN() polling in the verification loop:
+
+    _lockup_reset_done = False
+    while time.time() - start < timeout:
+        # Check for ARM Cortex-M0+ lockup
+        try:
+            run_state = str(t32.dbg.fnc("STATE.RUN()")).lower()
+            if "locked" in run_state:
+                if not _lockup_reset_done:
+                    self._log("WARNING: target is in 'running (locked up)' state. "
+                              "Issuing SYStem.Up to perform hardware MCU reset...")
+                    t32.dbg.cmd("SYStem.Up")   # drives MCU RESET pin via SWD
+                    time.sleep(2.0)             # wait for power-on reset to complete
+                    t32.dbg.cmd("Go")
+                    _lockup_reset_done = True
+                    start = time.time()         # reset verification timeout
+                    continue
+                else:
+                    raise HardwareSetupVerificationError(
+                        "Target remains in 'running (locked up)' state after "
+                        "SYStem.Up recovery — check PCB power and SWD connection"
+                    )
+        except HardwareSetupVerificationError:
+            raise
+        except Exception:
+            pass
+        # then poll TestFw_IsEcuSleeping as before ...
+
+  FIX 2: verify_setup() — smart retry logic (do NOT re-launch T32 on timeout):
+    Replaced the bare `for` loop with a _skip local variable:
+
+    _skip = skip_connect  # local copy, changes per attempt
+    for attempt in range(1, max_attempts + 1):
+        try:
+            if not _skip:
+                self.connect_trace32(preset)   # launch T32
+            self.run_code_and_verify()
+            ...
+        except HardwareSetupVerificationError as e:
+            is_timeout = "Timeout" in err_str
+            if attempt < max_attempts:
+                if is_timeout:
+                    _skip = True    # keep T32 alive — lockup recovery handles MCU
+                else:
+                    _skip = False   # connection error → allow T32 relaunch on retry
+
+  EXPECTED LOG (PCB 2 that previously failed):
+    "WARNING: target is in 'running (locked up)' state
+     (ARM Cortex-M0+ lockup detected).
+     Issuing SYStem.Up to perform hardware MCU reset..."
+    "Running: target is executing (TestFw_IsEcuSleeping = 0)"
+    "Hardware setup verified successfully!"
+  No cable unplug/replug needed.
+
+FILE MODIFIED:
+  NON_NFC_Rev2.05: AutomationScripts/core/hardware_setup.py
+    - run_code_and_verify(): added lockup detection block with SYStem.Up recovery
+    - verify_setup(): replaced fixed skip_connect with adaptive _skip variable
+
+--------------------------------------------------------------------------------
+TURN 15 — changes.txt Updated to Include April 29 Session
+Date: April 29, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "can you please update changeHistory.txt for the chats?"
+
+COPILOT ACTION:
+  Read the full existing changes.txt (FIX 1 through FIX 64).
+  Appended entries for the April 29 session (FIX 65 – FIX 69):
+    FIX 65: NFC_Rev2.07 version label correction
+    FIX 66: NFC_Rev2.07 Trace32 RCL UDP port 20006 → 20007
+    FIX 67: NFC_Rev2.07 kill all T32 process names in LaunchTrace32
+    FIX 68: NFC_Rev2.07 MCU SYStem.Up hardware reset on BAT 0.0 mV
+    FIX 69: NON_NFC_Rev2.05 ARM Cortex-M0+ lockup detection and recovery
+
+FILE MODIFIED:
+  C:\UShin\Testbench_gui_Charan\changes.txt
+
+--------------------------------------------------------------------------------
+TURN 16 — ChatHistory_Full_April2026.txt Updated to April 29
+Date: April 29, 2026
+--------------------------------------------------------------------------------
+
+USER:
+  "C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt,
+   every time you need to update this file please"
+
+COPILOT ACTION:
+  Read the full existing ChatHistory_Full_April2026.txt (Phase 1–5, Turns 1–12).
+  Appended Phase 6 (April 29, 2026) covering:
+    Turn 13: NFC_Rev2.07 — NFC RH PCBs failing on NON-NFC-RH fixture (5 fixes)
+    Turn 14: NON_NFC_Rev2.05 — Alternating pass/fail (ARM lockup fix)
+    Turn 15: changes.txt updated (FIX 65–69)
+    Turn 16: This ChatHistory update
+  Updated master change table and open items.
+
+FILE MODIFIED:
+  C:\UShin\Testbench_gui_Charan\Documents\ChatHistory_Full_April2026.txt
+
+================================================================================
+COMPLETE FILE CHANGE MASTER TABLE — APRIL 1–29, 2026
+================================================================================
+
+  File                              Rev/Path               Change
+  ──────────────────────────────────────────────────────────────────────────────
+  [All entries from April 1–26 remain unchanged — see master table above]
+
+  [April 29, 2026 additions:]
+
+  gui_automation.py                 NFC_Rev2.07            Version strings
+  [Apr 29]                          Delivered\Nfc_Lh\NFC_RH "NFC_Rev2.06" →
+                                                           "NFC_Rev2.07" (3 locs)
+
+  Config/config.t32                 NFC_Rev2.07            PORT=20006 → 20007
+  [Apr 29]                          Delivered\Nfc_Lh\NFC_RH Unique port for RH
+                                                           fixture; avoids PODBUS
+                                                           conflict with LH GUI
+
+  Functional/trace32.py             NFC_Rev2.07            ConnectToTraceUDP:
+  [Apr 29]                          Delivered\Nfc_Lh\NFC_RH port=20006 → 20007
+                                                           LaunchTrace32: kill
+                                                           all 3 T32 exe names
+
+  test_sequences.py                 NFC_Rev2.07            Added SYStem.Up MCU
+  [Apr 29]                          Delivered\Nfc_Lh\NFC_RH reset on BAT 0.0 mV
+                                                           retry; import added;
+                                                           3rd retry removed
+
+  timing_profile.py                 NFC_Rev2.07            NORMAL values reverted
+  [Apr 29]                          Delivered\Nfc_Lh\NFC_RH to NFC_Rev2.06 values
+                                                           (5s/5s/5s/8s)
+
+  hardware_setup.py                 NON_NFC_Rev2.05        ARM lockup detection
+  [Apr 29]                          Delivered\Non_Nfc_Rh   via STATE.RUN(); auto
+                                                           SYStem.Up recovery;
+                                                           smart _skip retry logic
+
+  changes.txt                       Root project            FIX 65–69 appended
+  [Apr 29]
+
+  ChatHistory_Full_April2026.txt    Documents               Phase 6 appended
+  [Apr 29]                                                  (Turns 13–16)
+
+================================================================================
+OPEN ITEMS / PENDING DECISIONS  (updated April 29, 2026)
+================================================================================
+  1. Standalone LoopbackTest class (loopback_test.py) — not yet created.
+     User has not confirmed whether they want this extracted.
+
+  2. Rev1.09 Delivered — confirmed STABLE, do not modify.
+
+  3. Rev2.02 battery fix — awaiting test results from factory floor.
+
+  4. Rev2.03 MySQL — DB_CONFIG credentials in mysql_logger.py must be
+     updated to match the actual MySQL server before deployment.
+
+  5. [PENDING] MySQL Connection Details Dialog — not yet implemented.
+     Planned to show on first Start if no saved config; save to JSON.
+
+  6. [PENDING] KEYENCE SR-X100 Autofocus Code Reader — not yet procured.
+     Code is ready; hardware purchase order pending.
+
+  7. NFC_Rev2.07 — BAT 0.0 mV fix (SYStem.Up) to be verified on factory floor.
+     If issue persists, firmware team needs to provide dedicated NFC RH ELF
+     (separate from the NFC LH ELF currently used) with correct ADC pin mapping.
+
+  8. NON_NFC_Rev2.05 — ARM lockup fix to be verified on factory floor.
+     Expected result: second PCB now passes without cable replug.
+
+
 --------------------------------------------------------------------------------
 TURN 13 — Factory Launchers (.bat / .vbs) Fixed to Use Full GUI with MySQL
 Date: April 26, 2026
