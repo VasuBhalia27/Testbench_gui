@@ -1254,4 +1254,40 @@ Problem: Alternating pass/fail on every second PCB. Second PCB always fails with
     "Running: target is executing (TestFw_IsEcuSleeping = 0)"
     "Hardware setup verified successfully!"
 
+--------------------------------------------------------------------------------
+[FIX 70] NFC_Rev2.07 + NON_NFC_Rev2.05 — Timestamped manual test HTML reports
+         (April 30, 2026)
+--------------------------------------------------------------------------------
+  Problem:
+    No way to record manual test results performed via the GUI tabs.
+    Operators had to write results down manually with no traceability.
+
+  Solution:
+    Created ManualTest/manual_report.py in BOTH projects.
+    Added "Save Report" button to every manual test tab (LED, BAT, MOT, EOS,
+    SG, CAP, NFC, NFC SELF, CAN, LIN) in Gui_Main_Script/gui_main.py for
+    BOTH projects.
+
+  Files changed:
+    NFC_Rev2.07/ManualTest/manual_report.py            (NEW)
+    NFC_Rev2.07/Gui_Main_Script/gui_main.py            (MODIFIED — 11 tabs)
+    NON_NFC_Rev2.05/ManualTest/manual_report.py        (NEW)
+    NON_NFC_Rev2.05/Gui_Main_Script/gui_main.py        (MODIFIED — 10 tabs)
+
+  Report details:
+    - File saved to ManualTest/reports/Manual_Report_YYYYMMDD_HHMMSS.html
+    - Directory created automatically on first save (os.makedirs, exist_ok=True)
+    - HTML report contains: test name, timestamp, per-field measured values,
+      PASS/FAIL per field (green/red colour-coded), overall PASS/FAIL banner
+    - Report path shown in a small status label below the test controls
+    - PASS thresholds match the automation test criteria:
+        LED (Off): 0–10 mV  |  LED (On): > 0 mV
+        BAT: 8000–16000 mV
+        Motor: Voltage > 0, Current > 0, LoadError == 0
+        EOS Set: 1400–1600 mV  |  EOS Reset: 2800–3000 mV
+        SG: all OpAmp values != 0
+        CAPA: bool fields == 1, raw values > 8900
+        NFC: SpiError == 0, HwVersion/RomVersion/FwVersion != 0
+        CAN: CanRxDataValid == 1
+        LIN: LinRxDataValid == 1 and at least one Rx byte != 0
 

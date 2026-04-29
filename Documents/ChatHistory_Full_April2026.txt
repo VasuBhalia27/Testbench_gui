@@ -3491,3 +3491,77 @@ OPEN ITEMS / PENDING DECISIONS — Updated April 28, 2026
 ================================================================================
 END OF FULL CHAT HISTORY — April 1 to April 28, 2026
 ================================================================================
+
+================================================================================
+  PHASE 7  —  APRIL 30, 2026
+================================================================================
+
+TURN 17 — Timestamped Manual Test HTML Reports (both projects)
+Date: April 30, 2026
+
+USER:
+  "In above both projects please create a folder \ManualTest\reports and under
+   this please generate the manual test reports using timestamp while i perform
+   the manual test with PASS or FAIL status"
+
+  "Above both projects" = NFC_Rev2.07 and NON_NFC_Rev2.05
+
+ROOT CAUSE / NEED:
+  Operators performing manual tests via the GUI (LED, BAT, MOT, EOS, SG, CAP,
+  NFC, NFC SELF, CAN, LIN tabs) had no way to save or trace results. Each test
+  result was only visible on screen with no permanent record.
+
+COPILOT SOLUTION:
+
+  1. Created ManualTest/manual_report.py in BOTH projects:
+     - save_manual_report(test_name, fields, overall_ok)
+     - Generates ManualTest/reports/Manual_Report_YYYYMMDD_HHMMSS.html
+     - Directory created automatically (os.makedirs, exist_ok=True)
+     - HTML: coloured PASS (green) / FAIL (red) per field + overall banner
+     - PASS thresholds match automation test criteria for each test type
+
+  2. Modified Gui_Main_Script/gui_main.py in BOTH projects:
+     - Added: from ManualTest.manual_report import save_manual_report as _save_manual_report
+     - Added: _save_report_with_feedback() helper that calls save and displays
+       the saved file path in a small status label below test controls
+     - Added "Save Report" button + status label to every manual test tab:
+         NFC_Rev2.07:    LED, BAT, MOT, EOS, SG, CAP, NFC, NFC SELF, CAN, LIN (10 tabs)
+         NON_NFC_Rev2.05: LED, BAT, MOT, EOS, SG, CAP, NFC, CAN, LIN (9 tabs)
+
+  PASS CRITERIA per tab:
+    LED (Off): 0–10 mV         | LED (On): > 0 mV
+    BAT: 8000–16000 mV
+    Motor: Voltage>0, Current>0, LoadError==0
+    EOS Set: 1400–1600 mV      | EOS Reset: 2800–3000 mV
+    SG: all OpAmp values != 0
+    CAPA: bool fields==1, raw values > 8900
+    NFC: SpiError==0, HwVer/RomVer/FwVer != 0 (card detection shown informational)
+    CAN: CanRxDataValid==1
+    LIN: LinRxDataValid==1 AND at least one Rx byte != 0
+
+FILES CHANGED:
+  NFC_Rev2.07\ManualTest\manual_report.py              NEW
+  NFC_Rev2.07\Gui_Main_Script\gui_main.py              MODIFIED
+  NON_NFC_Rev2.05\ManualTest\manual_report.py          NEW
+  NON_NFC_Rev2.05\Gui_Main_Script\gui_main.py          MODIFIED
+  changes.txt                                          FIX 70 appended
+  ChatHistory_Full_April2026.txt                       Phase 7 appended
+
+MASTER TABLE UPDATE (Phase 7):
+  File                              Project           Change
+  ────────────────────────────────  ───────────────   ────────────────────────
+  ManualTest/manual_report.py       NFC_Rev2.07       NEW — HTML report generator
+  Gui_Main_Script/gui_main.py       NFC_Rev2.07       Save Report button ×10 tabs
+  ManualTest/manual_report.py       NON_NFC_Rev2.05   NEW — HTML report generator
+  Gui_Main_Script/gui_main.py       NON_NFC_Rev2.05   Save Report button ×9 tabs
+  changes.txt                       Root project      FIX 70 appended
+  ChatHistory_Full_April2026.txt    Documents         Phase 7 appended
+
+OPEN ITEMS / PENDING DECISIONS  (updated April 30, 2026)
+  1–8. All items from Phase 6 still apply (see above).
+  9. Manual test reports — verify button layout does not overlap existing
+     controls on small screen resolutions; adjust x/y placement if needed.
+
+================================================================================
+END OF FULL CHAT HISTORY — April 1 to April 30, 2026
+================================================================================
