@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>Manual Test Report — 2026-04-29  18:28:35 — Rev2.07</title>
+  <title>Manual Test Report — 2026-04-29  19:00:50 — Rev2.07</title>
   <style>
     body                  { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px; }
     h1                    { color:#2C3E50; margin-bottom:4px; }
@@ -33,14 +33,14 @@
 </head>
 <body>
   <h1>Manual Test Report</h1>
-  <div class="meta">Generated: 2026-04-29  18:28:35&emsp;|&emsp;Software Revision: Rev2.07</div>
+  <div class="meta">Generated: 2026-04-29  19:00:50&emsp;|&emsp;2D Scan: <strong>11111111111111111111111111111111111</strong>&emsp;|&emsp;Software Revision: Rev2.07&emsp;|&emsp;PCB #1&emsp;|&emsp;Overall: <strong>FAIL</strong></div>
   <h2 style="color:#2C3E50;font-size:15px;margin-bottom:6px;">Summary</h2>
   <table class="summary">
     <thead><tr><th>Test Module</th><th>Result</th></tr></thead>
     <tbody>
-      <tr><td>LED Test</td><td class="pass">PASS</td></tr>
+      <tr><td>LED Test</td><td class="fail">FAIL</td></tr>
       <tr><td>BAT Test</td><td class="pass">PASS</td></tr>
-      <tr><td>Motor Test</td><td class="pass">PASS</td></tr>
+      <tr><td>Motor Test</td><td class="fail">FAIL</td></tr>
       <tr><td>EOS Test</td><td class="pass">PASS</td></tr>
       <tr><td>SG Test</td><td class="fail">FAIL</td></tr>
       <tr><td>CAPA Test</td><td class="fail">FAIL</td></tr>
@@ -51,14 +51,14 @@
     </tbody>
   </table>
   <h2 style="color:#2C3E50;font-size:15px;margin-bottom:6px;">Detailed Results</h2>
-  <h2 class="section-title">LED Test    <span class="badge pass">PASS</span></h2>
+  <h2 class="section-title">LED Test    <span class="badge fail">FAIL</span></h2>
   <table>
     <thead><tr><th>Field</th><th>Measured Value</th><th>Result</th></tr></thead>
     <tbody>
         <tr>
           <td>LedVoltage</td>
           <td>3299 mV</td>
-          <td class="pass">PASS</td>
+          <td class="fail">FAIL</td>
         </tr>
     </tbody>
   </table>
@@ -68,23 +68,23 @@
     <tbody>
         <tr>
           <td>AiBatRef</td>
-          <td>12048 mV</td>
+          <td>12042 mV</td>
           <td class="pass">PASS</td>
         </tr>
     </tbody>
   </table>
-  <h2 class="section-title">Motor Test    <span class="badge pass">PASS</span></h2>
+  <h2 class="section-title">Motor Test    <span class="badge fail">FAIL</span></h2>
   <table>
     <thead><tr><th>Field</th><th>Measured Value</th><th>Result</th></tr></thead>
     <tbody>
         <tr>
           <td>MotorVoltage</td>
-          <td>2 mV</td>
-          <td class="pass">PASS</td>
+          <td>0 mV</td>
+          <td class="fail">FAIL</td>
         </tr>
         <tr>
           <td>MotorCurrentValue</td>
-          <td>140 mA</td>
+          <td>180 mA</td>
           <td class="pass">PASS</td>
         </tr>
         <tr>
@@ -126,7 +126,7 @@
         </tr>
         <tr>
           <td>Sg1Opamp</td>
-          <td>915 mV</td>
+          <td>905 mV</td>
           <td class="pass">PASS</td>
         </tr>
         <tr>
@@ -141,7 +141,7 @@
         </tr>
         <tr>
           <td>Sg2Opamp</td>
-          <td>4 mV</td>
+          <td>6 mV</td>
           <td class="pass">PASS</td>
         </tr>
     </tbody>
@@ -167,17 +167,17 @@
         </tr>
         <tr>
           <td>CapaApproachRawValue</td>
-          <td>9001 counts</td>
+          <td>9009 counts</td>
           <td class="pass">PASS</td>
         </tr>
         <tr>
           <td>CapaLockRawValue</td>
-          <td>8959 counts</td>
+          <td>8970 counts</td>
           <td class="pass">PASS</td>
         </tr>
         <tr>
           <td>CapaUnlockRawValue</td>
-          <td>8992 counts</td>
+          <td>8999 counts</td>
           <td class="pass">PASS</td>
         </tr>
     </tbody>

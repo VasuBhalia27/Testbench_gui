@@ -38,6 +38,8 @@ def save_manual_report(
     sections: list[dict],
     output_dir: "Path | str | None" = None,
     sw_revision: str = "",
+    scan_code: str = "",
+    pcb_count: int = 0,
 ) -> str:
     """
     Write a single timestamped HTML report covering multiple test sections.
@@ -51,6 +53,8 @@ def save_manual_report(
     output_dir   : directory to save the report (default: ManualTest/reports/)
     sw_revision  : software revision string, e.g. "Rev2.07" — appended to
                    the filename and shown on the report header.
+    scan_code    : 2D barcode scan value — included in the filename.
+    pcb_count    : sequential PCB test counter — included in the filename.
 
     Returns
     -------
@@ -59,11 +63,16 @@ def save_manual_report(
     out = Path(output_dir) if output_dir else _DEFAULT_REPORTS_DIR
     out.mkdir(parents=True, exist_ok=True)
 
+    overall_ok  = all(s["overall"] for s in sections)
+    result_str  = "PASS" if overall_ok else "FAIL"
+
     ts          = datetime.now()
     ts_str      = ts.strftime("%Y%m%d_%H%M%S")
     ts_readable = ts.strftime("%Y-%m-%d  %H:%M:%S")
-    rev_suffix  = f"_{sw_revision}" if sw_revision else ""
-    filename    = f"Manual_Report_{ts_str}{rev_suffix}.html"
+    scan_part   = f"{scan_code}_" if scan_code else ""
+    rev_part    = f"{sw_revision}_" if sw_revision else ""
+    count_str   = f"{pcb_count:04d}"
+    filename    = f"{ts_str}_{scan_part}{rev_part}Test_Report_{count_str}_{result_str}.html"
     filepath    = out / filename
 
     # ── Summary table ────────────────────────────────────────────────────────
@@ -133,7 +142,7 @@ def save_manual_report(
 </head>
 <body>
   <h1>Manual Test Report</h1>
-  <div class="meta">Generated: {ts_readable}{'&emsp;|&emsp;Software Revision: ' + sw_revision if sw_revision else ''}</div>
+  <div class="meta">Generated: {ts_readable}{'&emsp;|&emsp;2D Scan: <strong>' + scan_code + '</strong>' if scan_code else ''}{'&emsp;|&emsp;Software Revision: ' + sw_revision if sw_revision else ''}{'&emsp;|&emsp;PCB #' + str(pcb_count) if pcb_count else ''}&emsp;|&emsp;Overall: <strong>{result_str}</strong></div>
   <h2 style="color:#2C3E50;font-size:15px;margin-bottom:6px;">Summary</h2>
   <table class="summary">
     <thead><tr><th>Test Module</th><th>Result</th></tr></thead>

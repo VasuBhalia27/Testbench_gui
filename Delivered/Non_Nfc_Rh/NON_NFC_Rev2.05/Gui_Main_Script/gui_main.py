@@ -394,6 +394,44 @@ canoe_enable_cb = tk.Checkbutton(
                     SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0), update_canoe_entry_text()])
 canoe_enable_cb.place(x=440, y=420)
 
+# --- 2D Scan entry (top-right of Settings tab) ---
+canvas2.create_text(562.0, 25.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 13 * -1))
+manual_scan_entry = ttk.Entry(tab2, style='Background_grey.TEntry')
+manual_scan_entry.place(x=638.0, y=20.0, width=200.0, height=30.0)
+
+# --- Manual PASS / FAIL counter widget (right of Variant Setting) ---
+_manual_pass_lbl = tk.Label(
+    tab2, text="PASS\n0",
+    font=("Arial", 18, "bold"),
+    fg="#FFFFFF", bg="#27AE60",
+    width=6, height=3, relief="flat",
+)
+_manual_pass_lbl.place(x=565, y=153)
+
+_manual_fail_lbl = tk.Label(
+    tab2, text="FAIL\n0",
+    font=("Arial", 18, "bold"),
+    fg="#FFFFFF", bg="#C62828",
+    width=6, height=3, relief="flat",
+)
+_manual_fail_lbl.place(x=682, y=153)
+
+def _reset_manual_counts():
+    global _manual_pass_count, _manual_fail_count
+    _manual_pass_count = 0
+    _manual_fail_count = 0
+    _manual_pass_lbl.config(text="PASS\n0")
+    _manual_fail_lbl.config(text="FAIL\n0")
+
+tk.Button(
+    tab2, text="Reset Count",
+    font=("Arial", 9, "bold"),
+    fg="#FFFFFF", bg="#555555",
+    activebackground="#333333", activeforeground="#FFFFFF",
+    relief="flat", cursor="hand2",
+    command=_reset_manual_counts,
+).place(x=565, y=253, width=195, height=26)
+
 window.after(1000, lambda: poll_target_state(running_status, window))
 
 canvas2.create_text(
@@ -433,6 +471,10 @@ def _parse_num(entry):
 # Create ManualTest/reports/ once at application startup
 _REPORTS_DIR = _REPO_ROOT / "ManualTest" / "reports"
 _REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Manual test PCB pass/fail counters — incremented in _collect_and_save_all_manual_tests()
+_manual_pass_count = 0
+_manual_fail_count = 0
 
 # ===================================================================================================================
 # ========== TAB 3 (LED Test) =======================================================================================
@@ -1745,8 +1787,20 @@ def _collect_and_save_all_manual_tests():
         code_status_label.config(text="No manual test results to save.")
         return
 
+    overall_ok = all(s["overall"] for s in sections)
+    global _manual_pass_count, _manual_fail_count
+    if overall_ok:
+        _manual_pass_count += 1
+        _manual_pass_lbl.config(text=f"PASS\n{_manual_pass_count}")
+    else:
+        _manual_fail_count += 1
+        _manual_fail_lbl.config(text=f"FAIL\n{_manual_fail_count}")
+
+    scan_code = manual_scan_entry.get().strip()
+    pcb_count = _manual_pass_count + _manual_fail_count
     try:
-        path = _save_manual_report(sections, _REPORTS_DIR, _SW_REVISION)
+        path = _save_manual_report(sections, _REPORTS_DIR, _SW_REVISION,
+                                   scan_code=scan_code, pcb_count=pcb_count)
         code_status_label.config(text=f"Manual report saved: {Path(path).name}")
     except Exception as exc:
         code_status_label.config(text=f"Manual report save failed: {exc}")
