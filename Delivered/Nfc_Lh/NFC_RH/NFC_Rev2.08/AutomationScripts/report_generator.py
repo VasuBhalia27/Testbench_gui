@@ -783,7 +783,8 @@ def generate_report(
     """
     results_by_sheet = results_from_run(run_results) if run_results else {}
 
-    os.makedirs(REPORTS_DIR, exist_ok=True)
+    today_dir = os.path.join(REPORTS_DIR, f"{datetime.now().strftime('%Y-%m-%d')}_{_SW_REVISION}")
+    os.makedirs(today_dir, exist_ok=True)
 
     if output_path is None:
         ts         = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -791,7 +792,7 @@ def generate_report(
         result_str = "PASS" if all_passed else "FAIL"
         scan_part  = f"_{scan_code}" if scan_code else ""
         output_path = os.path.join(
-            REPORTS_DIR, f"{ts}{scan_part}_{_SW_REVISION}_Test_Report_{count_str}_{result_str}.html"
+            today_dir, f"{ts}{scan_part}_{_SW_REVISION}_Test_Report_{count_str}_{result_str}.html"
         )
 
     output_path = os.path.abspath(output_path)
@@ -800,7 +801,7 @@ def generate_report(
     generate_html_report(
         results_by_sheet=results_by_sheet,
         output_path=output_path,
-        reports_dir=REPORTS_DIR,
+        reports_dir=today_dir,
         project_title=f"Smart BU Testbench NFC LH \u2013 Automated Test Report",
         scan_code=scan_code,
         sw_revision=_SW_REVISION,

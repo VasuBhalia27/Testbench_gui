@@ -61,6 +61,7 @@ def save_manual_report(
     str  Absolute path to the saved report file.
     """
     out = Path(output_dir) if output_dir else _DEFAULT_REPORTS_DIR
+    out = out / f"{datetime.now().strftime('%Y-%m-%d')}_{sw_revision}" if sw_revision else out / datetime.now().strftime("%Y-%m-%d")
     out.mkdir(parents=True, exist_ok=True)
 
     overall_ok  = all(s["overall"] for s in sections)
