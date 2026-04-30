@@ -50,6 +50,7 @@ SYSTEM.CPUACCESS ENABLE
 SYStem.MemAccess DAP
 SYStem.JtagClock CTCK 10MHz
 Trace.DISable
+SYStem.Option RESET OFF
 SYStem.Up
 
 
