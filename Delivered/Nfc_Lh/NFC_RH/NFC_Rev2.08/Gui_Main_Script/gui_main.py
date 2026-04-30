@@ -337,8 +337,15 @@ go_button.place(x=200, y=305, width=34, height=34)
 #Disconnect Trace32 Button
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
+def _on_disconnect_trace32():
+    _collect_and_save_all_manual_tests()
+    QuitTrace32(code_status_label)
+    manual_scan_entry.delete(0, tk.END)
+    manual_scan_entry.focus_set()
+    automation_gui.scan_code.set("")
+    automation_gui.root.after(100, automation_gui.scan_entry.focus_set)
 disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"],
-                            command=lambda: [_collect_and_save_all_manual_tests(), QuitTrace32(code_status_label)],
+                            command=_on_disconnect_trace32,
                             bd = 0)
 disconnect_trace32.place(x=500, y=260, width=34, height=34)
 
@@ -400,9 +407,11 @@ canoe_enable_cb = tk.Checkbutton(
 canoe_enable_cb.place(x=440, y=420)
 
 # --- 2D Scan entry (top-right of Settings tab) ---
-canvas2.create_text(475.0, 25.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 13 * -1))
-manual_scan_entry = ttk.Entry(tab2, style='Background_grey.TEntry')
-manual_scan_entry.place(x=551.0, y=20.0, width=200.0, height=30.0)
+canvas2.create_text(425.0, 24.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 15, "bold"))
+_scan_vcmd = (window.register(lambda s: len(s) <= 20), "%P")
+manual_scan_entry = tk.Entry(tab2, font=("Courier", 14, "bold"), bg="#DFDFDF", fg="#2C2C2C", insertbackground="#2C2C2C", relief="solid", bd=1, validate="key", validatecommand=_scan_vcmd)
+manual_scan_entry.place(x=525.0, y=20.0, width=225.0, height=30.0)
+window.after(300, manual_scan_entry.focus_set)
 
 # --- Manual PASS / FAIL counter widget (right of Variant Setting) ---
 _manual_pass_lbl = tk.Label(
