@@ -17,12 +17,6 @@ from tkinter import messagebox
 
 # Automation framework imports
 from AutomationScripts.core import gui_automation, integrated_automation
-
-# Manual test report generator
-from ManualTest.manual_report import save_manual_report as _save_manual_report
-
-# Software revision — shown in window title and embedded in report filename/header
-_SW_REVISION = "Rev2.07"
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
@@ -150,7 +144,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
 
 # Create the main window
 window = tk.Tk()
-window.title(f"SmartBU Testbench GUI  —  {_SW_REVISION}")
+window.title("SmartBU Testbench GUI")
 
 
 window.geometry("973x670")
@@ -337,8 +331,8 @@ go_button.place(x=200, y=305, width=34, height=34)
 #Disconnect Trace32 Button
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"],
-                            command=lambda: [_collect_and_save_all_manual_tests(), QuitTrace32(code_status_label)],
+disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], 
+                            command=lambda: QuitTrace32(code_status_label), 
                             bd = 0)
 disconnect_trace32.place(x=500, y=260, width=34, height=34)
 
@@ -399,44 +393,6 @@ canoe_enable_cb = tk.Checkbutton(
                     SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0), update_canoe_entry_text()])
 canoe_enable_cb.place(x=440, y=420)
 
-# --- 2D Scan entry (top-right of Settings tab) ---
-canvas2.create_text(562.0, 25.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 13 * -1))
-manual_scan_entry = ttk.Entry(tab2, style='Background_grey.TEntry')
-manual_scan_entry.place(x=638.0, y=20.0, width=200.0, height=30.0)
-
-# --- Manual PASS / FAIL counter widget (right of Variant Setting) ---
-_manual_pass_lbl = tk.Label(
-    tab2, text="PASS\n0",
-    font=("Arial", 18, "bold"),
-    fg="#FFFFFF", bg="#27AE60",
-    width=6, height=3, relief="flat",
-)
-_manual_pass_lbl.place(x=565, y=153)
-
-_manual_fail_lbl = tk.Label(
-    tab2, text="FAIL\n0",
-    font=("Arial", 18, "bold"),
-    fg="#FFFFFF", bg="#C62828",
-    width=6, height=3, relief="flat",
-)
-_manual_fail_lbl.place(x=682, y=153)
-
-def _reset_manual_counts():
-    global _manual_pass_count, _manual_fail_count
-    _manual_pass_count = 0
-    _manual_fail_count = 0
-    _manual_pass_lbl.config(text="PASS\n0")
-    _manual_fail_lbl.config(text="FAIL\n0")
-
-tk.Button(
-    tab2, text="Reset Count",
-    font=("Arial", 9, "bold"),
-    fg="#FFFFFF", bg="#555555",
-    activebackground="#333333", activeforeground="#FFFFFF",
-    relief="flat", cursor="hand2",
-    command=_reset_manual_counts,
-).place(x=565, y=253, width=195, height=26)
-
 window.after(1000, lambda: poll_target_state(running_status, window))
 
 canvas2.create_text(
@@ -472,14 +428,6 @@ def _parse_num(entry):
         return int(entry.get().strip().split()[0], 0)
     except (ValueError, TypeError, IndexError):
         return None
-
-# Create ManualTest/reports/ once at application startup
-_REPORTS_DIR = _REPO_ROOT / "ManualTest" / "reports"
-_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-
-# Manual test PCB pass/fail counters — incremented in _collect_and_save_all_manual_tests()
-_manual_pass_count = 0
-_manual_fail_count = 0
 
 # ===================================================================================================================
 # ========== TAB 3 (LED Test) =======================================================================================
@@ -1819,6 +1767,7 @@ canvas11.create_text(266.0, 110.0, anchor="nw", text="Transmit", fill="#FFFFFF",
 reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: [clear_entries(lin_entry_list + lin_tx_entries), _reset_pf_labels(tab11_lbl_overall, *lin_pf_labels)])
 reset_entries.place(x=350, y=110, width=115, height=32)
 
+
 canvas11.create_text(
     260.0,
     20.0,
@@ -1830,132 +1779,6 @@ canvas11.create_text(
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 12 (AUTO) =======================================================================================
-
-# ─── Combined manual test report (all tabs → one HTML on Disconnect) ──────────
-def _collect_and_save_all_manual_tests():
-    """Collect current entry values from every manual-test tab and save one report."""
-    sections = []
-
-    # ── LED ───────────────────────────────────────────────────────────────────
-    v_led = tab3_entry_1.get().strip()
-    if v_led:
-        vn = _parse_num(tab3_entry_1)
-        p = (vn is not None and 0 <= vn <= 10) if led_input_condition.get() == 2 else (vn is not None and vn > 0)
-        sections.append({"name": "LED Test", "fields": [("LedVoltage", v_led, p)], "overall": p})
-
-    # ── BAT ───────────────────────────────────────────────────────────────────
-    v_bat = tab4_entry_1.get().strip()
-    if v_bat:
-        vn = _parse_num(tab4_entry_1)
-        p = vn is not None and 8000 <= vn <= 16000
-        sections.append({"name": "BAT Test", "fields": [("AiBatRef", v_bat, p)], "overall": p})
-
-    # ── MOTOR ─────────────────────────────────────────────────────────────────
-    if tab5_entry1.get().strip():
-        vn = _parse_num(tab5_entry1); cn = _parse_num(tab5_entry2); en = _parse_num(tab5_entry3)
-        p_v = vn is not None and vn > 0
-        p_c = cn is not None and cn > 0
-        p_e = en is not None and en == 0
-        fields = [("MotorVoltage", tab5_entry1.get().strip(), p_v),
-                  ("MotorCurrentValue", tab5_entry2.get().strip(), p_c),
-                  ("MotorLoadError", tab5_entry3.get().strip(), p_e)]
-        sections.append({"name": "Motor Test", "fields": fields, "overall": all([p_v, p_c, p_e])})
-
-    # ── EOS ───────────────────────────────────────────────────────────────────
-    v_eos = tab6_entry1.get().strip()
-    if v_eos:
-        vn = _parse_num(tab6_entry1)
-        p = (vn is not None and 1400 <= vn <= 1600) if eos_value.get() == 1 else (vn is not None and 2800 <= vn <= 3000)
-        sections.append({"name": "EOS Test", "fields": [("EosDiagVoltage", v_eos, p)], "overall": p})
-
-    # ── SG ────────────────────────────────────────────────────────────────────
-    if tab7_entry_1.get().strip():
-        sg_names = ["DoPwrSg","Sg1PlusOpamp","Sg1MinusOpamp","Sg1Opamp","Sg2PlusOpamp","Sg2MinusOpamp","Sg2Opamp"]
-        fields = []
-        for nm, e in zip(sg_names, sg_entries):
-            vn = _parse_num(e)
-            fields.append((nm, e.get().strip(), vn is not None and vn != 0))
-        sections.append({"name": "SG Test", "fields": fields, "overall": all(f[2] for f in fields)})
-
-    # ── CAPA ──────────────────────────────────────────────────────────────────
-    if tab8_entry_1.get().strip():
-        capa_names   = ["CapaApproach","CapaLock","CapaUnlock","CapaApproachRawValue","CapaLockRawValue","CapaUnlockRawValue"]
-        capa_checks  = [lambda v: v==1, lambda v: v==1, lambda v: v==1,
-                        lambda v: v>8900, lambda v: v>8900, lambda v: v>8900]
-        fields = []
-        for nm, e, chk in zip(capa_names, capa_entries, capa_checks):
-            vn = _parse_num(e)
-            fields.append((nm, e.get().strip(), vn is not None and chk(vn)))
-        sections.append({"name": "CAPA Test", "fields": fields, "overall": all(f[2] for f in fields)})
-
-    # ── NFC ───────────────────────────────────────────────────────────────────
-    if tab9_spi_err.get().strip():
-        spi_v = tab9_spi_err.get().strip(); hw_v = tab9_hw_ver.get().strip()
-        rom_v = tab9_rom_ver.get().strip();  fw_v = tab9_fw_ver.get().strip()
-        card_v = tab9_entry_1.get().strip()
-        p_spi = spi_v in ("OK", "0")
-        p_hw  = hw_v  not in ("", "0", "0x0")
-        p_rom = rom_v not in ("", "0", "0x0")
-        p_fw  = fw_v  not in ("", "0", "0x0")
-        p_card = card_v == "Yes"
-        fields = [("SpiError", spi_v, p_spi), ("HwVersion", hw_v, p_hw),
-                  ("RomVersion", rom_v, p_rom), ("FwVersion", fw_v, p_fw),
-                  ("IsNfcDetectedCard", card_v, p_card)]
-        sections.append({"name": "NFC Test", "fields": fields, "overall": all([p_spi, p_hw, p_rom, p_fw])})
-
-    # ── NFC SELF ──────────────────────────────────────────────────────────────
-    if tab9_st_spi_err.get().strip():
-        spi_v = tab9_st_spi_err.get().strip(); hw_v = tab9_st_hw_ver.get().strip()
-        led_v = tab9_st_led_v.get().strip()
-        p_spi = spi_v in ("OK", "0")
-        p_hw  = hw_v  not in ("", "0", "0x0")
-        try:    p_led = float(led_v.split()[0]) > 0
-        except: p_led = led_v not in ("", "N/A", "SKIP")
-        fields = [("SpiError", spi_v, p_spi), ("TargetID", hw_v, p_hw), ("LedVoltage", led_v, p_led)]
-        sections.append({"name": "NFC Self-Test", "fields": fields, "overall": all([p_spi, p_hw, p_led])})
-
-    # ── CAN ───────────────────────────────────────────────────────────────────
-    if tab10_rx_valid.get().strip():
-        vn = _parse_num(tab10_rx_valid); an = _parse_num(tab10_com_active)
-        p_rx  = vn is not None and vn == 1
-        p_act = True if can_loopback_var.get() else (an is not None and an == 1)
-        rx_fields = [(f"RxByte{i}", e.get().strip(), True) for i, e in enumerate(can_rx_entries)]
-        fields = [("CanRxDataValid", tab10_rx_valid.get().strip(), p_rx),
-                  ("CanIsActiveState", tab10_com_active.get().strip(), p_act)] + rx_fields
-        sections.append({"name": "CAN Test", "fields": fields, "overall": all([p_rx, p_act])})
-
-    # ── LIN ───────────────────────────────────────────────────────────────────
-    if tab11_rx_valid.get().strip():
-        vn = _parse_num(tab11_rx_valid)
-        any_nz = any(_parse_num(e) not in (None, 0) for e in lin_rx_entries)
-        p_rx   = vn is not None and vn == 1 and any_nz
-        rx_fields = [(f"RxByte{i}", e.get().strip(), True) for i, e in enumerate(lin_rx_entries)]
-        fields = [("LinRxDataValid", tab11_rx_valid.get().strip(), p_rx),
-                  ("LinRxPid", tab11_rx_pid.get().strip(), True)] + rx_fields
-        sections.append({"name": "LIN Test", "fields": fields, "overall": p_rx})
-
-    if not sections:
-        code_status_label.config(text="No manual test results to save.")
-        return
-
-    overall_ok = all(s["overall"] for s in sections)
-    global _manual_pass_count, _manual_fail_count
-    if overall_ok:
-        _manual_pass_count += 1
-        _manual_pass_lbl.config(text=f"PASS\n{_manual_pass_count}")
-    else:
-        _manual_fail_count += 1
-        _manual_fail_lbl.config(text=f"FAIL\n{_manual_fail_count}")
-
-    scan_code = manual_scan_entry.get().strip()
-    pcb_count = _manual_pass_count + _manual_fail_count
-    try:
-        path = _save_manual_report(sections, _REPORTS_DIR, _SW_REVISION,
-                                   scan_code=scan_code, pcb_count=pcb_count)
-        code_status_label.config(text=f"Manual report saved: {Path(path).name}")
-    except Exception as exc:
-        code_status_label.config(text=f"Manual report save failed: {exc}")
-
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()

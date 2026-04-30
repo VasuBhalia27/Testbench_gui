@@ -281,7 +281,6 @@ def generate_html_report(
     reports_dir: Optional[str] = None,
     project_title: str = "Smart BU Testbench – Automated Test Report",
     scan_code: Optional[str] = None,
-    sw_revision: Optional[str] = None,
 ) -> str:
     """
     Generate a self-contained HTML test report.
@@ -361,7 +360,6 @@ def generate_html_report(
         '<div class="report-header">\n'
         f"  <h1>{_esc(project_title)}</h1>\n"
         f'  <div class="meta">Generated: {_esc(now_str)}'
-        + (f" &nbsp;|&nbsp; SW Revision: <strong>{_esc(sw_revision)}</strong>" if sw_revision else "")
         + (f" &nbsp;|&nbsp; 2D Scan: <strong>{_esc(scan_code)}</strong>" if scan_code else "")
         + "</div>\n"
         "</div>\n"

@@ -32,9 +32,6 @@ _ROOT = os.path.join(_HERE, "..")
 TEMPLATE_PATH = os.path.join(_ROOT, "AutomationTest", "Smart_BU_Test Specification.xlsx")
 REPORTS_DIR   = os.path.join(_ROOT, "AutomationTest", "reports")
 
-# Software revision — shown in the report filename and HTML header
-_SW_REVISION = "Rev2.07"
-
 # ── Cell fill colours ─────────────────────────────────────────────────────────
 _PASS_FILL = PatternFill("solid", fgColor="92D050")   # green
 _FAIL_FILL = PatternFill("solid", fgColor="FF4C4C")   # red
@@ -791,7 +788,7 @@ def generate_report(
         result_str = "PASS" if all_passed else "FAIL"
         scan_part  = f"_{scan_code}" if scan_code else ""
         output_path = os.path.join(
-            REPORTS_DIR, f"{ts}{scan_part}_{_SW_REVISION}_Test_Report_{count_str}_{result_str}.html"
+            REPORTS_DIR, f"{ts}{scan_part}_Test_Report_{count_str}_{result_str}.html"
         )
 
     output_path = os.path.abspath(output_path)
@@ -801,9 +798,6 @@ def generate_report(
         results_by_sheet=results_by_sheet,
         output_path=output_path,
         reports_dir=REPORTS_DIR,
-        project_title=f"Smart BU Testbench NFC LH \u2013 Automated Test Report",
-        scan_code=scan_code,
-        sw_revision=_SW_REVISION,
-    )
+        project_title="Smart BU Testbench NFC LH \u2013 Automated Test Report",        scan_code=scan_code,    )
 
     return output_path
