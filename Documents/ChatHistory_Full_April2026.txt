@@ -3578,5 +3578,284 @@ OPEN ITEMS / PENDING DECISIONS  (updated April 30, 2026)
   1–8. All items from Phase 6 still apply (see above).
 
 ================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 8 — April 30, 2026 (Late Session)
+  Project: NFC_Rev2.08 (NFC_RH) + NON_NFC_Rev2.06 (NON_NFC_RH)
+════════════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 1 — Lauterbach JTAG Connector Pin Mapping & Debugger Error Root Cause
+────────────────────────────────────────────────────────────────────────────────
+USER:
+  Path: C:\UShin\Testbench_gui_Charan\Delivered\Non_Nfc_Rh\NON_NFC_Rev2.05
+  Attached: 20-pin Lauterbach connector diagram, 10-pin PCB JTAG connector
+  diagram, and TRACE32 fatal error screenshot.
+  The 20-pin connector is for the Lauterbach debugger and the 10-pin connector
+  is for our PCB JTAG. While starting the debugger it showed a target reset
+  error that blocked flashing. We removed the connection between pin 15 and
+  pin 10, which resolved the target reset and allowed flashing. But now when
+  we do a hard reset we get a fatal PODBUS error. Is this related to the
+  RESET pin being disconnected?
+
+ASSISTANT (root cause analysis):
+  Error in screenshot: "FATAL ERROR from PODBUS-driver: TRACE32 device already
+  used by other GUI. Aborting."
+
+  This error is NOT caused by the RESET pin (Pin 15) being disconnected.
+  These are two completely separate issues.
+
+  PODBUS error cause: When a hard reset is performed on the PCB, TRACE32
+  PowerView loses USB/debug-port sync with the Lauterbach probe. The existing
+  TRACE32 process does not cleanly release the PODBUS device. When TRACE32 is
+  reopened, the old process still holds the USB lock — causing the fatal error.
+
+  Immediate fix:
+    1. Open Task Manager → kill all t32marm.exe processes
+    2. Unplug and replug the Lauterbach USB cable
+    3. Restart TRACE32
+
+  Why removing Pin 15 resolved the original flash block:
+    SYStem.Up in cpu_setup.cmm asserts hardware reset through Pin 15 (RESET-)
+    as part of its connect sequence. Removing the wire means Lauterbach cannot
+    drive the target RESET pin, so the assertion has no effect and flashing
+    proceeds. This is a hardware workaround for a software problem.
+
+  Correct software fix (add before SYStem.Up in cpu_setup.cmm):
+    SYStem.Option RESET OFF   ; disables hardware reset assertion via Pin 15
+
+  Pin mapping confirmed:
+    20-pin Pin 15 (RESET-) ↔ 10-pin Pin 10
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 2 — Pin Mapping Correction
+────────────────────────────────────────────────────────────────────────────────
+USER: "Pin 15 (20-pin Pin 15 ↔ 10-pin Pin 9) this seems to be
+       Pin 15 (20-pin Pin 15 ↔ 10-pin Pin 10)?"
+
+ASSISTANT:
+  Confirmed correction: 20-pin Pin 15 (RESET-) ↔ 10-pin Pin 10.
+  Visible in the first image where the blue diagonal line crosses from
+  10-pin Pin 10 to 20-pin Pin 15.
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 3 — Will Target Reset Happen Again If Wire Re-connected?
+────────────────────────────────────────────────────────────────────────────────
+USER: "If I re-connect it again, will target reset happen? Or is it already
+       handled in the script?"
+
+ASSISTANT:
+  Yes — target reset WILL happen again if reconnected without the script fix.
+  Existing SYStem.Option ResBreak OFF is NOT the same as SYStem.Option RESET OFF:
+    ResBreak OFF  → don't halt execution after reset (breakpoint behavior only)
+    RESET OFF     → don't physically assert RESET- pin during SYStem.Up ← MISSING
+
+  Correct order:
+    1. Add SYStem.Option RESET OFF to cpu_setup.cmm
+    2. Then reconnect wire (10-pin Pin 10 ↔ 20-pin Pin 15)
+    3. Test flashing
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 4 — Check If Fix Already Exists in Both Projects
+────────────────────────────────────────────────────────────────────────────────
+USER: "Check C:\...\NON_NFC_Rev2.05 and C:\...\NFC_RH\NFC_Rev2.07 — is
+       SYStem.Option RESET OFF already added?"
+
+ASSISTANT:
+  Checked both cpu_setup.cmm files — SYStem.Option RESET OFF is MISSING in both.
+  Both scripts are identical and both lack the fix.
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 5 — Apply RESET OFF Fix to Both Projects
+────────────────────────────────────────────────────────────────────────────────
+USER: "Can you please add it to these projects?"
+
+ASSISTANT (files modified):
+  NON_NFC_Rev2.05\SmartBU\Tests\DebuggerScripts\cpu_setup.cmm
+    Added: SYStem.Option RESET OFF  (before SYStem.Up)
+  NFC_Rev2.07\SmartBU\Tests\DebuggerScripts\cpu_setup.cmm
+    Added: SYStem.Option RESET OFF  (before SYStem.Up)
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 6 — Update Revision Numbers in Scripts
+────────────────────────────────────────────────────────────────────────────────
+USER: "Update revision NON_NFC_Rev2.05 → NON_NFC_Rev2.06 and NFC_Rev2.07 →
+       NFC_Rev2.08 in manual and automatic scripts in both projects."
+
+ASSISTANT (files modified — 6 files, 8 changes):
+  NON_NFC_Rev2.05\Gui_Main_Script\gui_main.py         _SW_REVISION = "Rev2.06"
+  NON_NFC_Rev2.05\AutomationScripts\report_generator.py  _SW_REVISION = "Rev2.06"
+  NON_NFC_Rev2.05\AutomationScripts\core\gui_automation.py  window title + header
+  NFC_Rev2.07\Gui_Main_Script\gui_main.py              _SW_REVISION = "Rev2.08"
+  NFC_Rev2.07\AutomationScripts\report_generator.py   _SW_REVISION = "Rev2.08"
+  NFC_Rev2.07\AutomationScripts\core\gui_automation.py   window title + header
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 7 — 2D Scan Field: Larger Font, Bold, Auto-Focus, Clear on Disconnect
+────────────────────────────────────────────────────────────────────────────────
+USER (with screenshot of NFC_Rev2.08 GUI):
+  "In manual GUI please set auto cursor focus in 2D Scan field and text size
+   shall be increased and bold, text inside this field shall be cleared when
+   Disconnect Trace32 button pressed and shall auto focus."
+  [Initially applied to NFC_Rev2.07 by mistake — user corrected path to
+   NFC_Rev2.08]
+
+ASSISTANT (files modified — NFC_Rev2.08 only):
+  NFC_Rev2.08\AutomationScripts\core\gui_automation.py
+    2D Scan label font: ("Arial", 11, "bold") → ("Arial", 15, "bold")
+    Scan entry font: ("Courier", 13, "bold") → ("Courier", 17, "bold")
+    Auto-focus on startup: already present
+
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py
+    Settings tab 2D Scan: switched from ttk.Entry to tk.Entry with
+      font=("Courier", 14, "bold"), bg, insertbackground, relief="solid"
+    window.after(300, manual_scan_entry.focus_set) added
+    _on_disconnect_trace32() function added to:
+      1. _collect_and_save_all_manual_tests()
+      2. QuitTrace32(code_status_label)
+      3. manual_scan_entry.delete(0, tk.END) + focus_set()
+      4. automation_gui.scan_code.set("") + focus_set()
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 8 — 2D Scan Field Entry Limit ≤ 20 Characters
+────────────────────────────────────────────────────────────────────────────────
+USER: "2D Scan field entry limit shall be <=20"
+
+ASSISTANT (file modified):
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py
+    Added: _scan_vcmd = (window.register(lambda s: len(s) <= 20), "%P")
+    Added: validate="key", validatecommand=_scan_vcmd to manual_scan_entry
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 9 — Disconnect Trace32 Does Not Reset 2D Scan Field
+────────────────────────────────────────────────────────────────────────────────
+USER: "After pressing Disconnect Trace32 button, 2D Scan field does not reset."
+
+ROOT CAUSE:
+  _on_disconnect_trace32() was clearing automation_gui.scan_code (Automation
+  tab), but the Settings tab manual_scan_entry (separate tk.Entry widget) was
+  not being cleared.
+
+ASSISTANT (file modified):
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py
+    Added to _on_disconnect_trace32():
+      manual_scan_entry.delete(0, tk.END)
+      manual_scan_entry.focus_set()
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 10 — Auto Date Folder for Report Output (Both Automation and Manual)
+────────────────────────────────────────────────────────────────────────────────
+USER: "AutomationTest/reports and ManualTest/reports — today's date folder
+       shall be created automatically and report shall be generated under it
+       for both automation and manual test."
+
+ASSISTANT (files modified):
+  NFC_Rev2.08\AutomationScripts\report_generator.py
+    today_dir = os.path.join(REPORTS_DIR, datetime.now().strftime("%Y-%m-%d"))
+    os.makedirs(today_dir, exist_ok=True)
+    output_path and reports_dir now use today_dir
+
+  NFC_Rev2.08\ManualTest\manual_report.py
+    out = out / datetime.now().strftime("%Y-%m-%d")
+    out.mkdir(parents=True, exist_ok=True)
+
+  Result folders:
+    AutomationTest/reports/2026-04-30/
+    ManualTest/reports/2026-04-30/
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 11 — Add Software Revision to Date Folder Name
+────────────────────────────────────────────────────────────────────────────────
+USER (with screenshot showing folder "2026-04-30 NFC_Rev2.08"):
+  "Please add the software revision number at the end of the generated folder
+   on both locations."
+
+ASSISTANT (files modified):
+  NFC_Rev2.08\AutomationScripts\report_generator.py
+    today_dir = os.path.join(REPORTS_DIR,
+      f"{datetime.now().strftime('%Y-%m-%d')}_{_SW_REVISION}")
+
+  NFC_Rev2.08\ManualTest\manual_report.py
+    out = out / f"{datetime.now().strftime('%Y-%m-%d')}_{sw_revision}"
+      if sw_revision else out / datetime.now().strftime("%Y-%m-%d")
+
+  Result folders:
+    AutomationTest/reports/2026-04-30_NFC_Rev2.08/
+    ManualTest/reports/2026-04-30_NFC_Rev2.08/
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 12 — LED & EOS Manual Report: Record Both States
+────────────────────────────────────────────────────────────────────────────────
+USER (with screenshots of LED tab showing Led_On PASS and Led_Off PASS, and
+      a manual test report showing only one LED result):
+  "The report generated for manual test shall have test result for both
+   Led_On and Led_Off commands. Similarly for EOS."
+
+ROOT CAUSE:
+  LED tab had one shared entry (tab3_entry_1) — only whichever state was last
+  measured was captured. EOS tab had one shared entry (tab6_entry1) — same issue.
+
+ASSISTANT (file modified):
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py — 4 simultaneous changes:
+
+  LED TAB:
+    Added separate entries: tab3_entry_led_on (y=200) and tab3_entry_led_off (y=240)
+    Labels changed: "Led_On Voltage" and "Led_Off Voltage"
+    Separate PASS/FAIL labels: tab3_lbl_voltage_on and tab3_lbl_voltage_off
+    Checkbox commands set led_entries[0] to the active entry
+    _evaluate_led_results() writes to correct label; overall = both measured states
+    Reset clears both entries
+
+  EOS TAB:
+    Added separate entries: tab6_entry_eos_set and tab6_entry_eos_reset
+    Labels changed: "EOS Set Voltage" and "EOS Reset Voltage"
+    Separate PASS/FAIL labels: tab6_lbl_voltage_set and tab6_lbl_voltage_reset
+    Checkbox commands set eos_entries[0] to the active entry
+    _evaluate_eos_results() writes to correct label; overall = both measured states
+    Reset clears both entries
+
+  _collect_and_save_all_manual_tests():
+    LED section now reports: Led_On Voltage + Led_Off Voltage (whichever measured)
+      Pass: Led_On > 0 mV; Led_Off 0–10 mV
+    EOS section now reports: EOS Set Voltage + EOS Reset Voltage (whichever measured)
+      Pass: EOS Set 1400–1600 mV; EOS Reset 1500–3000 mV
+    Overall PASS only if all measured states pass
+
+================================================================================
+FILES MODIFIED — PHASE 8 SUMMARY
+================================================================================
+  File                                                   Change
+  ─────────────────────────────────────────────────────  ───────────────────────
+  NON_NFC_Rev2.05\SmartBU\Tests\DebuggerScripts\        SYStem.Option RESET OFF
+    cpu_setup.cmm                                        added before SYStem.Up
+  NFC_Rev2.07\SmartBU\Tests\DebuggerScripts\            SYStem.Option RESET OFF
+    cpu_setup.cmm                                        added before SYStem.Up
+  NON_NFC_Rev2.05\Gui_Main_Script\gui_main.py           _SW_REVISION = "Rev2.06"
+  NON_NFC_Rev2.05\AutomationScripts\report_generator.py _SW_REVISION = "Rev2.06"
+  NON_NFC_Rev2.05\AutomationScripts\core\               Window title + header
+    gui_automation.py                                    "NON_NFC_Rev2.06"
+  NFC_Rev2.07\Gui_Main_Script\gui_main.py               _SW_REVISION = "Rev2.08"
+  NFC_Rev2.07\AutomationScripts\report_generator.py     _SW_REVISION = "Rev2.08"
+  NFC_Rev2.07\AutomationScripts\core\gui_automation.py  Window title + header
+                                                         "NFC_Rev2.08"
+  NFC_Rev2.08\SmartBU\Tests\DebuggerScripts\            SYStem.Option RESET OFF
+    cpu_setup.cmm                                        (inherited via rev bump)
+  NFC_Rev2.08\AutomationScripts\core\gui_automation.py  2D Scan label font 11→15
+                                                         Entry font 13→17 (bold)
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py               Settings tab 2D Scan:
+                                                           tk.Entry bold font 14
+                                                           validate <=20 chars
+                                                           auto-focus on startup
+                                                         _on_disconnect_trace32:
+                                                           clears both scan fields
+                                                           refocuses Settings scan
+  NFC_Rev2.08\AutomationScripts\report_generator.py     Date+rev folder:
+                                                           2026-04-30_NFC_Rev2.08
+  NFC_Rev2.08\ManualTest\manual_report.py               Date+rev folder:
+                                                           2026-04-30_NFC_Rev2.08
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py               LED: 2 separate entries
+    (LED + EOS dual-state)                               EOS: 2 separate entries
+                                                         Report: both states logged
+
+================================================================================
 END OF FULL CHAT HISTORY — April 1 to April 30, 2026
 ================================================================================

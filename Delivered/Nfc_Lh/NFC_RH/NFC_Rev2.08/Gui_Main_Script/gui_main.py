@@ -520,38 +520,58 @@ images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3"))
 canvas3.create_image(tablet1_X, tablet1_Y, image=images["tile_tab3"])
 
 # Checkboxes
-led_input_condition = tk.IntVar (value=2)
+led_input_condition = tk.IntVar(value=2)
 
-led_on_cb = tk.Checkbutton(tab3, text="Led_On", variable=led_input_condition, onvalue=1, offvalue=0, command=lambda: led_on(led_input_condition))
+led_on_cb = tk.Checkbutton(tab3, text="Led_On", variable=led_input_condition, onvalue=1, offvalue=0,
+    command=lambda: [led_on(led_input_condition), led_entries.__setitem__(0, tab3_entry_led_on)])
 led_on_cb.place(x=73, y=150, width=85, height=32)
 
-led_off_cb = tk.Checkbutton(tab3, text="Led_Off", variable=led_input_condition, onvalue=2, offvalue=0, command=lambda: led_off(led_input_condition))
+led_off_cb = tk.Checkbutton(tab3, text="Led_Off", variable=led_input_condition, onvalue=2, offvalue=0,
+    command=lambda: [led_off(led_input_condition), led_entries.__setitem__(0, tab3_entry_led_off)])
 led_off_cb.place(x=300, y=150, width=85, height=32)
 
 # Entries
 canvas3.create_text(73.0, 113.0, anchor="nw", text="LED Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
-canvas3.create_text(73.0, 210.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
-tab3_entry_1.place(x=300.0, y=200.0, width=85.0, height=32.0)
+canvas3.create_text(73.0, 210.0, anchor="nw", text="Led_On Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab3_entry_led_on = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry_led_on.place(x=300.0, y=200.0, width=85.0, height=32.0)
+
+canvas3.create_text(73.0, 250.0, anchor="nw", text="Led_Off Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab3_entry_led_off = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry_led_off.place(x=300.0, y=240.0, width=85.0, height=32.0)
+
+tab3_entry_1 = tab3_entry_led_on  # backward-compat alias
 
 # Execution
 led_output_variables = ["TestFw_LedVoltage"]
-led_entries = [tab3_entry_1]
+led_entries = [tab3_entry_led_off]  # default: Led_Off selected (value=2)
 
-tab3_lbl_voltage = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab3_lbl_voltage.place(x=394, y=206, height=20)
+tab3_lbl_voltage_on = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab3_lbl_voltage_on.place(x=394, y=206, height=20)
+tab3_lbl_voltage_off = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab3_lbl_voltage_off.place(x=394, y=246, height=20)
 tab3_lbl_overall = tk.Label(tab3_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab3_lbl_overall.place(x=430, y=110, height=26)
 
 def _evaluate_led_results():
-    v = _parse_num(tab3_entry_1)
     if led_input_condition.get() == 2:  # Led_Off: 0–10 mV expected
+        v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
+        _set_pf(tab3_lbl_voltage_off, passed)
     else:  # Led_On: voltage should be > 0
+        v = _parse_num(tab3_entry_led_on)
         passed = v is not None and v > 0
-    _set_pf(tab3_lbl_voltage, passed)
-    _set_overall(tab3_lbl_overall, [passed])
+        _set_pf(tab3_lbl_voltage_on, passed)
+    results = []
+    if tab3_entry_led_on.get().strip():
+        vn = _parse_num(tab3_entry_led_on)
+        results.append(vn is not None and vn > 0)
+    if tab3_entry_led_off.get().strip():
+        vn = _parse_num(tab3_entry_led_off)
+        results.append(vn is not None and 0 <= vn <= 10)
+    if results:
+        _set_overall(tab3_lbl_overall, results)
 
 images["tab3_led_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_btn = Button(tab3, image=images["tab3_led_run"],
@@ -559,7 +579,7 @@ tab3_run_btn = Button(tab3, image=images["tab3_led_run"],
                         bd = 0)
 tab3_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: [clear_entries(led_entries), _reset_pf_labels(tab3_lbl_overall, tab3_lbl_voltage)])
+reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: [clear_entries([tab3_entry_led_on, tab3_entry_led_off]), _reset_pf_labels(tab3_lbl_overall, tab3_lbl_voltage_on, tab3_lbl_voltage_off)])
 reset_entries.place(x=300, y=110, width=85, height=32)
 
 canvas3.create_text(
@@ -782,39 +802,57 @@ canvas6.create_image((tablet1_X + 0), (tablet1_Y + 10), image=images["tile_tab6"
 
 # Entries
 canvas6.create_text(73.0, 113.0, anchor="nw", text="EOS Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EosDiagVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab6_entry1 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry1.place(x=225, y=placement_y_coord+35*1, width=125, height=32)
+canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EOS Set Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab6_entry_eos_set = ttk.Entry(tab6_frame, style='Background_grey.TEntry')
+tab6_entry_eos_set.place(x=225, y=placement_y_coord+35*1, width=125, height=32)
+
+canvas6.create_text(73.0, placement_y_coord+35*2, anchor="nw", text="EOS Reset Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab6_entry_eos_reset = ttk.Entry(tab6_frame, style='Background_grey.TEntry')
+tab6_entry_eos_reset.place(x=225, y=placement_y_coord+35*2, width=125, height=32)
+
+tab6_entry1 = tab6_entry_eos_set  # backward-compat alias
 
 eos_value = tk.IntVar(value=2)
 
 # Execution
 eos_output_variables = ["TestFw_EosDiagVoltage"]
-eos_entries = [tab6_entry1]
+eos_entries = [tab6_entry_eos_reset]  # default: EOS Reset selected (value=2)
 
-tab6_lbl_voltage = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab6_lbl_voltage.place(x=360, y=placement_y_coord+41, height=20)
+tab6_lbl_voltage_set = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab6_lbl_voltage_set.place(x=360, y=placement_y_coord+35*1+6, height=20)
+tab6_lbl_voltage_reset = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab6_lbl_voltage_reset.place(x=360, y=placement_y_coord+35*2+6, height=20)
 tab6_lbl_overall = tk.Label(tab6_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab6_lbl_overall.place(x=430, y=110, height=26)
 
 def _evaluate_eos_results():
-    v = _parse_num(tab6_entry1)
-    # eos_value: 1 = EOS Set (1400–1600 mV), 2 = EOS Reset (2800–3000 mV)
-    if eos_value.get() == 1:
+    if eos_value.get() == 1:  # EOS Set: 1400–1600 mV
+        v = _parse_num(tab6_entry_eos_set)
         passed = v is not None and 1400 <= v <= 1600
-    else:
+        _set_pf(tab6_lbl_voltage_set, passed)
+    else:  # EOS Reset: 1500–3000 mV
+        v = _parse_num(tab6_entry_eos_reset)
         passed = v is not None and 1500 <= v <= 3000
-    _set_pf(tab6_lbl_voltage, passed)
-    _set_overall(tab6_lbl_overall, [passed])
+        _set_pf(tab6_lbl_voltage_reset, passed)
+    results = []
+    if tab6_entry_eos_set.get().strip():
+        vn = _parse_num(tab6_entry_eos_set)
+        results.append(vn is not None and 1400 <= vn <= 1600)
+    if tab6_entry_eos_reset.get().strip():
+        vn = _parse_num(tab6_entry_eos_reset)
+        results.append(vn is not None and 1500 <= vn <= 3000)
+    if results:
+        _set_overall(tab6_lbl_overall, results)
 
 eos_set_cb = tk.Checkbutton(
-    tab6, 
-    text="EOS Set", 
-    variable=eos_value, 
-    onvalue=1, 
-    offvalue=0, 
+    tab6,
+    text="EOS Set",
+    variable=eos_value,
+    onvalue=1,
+    offvalue=0,
     command=lambda: [
     eos_set(eos_value),
+    eos_entries.__setitem__(0, tab6_entry_eos_set),
     SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e),
     tab6_frame.after(200, _evaluate_eos_results)
     ]
@@ -822,17 +860,17 @@ eos_set_cb = tk.Checkbutton(
 eos_set_cb.place(x=73.0, y=150, width=125.0, height=32.0)
 
 eos_reset_cb = tk.Checkbutton(
-    tab6, 
-    text="EOS Reset", 
-    variable=eos_value, 
-    onvalue=2, 
-    offvalue=0, 
+    tab6,
+    text="EOS Reset",
+    variable=eos_value,
+    onvalue=2,
+    offvalue=0,
     command=lambda: [
         eos_reset(eos_value),
-        # Schedule the reading after 5000ms (5 seconds)
+        eos_entries.__setitem__(0, tab6_entry_eos_reset),
         window.after(0, lambda: [SendDIDGetVal_multiple_entry(
-            eos_output_variables, 
-            eos_entries, 
+            eos_output_variables,
+            eos_entries,
             TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e
         ), tab6_frame.after(200, _evaluate_eos_results)])
     ]
@@ -843,7 +881,7 @@ eos_reset_cb.place(x=225.0, y=150, width=125.0, height=32.0)
 #tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
 #tab6_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: [clear_entries(eos_entries), _reset_pf_labels(tab6_lbl_overall, tab6_lbl_voltage)])
+reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: [clear_entries([tab6_entry_eos_set, tab6_entry_eos_reset]), _reset_pf_labels(tab6_lbl_overall, tab6_lbl_voltage_set, tab6_lbl_voltage_reset)])
 reset_entries.place(x=225, y=110, width=125, height=32)
 
 canvas6.create_text(
@@ -1846,11 +1884,17 @@ def _collect_and_save_all_manual_tests():
     sections = []
 
     # ── LED ───────────────────────────────────────────────────────────────────
-    v_led = tab3_entry_1.get().strip()
-    if v_led:
-        vn = _parse_num(tab3_entry_1)
-        p = (vn is not None and 0 <= vn <= 10) if led_input_condition.get() == 2 else (vn is not None and vn > 0)
-        sections.append({"name": "LED Test", "fields": [("LedVoltage", v_led, p)], "overall": p})
+    led_fields = []
+    v_on = tab3_entry_led_on.get().strip()
+    if v_on:
+        vn = _parse_num(tab3_entry_led_on)
+        led_fields.append(("Led_On Voltage", v_on, vn is not None and vn > 0))
+    v_off = tab3_entry_led_off.get().strip()
+    if v_off:
+        vn = _parse_num(tab3_entry_led_off)
+        led_fields.append(("Led_Off Voltage", v_off, vn is not None and 0 <= vn <= 10))
+    if led_fields:
+        sections.append({"name": "LED Test", "fields": led_fields, "overall": all(f[2] for f in led_fields)})
 
     # ── BAT ───────────────────────────────────────────────────────────────────
     v_bat = tab4_entry_1.get().strip()
@@ -1871,11 +1915,20 @@ def _collect_and_save_all_manual_tests():
         sections.append({"name": "Motor Test", "fields": fields, "overall": all([p_v, p_c, p_e])})
 
     # ── EOS ───────────────────────────────────────────────────────────────────
-    v_eos = tab6_entry1.get().strip()
-    if v_eos:
-        vn = _parse_num(tab6_entry1)
-        p = (vn is not None and 1400 <= vn <= 1600) if eos_value.get() == 1 else (vn is not None and 2800 <= vn <= 3000)
-        sections.append({"name": "EOS Test", "fields": [("EosDiagVoltage", v_eos, p)], "overall": p})
+    eos_fields = []
+    v_set = tab6_entry_eos_set.get().strip()
+    if v_set:
+        vn = _parse_num(tab6_entry_eos_set)
+        eos_fields.append(("EOS Set Voltage", v_set, vn is not None and 1400 <= vn <= 1600))
+    else:
+        eos_fields.append(("EOS Set Voltage", "—", False))
+    v_reset = tab6_entry_eos_reset.get().strip()
+    if v_reset:
+        vn = _parse_num(tab6_entry_eos_reset)
+        eos_fields.append(("EOS Reset Voltage", v_reset, vn is not None and 1500 <= vn <= 3000))
+    else:
+        eos_fields.append(("EOS Reset Voltage", "—", False))
+    sections.append({"name": "EOS Test", "fields": eos_fields, "overall": all(f[2] for f in eos_fields)})
 
     # ── SG ────────────────────────────────────────────────────────────────────
     if tab7_entry_1.get().strip():
