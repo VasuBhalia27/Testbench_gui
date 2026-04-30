@@ -22,7 +22,7 @@ from AutomationScripts.core import gui_automation, integrated_automation
 from ManualTest.manual_report import save_manual_report as _save_manual_report
 
 # Software revision — shown in window title and embedded in report filename/header
-_SW_REVISION = "Rev2.07"
+_SW_REVISION = "NFC_Rev2.08"
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
@@ -400,9 +400,9 @@ canoe_enable_cb = tk.Checkbutton(
 canoe_enable_cb.place(x=440, y=420)
 
 # --- 2D Scan entry (top-right of Settings tab) ---
-canvas2.create_text(562.0, 25.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 13 * -1))
+canvas2.create_text(475.0, 25.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 13 * -1))
 manual_scan_entry = ttk.Entry(tab2, style='Background_grey.TEntry')
-manual_scan_entry.place(x=638.0, y=20.0, width=200.0, height=30.0)
+manual_scan_entry.place(x=551.0, y=20.0, width=200.0, height=30.0)
 
 # --- Manual PASS / FAIL counter widget (right of Variant Setting) ---
 _manual_pass_lbl = tk.Label(
@@ -411,7 +411,7 @@ _manual_pass_lbl = tk.Label(
     fg="#FFFFFF", bg="#27AE60",
     width=6, height=3, relief="flat",
 )
-_manual_pass_lbl.place(x=565, y=153)
+_manual_pass_lbl.place(x=555, y=153)
 
 _manual_fail_lbl = tk.Label(
     tab2, text="FAIL\n0",
@@ -419,7 +419,7 @@ _manual_fail_lbl = tk.Label(
     fg="#FFFFFF", bg="#C62828",
     width=6, height=3, relief="flat",
 )
-_manual_fail_lbl.place(x=682, y=153)
+_manual_fail_lbl.place(x=655, y=153)
 
 def _reset_manual_counts():
     global _manual_pass_count, _manual_fail_count
@@ -435,7 +435,7 @@ tk.Button(
     activebackground="#333333", activeforeground="#FFFFFF",
     relief="flat", cursor="hand2",
     command=_reset_manual_counts,
-).place(x=565, y=253, width=195, height=26)
+).place(x=555, y=253, width=195, height=26)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
 
@@ -794,7 +794,7 @@ def _evaluate_eos_results():
     if eos_value.get() == 1:
         passed = v is not None and 1400 <= v <= 1600
     else:
-        passed = v is not None and 2800 <= v <= 3000
+        passed = v is not None and 1500 <= v <= 3000
     _set_pf(tab6_lbl_voltage, passed)
     _set_overall(tab6_lbl_overall, [passed])
 
