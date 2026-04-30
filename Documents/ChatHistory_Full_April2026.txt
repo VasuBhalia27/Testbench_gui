@@ -3857,5 +3857,109 @@ FILES MODIFIED — PHASE 8 SUMMARY
                                                          Report: both states logged
 
 ================================================================================
+════════════════════════════════════════════════════════════════════════════════
+  PHASE 9 — April 30, 2026 (End of Day Session)
+  Project: NFC_Rev2.08
+  Files Modified: Functional\trace32.py, Gui_Main_Script\gui_main.py
+════════════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 1 — EOS Test Missing from Manual Report
+────────────────────────────────────────────────────────────────────────────────
+USER:
+  File: NFC_Rev2.08\ManualTest\reports\2026-04-30_NFC_Rev2.08\
+        20260430_161750_23423423423423423422_NFC_Rev2.08_Test_Report_0001_FAIL.html
+  "Test result not added for EOS"
+
+ROOT CAUSE:
+  In _collect_and_save_all_manual_tests(), the EOS section was wrapped in a
+  conditional — it only appeared in the report if at least one of
+  tab6_entry_eos_set or tab6_entry_eos_reset had a non-empty value.
+  If neither EOS Set nor EOS Reset checkbox was clicked during testing,
+  both entries remained empty and the EOS section was silently omitted
+  from the report entirely.
+
+ASSISTANT (file modified):
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py  — _collect_and_save_all_manual_tests()
+
+  Before:
+    eos_fields = []
+    v_set = tab6_entry_eos_set.get().strip()
+    if v_set: eos_fields.append(...)
+    v_reset = tab6_entry_eos_reset.get().strip()
+    if v_reset: eos_fields.append(...)
+    if eos_fields:
+        sections.append({"name": "EOS Test", ...})
+
+  After:
+    EOS section is ALWAYS appended to sections[].
+    If an entry is empty → value shown as "—", result = FAIL.
+    If measured → pass range checked as before.
+    Overall: FAIL unless both states measured and within range.
+
+  Effect:
+    EOS Test always appears in the report.
+    Unmeasured states are explicitly shown as "—" / FAIL rather than hidden.
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 2 — CMD Window Pops Up Multiple Times on AutomationTest.vbs Launch
+────────────────────────────────────────────────────────────────────────────────
+USER:
+  "While I start AutomationTest.vbs, before starting the Trace32 debugger,
+   CMD window pops up many times."
+
+ROOT CAUSE:
+  In LaunchTrace32() and QuitTrace32() inside Functional\trace32.py,
+  taskkill commands were called using os.system() which always opens a
+  visible CMD window:
+    os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")  — called ×3 in cleanup
+    os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")  — called ×3 before Popen
+    os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1") — in QuitTrace32
+  Total: 7 CMD windows flashing during startup/disconnect.
+
+ASSISTANT (file modified):
+  NFC_Rev2.08\Functional\trace32.py
+  All 3 os.system() taskkill calls replaced with subprocess.run() using:
+    stdout=subprocess.DEVNULL
+    stderr=subprocess.DEVNULL
+    creationflags=subprocess.CREATE_NO_WINDOW
+  No CMD windows appear — process runs fully silently in background.
+
+────────────────────────────────────────────────────────────────────────────────
+TURN 3 — Still One CMD Window Appears Initially
+────────────────────────────────────────────────────────────────────────────────
+USER: "There is still one time CMD window pops up initially."
+
+ROOT CAUSE:
+  The tasklist process-check loop inside LaunchTrace32() was still using
+  subprocess.run(['tasklist'], capture_output=True, text=True) WITHOUT the
+  creationflags=subprocess.CREATE_NO_WINDOW flag. This caused one CMD
+  window to flash each iteration of the wait loop (up to 30 times if
+  T32 processes were slow to exit, but at least once at startup).
+
+ASSISTANT (file modified):
+  NFC_Rev2.08\Functional\trace32.py
+  Added creationflags=subprocess.CREATE_NO_WINDOW to the tasklist
+  subprocess.run() call in the cleanup wait loop:
+
+    result = subprocess.run(
+        ['tasklist'],
+        capture_output=True, text=True,
+        creationflags=subprocess.CREATE_NO_WINDOW
+    )
+
+================================================================================
+FILES MODIFIED — PHASE 9 SUMMARY
+================================================================================
+  File                                         Change
+  ───────────────────────────────────────────  ──────────────────────────────────
+  NFC_Rev2.08\Gui_Main_Script\gui_main.py      EOS section always added to report;
+                                               unmeasured fields show "—" / FAIL
+  NFC_Rev2.08\Functional\trace32.py            All os.system() taskkill calls →
+                                               subprocess.run(CREATE_NO_WINDOW)
+  NFC_Rev2.08\Functional\trace32.py            tasklist wait-loop: added
+                                               CREATE_NO_WINDOW flag
+
+================================================================================
 END OF FULL CHAT HISTORY — April 1 to April 30, 2026
 ================================================================================

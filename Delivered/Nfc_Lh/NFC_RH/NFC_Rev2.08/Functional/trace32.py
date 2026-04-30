@@ -185,13 +185,18 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     _T32_PROCS = ['t32marm.exe', 't32mstart.exe', 't32mtc.exe']
     try:
         for _proc in _T32_PROCS:
-            os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")
+            subprocess.run(
+                ['taskkill', '/F', '/IM', _proc, '/T'],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
         # Wait until every T32 process is fully gone (up to 15 seconds)
         # so the USB/PODBUS driver has time to physically release the device
         for _ in range(30):
             result = subprocess.run(
                 ['tasklist'],
-                capture_output=True, text=True
+                capture_output=True, text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
             if not any(p in result.stdout for p in _T32_PROCS):
                 break
@@ -242,7 +247,11 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     # Kill any stale T32 process before launching to avoid PODBUS "device already used" error
     for _proc in ['t32marm.exe', 't32mstart.exe', 't32mtc.exe']:
-        os.system(f"taskkill /F /IM {_proc} /T >nul 2>&1")
+        subprocess.run(
+            ['taskkill', '/F', '/IM', _proc, '/T'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
     time.sleep(5)  # Give the PODBUS driver time to release before new instance starts
                    # 5 s is required on some benches; 2 s caused "device already used" PODBUS error on retry
     subprocess.Popen(command)
@@ -608,7 +617,11 @@ def QuitTrace32(status_label=None):
     except:
         pass
     finally:
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        subprocess.run(
+            ['taskkill', '/F', '/IM', 't32marm.exe', '/T'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
         time.sleep(4)  # Wait for PODBUS USB driver to fully release the device
         dbg = ''
         if status_label:
