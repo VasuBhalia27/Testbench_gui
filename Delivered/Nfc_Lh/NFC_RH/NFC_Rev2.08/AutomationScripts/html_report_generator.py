@@ -10,7 +10,7 @@ Typical usage (called automatically from ``generate_report``)::
     html_path = generate_html_report(
         results_by_sheet=results_by_sheet,
         reports_dir=REPORTS_DIR,
-        project_title="Smart BU Testbench NFC LH – Automated Test Report",
+        project_title="Smart BU Testbench NFC – Automated Test Report",
     )
     print(f"HTML Report saved to: {html_path}")
 """

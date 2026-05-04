@@ -802,7 +802,7 @@ def generate_report(
         results_by_sheet=results_by_sheet,
         output_path=output_path,
         reports_dir=today_dir,
-        project_title=f"Smart BU Testbench NFC LH \u2013 Automated Test Report",
+        project_title=f"Smart BU Testbench NFC \u2013 Automated Test Report",
         scan_code=scan_code,
         sw_revision=_SW_REVISION,
     )
