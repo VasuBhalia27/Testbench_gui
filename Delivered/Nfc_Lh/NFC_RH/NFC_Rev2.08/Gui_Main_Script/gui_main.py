@@ -1920,15 +1920,12 @@ def _collect_and_save_all_manual_tests():
     if v_set:
         vn = _parse_num(tab6_entry_eos_set)
         eos_fields.append(("EOS Set Voltage", v_set, vn is not None and 1400 <= vn <= 1600))
-    else:
-        eos_fields.append(("EOS Set Voltage", "—", False))
     v_reset = tab6_entry_eos_reset.get().strip()
     if v_reset:
         vn = _parse_num(tab6_entry_eos_reset)
         eos_fields.append(("EOS Reset Voltage", v_reset, vn is not None and 1500 <= vn <= 3000))
-    else:
-        eos_fields.append(("EOS Reset Voltage", "—", False))
-    sections.append({"name": "EOS Test", "fields": eos_fields, "overall": all(f[2] for f in eos_fields)})
+    if eos_fields:
+        sections.append({"name": "EOS Test", "fields": eos_fields, "overall": all(f[2] for f in eos_fields)})
 
     # ── SG ────────────────────────────────────────────────────────────────────
     if tab7_entry_1.get().strip():
