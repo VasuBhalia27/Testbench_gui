@@ -60,7 +60,8 @@ NORMAL = TimingProfile(
     capa_retry_interval=0.25,
     stable_poll_interval=0.25,
     can_response_timeout=5.0,  # max seconds to poll for CanRxDataValid after send_did
-    lin_response_timeout=5.0,  # max seconds to poll for LinRxDataValid after send_did)
+    lin_response_timeout=5.0,  # max seconds to poll for LinRxDataValid after send_did
+)
 
 FAST = TimingProfile(
     supply_off_wait=0.5,
