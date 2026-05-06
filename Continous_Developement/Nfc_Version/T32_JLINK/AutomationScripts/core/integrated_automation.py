@@ -119,7 +119,11 @@ class IntegratedAutomationRunner:
 
             if not success:
                 self._log("\n✗ HARDWARE SETUP FAILED")
-                self.gui.root.after(0, lambda: self.gui.set_result_indicator(False))
+                # Only count FAIL when an actual PCB test was attempted.
+                # If the failure was a Trace32 connection error, the PCB was
+                # never tested — do not increment the FAIL counter.
+                if not getattr(verifier, 'connection_error', False):
+                    self.gui.root.after(0, lambda: self.gui.set_result_indicator(False))
                 self.is_running = False
                 self.unlock_tabs()
                 self.gui.root.after(0, self.gui.reset_for_new_run)

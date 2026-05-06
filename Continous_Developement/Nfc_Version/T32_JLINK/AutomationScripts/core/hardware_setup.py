@@ -35,6 +35,9 @@ class HardwareSetupVerifier:
         """
         self.status_callback = status_callback or (lambda msg: None)
         self.repo_path = path_utils.smartbu_repo_path()
+        # Set to True when the failure was a Trace32 connection issue so that
+        # the FAIL counter is NOT incremented (no PCB was actually tested).
+        self.connection_error = False
 
     def _log(self, message: str) -> None:
         """Log a status message via callback."""
@@ -69,6 +72,11 @@ class HardwareSetupVerifier:
                 t32.QuitTrace32(status_label=None)
             except Exception:
                 pass
+            self.connection_error = True
+            self._log("[ERROR] Trace32 launch failed. Possible causes:")
+            self._log("  \u2022 Lauterbach hardware probe is not connected or not recognized by the PC.")
+            self._log("  \u2022 Lauterbach Trace32 software (t32marm.exe) could not start.")
+            self._log("Recovery: reconnect the USB probe, then click Start again.")
             raise HardwareSetupVerificationError(f"Failed to launch Trace32: {e}")
 
         self._log("Waiting for breakpoint...")
@@ -90,6 +98,11 @@ class HardwareSetupVerifier:
             t32.QuitTrace32(status_label=None)
         except Exception:
             pass
+        self.connection_error = True
+        self._log("[ERROR] Trace32 connection timed out. Possible causes:")
+        self._log("  \u2022 Lauterbach hardware probe is not connected or not recognized by the PC.")
+        self._log("  \u2022 Lauterbach Trace32 software is not running in the background.")
+        self._log("Recovery: check USB probe connection, then click Start again.")
         raise HardwareSetupVerificationError("Timeout waiting for Trace32 breakpoint")
 
     def run_code_and_verify(self, timeout: float = 10.0) -> None:
@@ -134,6 +147,7 @@ class HardwareSetupVerifier:
                             Used for subsequent runs to avoid redundant connection setup.
         :return: True if fully verified, False otherwise
         """
+        self.connection_error = False  # reset before each full verify attempt
         try:
             # Only connect on first run; reuse connection for subsequent runs
             if not skip_connect:

@@ -436,7 +436,47 @@ def ConnectToTraceUDP():
             if attempt < 2:
                 time.sleep(3)
 
-    messagebox.showerror("Error", "Connection to Trace32 Failed!!!")
+    # ----------------------------------------------------------------
+    # Diagnose the failure so the operator knows what to fix.
+    # Check whether t32marm.exe is actually running to distinguish
+    # between "software not launched" and "hardware probe not found".
+    # ----------------------------------------------------------------
+    try:
+        proc_result = subprocess.run(
+            ['tasklist', '/FI', 'IMAGENAME eq t32marm.exe'],
+            capture_output=True, text=True
+        )
+        t32_sw_running = 't32marm.exe' in proc_result.stdout
+    except Exception:
+        t32_sw_running = False
+
+    if t32_sw_running:
+        reason = (
+            "Trace32 software is running but the UDP connection was refused.\n\n"
+            "Most likely cause:\n"
+            "  \u2022 Lauterbach hardware probe is not connected or not recognized by the PC.\n\n"
+            "Recovery steps:\n"
+            "  1. Check the USB cable between the PC and the Lauterbach probe.\n"
+            "  2. Reconnect the probe and wait for Windows to recognize it.\n"
+            "  3. Click 'Connect' again to retry."
+        )
+        print("[Trace32] Connection failed — software running but hardware probe not detected.")
+    else:
+        reason = (
+            "Trace32 software (t32marm.exe) is not running.\n\n"
+            "Possible causes:\n"
+            "  \u2022 Lauterbach Trace32 software failed to launch.\n"
+            "  \u2022 Lauterbach hardware probe is not connected or not recognized by the PC.\n\n"
+            "Recovery steps:\n"
+            "  1. Ensure the Lauterbach probe is firmly connected via USB.\n"
+            "  2. Click 'Connect' to relaunch Trace32 and retry.\n"
+            "  3. If the problem persists, verify the installation at:\n"
+            "     C:\\T32\\bin\\windows64\\t32marm.exe"
+        )
+        print("[Trace32] Connection failed — t32marm.exe is not running. Probe may not be connected.")
+
+    print(f"[Trace32] Last exception: {last_exc}")
+    messagebox.showerror("Error", f"Connection to Trace32 Failed!!!\n\n{reason}")
 
 
 def SendDIDGetVal(entry_widget, DID, get_val_var):
