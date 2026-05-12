@@ -1,0 +1,895 @@
+.HEADER
+LIBRARY_FILE    3.0    "PADS Layout VX.2.8"    2025/08/14.08:00:06    1
+.END_HEADER
+.ELECTRICAL
+TP060                                        TPCW060                                      MM        0.1                      
+0     0.0                           0.0                           0     
+0     -0.25                         0.0                           360   
+.END_ELECTRICAL
+.ELECTRICAL
+CON_AMP_F300-1B7H1-11017-E100                CON_AMP_F300-1B7H1-11017-E100                MM        2.0                      
+0     -6.4                          4.7                           0     
+0     -6.4                          -1.0                          0     
+0     6.4                           -1.0                          0     
+0     6.4                           4.7                           0     
+0     -6.4                          4.7                           0     
+.END_ELECTRICAL
+.ELECTRICAL
+X2DFN2_ONSEMI                                A_DIOC_ESD_X2DFNW2_SZESD8551MXWT5G_ONSEM     MM        0.4                      
+0     -0.775                   -0.575                   0     
+0     0.775                    -0.575                   0     
+0     0.775                    0.575                    0     
+0     -0.775                   0.575                    0     
+0     -0.775                   -0.575                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1608X55N                                 A_RESC_RES_1608_10R_1_                       MM        0.55                     
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V                      MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT23-3_VISHAY                               A_PMOS_SOT23_SQ2351CES_VISHAY                MM        1.12                     
+0     -1.62                    -1.8                     0     
+0     1.62                     -1.8                     0     
+0     1.62                     1.8                      0     
+0     -1.62                    1.8                      0     
+0     -1.62                    -1.8                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         MM        0.8                      
+0     -1.125                   -0.6                     0     
+0     1.125                    -0.6                     0     
+0     1.125                    0.6                      0     
+0     -1.125                   0.6                      0     
+0     -1.125                   -0.6                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+TP100                                        TPCW100                                      MM        0.1                      
+0     0.0                           0.0                           0     
+0     -0.5                          0.0                           360   
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_10N_X7R_50V                      MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_22N_X7R_50V                      MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC2013X60N                                 A_RESC_RES_2012_3R3_0_5W_1_                  MM        0.6                      
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+TQFP50P1000X1000X160-64N                     UC_TQFP64_CY8C4148AZE-S595_INFINEON          MM        1.6                      
+0     -6.5                     -6.5                     0     
+0     6.5                      -6.5                     0     
+0     6.5                      6.5                      0     
+0     -6.5                     6.5                      0     
+0     -6.5                     -6.5                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_47P_X7R_25V                      MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_470K_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT323-3N_NEXPERIA                           A_NPN_DIGITAL_SOT323_PDTC124XU_NEXPERIA      MM        1.1                      
+0     -1.375                   -1.375                   0     
+0     1.375                    -1.375                   0     
+0     1.375                    1.375                    0     
+0     -1.375                   1.375                    0     
+0     -1.375                   -1.375                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+XTAL_FL2710030Q-27_120MHZ_DIODES             XTAL_FL2710030Q-27_120MHZ_DIODES             MM        0.78                     
+0     -2.41                    -2.0                     0     
+0     2.41                     -2.0                     0     
+0     2.41                     2.0                      0     
+0     -2.41                    2.0                      0     
+0     -2.41                    -2.0                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V_1_                   MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_4K7_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_3K92_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_100V                     MM        0.8                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOD523_DIODES                                A_DIOC_SOD523_SBAS16XV2T5G_ONSEMI            MM        0.65                     
+0     -0.65                         -0.45                         0     
+0     0.65                          -0.45                         0     
+0     0.65                          0.45                          0     
+0     -0.65                         0.45                          0     
+0     -0.65                         -0.45                         0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_4_7N_X7R_50V                     MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOD2513X100N_DIODES                          A_DIO_PESD1IVN24-A_NEXPERIA                  MM        1.1                      
+0     -2.9725                  -0.975                   0     
+0     2.025                    -0.975                   0     
+0     2.025                    0.975                    0     
+0     -2.9725                  0.975                    0     
+0     -2.9725                  -0.975                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_2N2_C0G_50V                      MM        0.9                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+POWERDI_3333-8_DIODES                        A_PMOS_DI333-8_DMP6023LFGQ_DIODES            MM        0.85                     
+0     -2.075                   -2.075                   0     
+0     2.075                    -2.075                   0     
+0     2.075                    2.075                    0     
+0     -2.075                   2.075                    0     
+0     -2.075                   -2.075                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_33N_X7R_50V                      MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_33P_C0G_50V_1_                   MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_0_5P_C0G_50V_10_                 MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X90N                                 A_CAPC_1608_22N_X7R_50V_SOFTTERM             MM        0.9                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+HSOP-8A-A_1_27_1_60X1_63_ABLIC               IC_HSOP-8A-A_S-19212B33A-E8T1U_ABLIC         MM        1.75                     
+0     -3.6                     -2.775                   0     
+0     3.6                      -2.775                   0     
+0     3.6                      3.806                    0     
+0     -3.6                     3.806                    0     
+0     -3.6                     -2.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC3216X60L                                 A_RESC_RES_3216_1K05_1_                      MM        0.7                      
+0     -1.95                    -0.975                   0     
+0     1.95                     -0.975                   0     
+0     1.95                     0.975                    0     
+0     -1.95                    0.975                    0     
+0     -1.95                    -0.975                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC2013X140N_A                              A_CAPC_2012_4U7_X7R_50V_SOFT                 MM        1.5                      
+0     -1.575                   -0.95                    0     
+0     1.575                    -0.95                    0     
+0     1.575                    0.95                     0     
+0     -1.575                   0.95                     0     
+0     -1.575                   -0.95                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC_RR1632M                                 A_RESC_RES_RR1632_1_5R_1__ANTI_SURGE         MM        0.65                     
+0     -1.425                   -1.875                   0     
+0     1.425                    -1.875                   0     
+0     1.425                    1.875                    0     
+0     -1.425                   1.875                    0     
+0     -1.425                   -1.875                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            MM        0.9                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT23P450X270-3                              A_NPN_SOT23_BC817_NXP                        MM        1.1                      
+0     -1.8                     -1.8                     0     
+0     1.8                      -1.8                     0     
+0     1.8                      1.8                      0     
+0     -1.8                     1.8                      0     
+0     -1.8                     -1.8                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_1K_1_                        MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V                      MM        0.8                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+HVSON14_SOT1086-2__NXP                       IC_HVSON14_UJA1162ATK_NXP                    MM        1.0                      
+0     -2.85                    -2.725                   0     
+0     2.575                    -2.725                   0     
+0     2.575                    3.25                     0     
+0     -2.85                    3.25                     0     
+0     -2.85                    -2.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X90N                                 A_CAPC_1608_47N_X7R_50V                      MM        0.9                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_4U7_X7S_16V                      MM        0.87                     
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X90N                                 A_CAPC_1608_1U_X7R_16V                       MM        0.9                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             MM        2.0                      
+0     -2.375                   -1.175                   0     
+0     2.375                    -1.175                   0     
+0     2.375                    1.175                    0     
+0     -2.375                   1.175                    0     
+0     -2.375                   -1.175                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1608X90N                                 A_RESC_VAR_1608_27V_AVR-M1608C270MTABB       MM        0.8                      
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_15K_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+QFN-12_2X3__MPS                              IC_QFN12_MPQ4324GDE-1044-AEC1_MPS            MM        1.0                      
+0     -1.52419                 -1.825                   0     
+0     1.325                    -1.825                   0     
+0     1.325                    2.02419                  0     
+0     -1.52419                 2.02419                  0     
+0     -1.52419                 -1.825                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1608X55N                                 A_RESC_RES_1608_0R                           MM        0.55                     
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+C100                                         PAD100                                       MM        0.0                      
+0     0.0                           0.0                           0     
+0     0.5                           0.0                           360   
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_47K_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X90N                                 A_CAPC_1608_2U2_X7S_16V                      MM        0.8                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC3216X180N                                A_CAPC_3216_22U_X7R_10V                      MM        1.8                      
+0     -2.375                   -1.175                   0     
+0     2.375                    -1.175                   0     
+0     2.375                    1.175                    0     
+0     -2.375                   1.175                    0     
+0     -2.375                   -1.175                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT23_95P305X145-5                           IC_SOT23-5_S-19251B33H-M5T1U4_ABLIC          MM        1.3                      
+0     -1.945                   -1.8005                  0     
+0     1.945                    -1.8005                  0     
+0     1.945                    2.217                    0     
+0     -1.945                   2.217                    0     
+0     -1.945                   -1.8005                  0     
+.END_ELECTRICAL
+.ELECTRICAL
+DO214AA_SMB_ST                               A_DIOC_TVS_DO-214A_SM6T33CAY_ST              MM        2.45                     
+0     -4.625                   -2.125                   0     
+0     3.09                     -2.125                   0     
+0     3.09                     2.125                    0     
+0     -4.625                   2.125                    0     
+0     -4.625                   -2.125                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_560K_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC3216X180N                                A_CAPC_3216_10U_X7R_50V                      MM        1.8                      
+0     -2.375                   -1.175                   0     
+0     2.375                    -1.175                   0     
+0     2.375                    1.175                    0     
+0     -2.375                   1.175                    0     
+0     -2.375                   -1.175                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC2013X140N                                A_CAPC_2012_2U2_X7R_50V_SOFT                 MM        1.5                      
+0     -1.575                   -0.825                   0     
+0     1.575                    -0.825                   0     
+0     1.575                    0.825                    0     
+0     -1.575                   0.825                    0     
+0     -1.575                   -0.825                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_22K_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_120K_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CON_HOTBAR_XNF_9PIN_MIRROR                   CON_HOTBAR_XNF_9PIN_MIRROR                   MM        0.0                      
+0     -13.3                    -2.0                     0     
+0     12.3                     -2.0                     0     
+0     12.3                     2.0                      0     
+0     -13.3                    2.0                      0     
+0     -13.3                    -2.0                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+HWQN40_40P500X500X75-41N                     IC_HWQN40_NCJ3321_NXP                        MM        0.75                     
+0     -3.08385                 -2.8                     0     
+0     2.8                      -2.8                     0     
+0     2.8                      3.08385                  0     
+0     -3.08385                 3.08385                  0     
+0     -3.08385                 -2.8                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V_SOFTTERM             MM        0.8                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOD323_ONSEMI                                A_DIOM_ZEN_SZMM3Z16VT1_ONSEMI                MM        1.2                      
+0     -2.6425                  -0.95                    0     
+0     1.625                    -0.95                    0     
+0     1.625                    0.95                     0     
+0     -2.6425                  0.95                     0     
+0     -2.6425                  -0.95                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_158K_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_17K4_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_52K3_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT23P450X270-3                              A_PNP_SOT23_BC807_NXP                        MM        1.1                      
+0     -1.8                     -1.8                     0     
+0     1.8                      -1.8                     0     
+0     1.8                      1.8                      0     
+0     -1.8                     1.8                      0     
+0     -1.8                     -1.8                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT23-3_DIODES                               A_DIOC_SOT23-3_PESD2IVN24_NEXPERIA           MM        1.1                      
+0     -1.8                     -1.8                     0     
+0     1.8                      -1.8                     0     
+0     1.8                      1.8                      0     
+0     -1.8                     1.8                      0     
+0     -1.8                     -1.8                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT23-3_DIODES                               A_DIOC_SOT23_BAS16Q                          MM        1.2                      
+0     -1.8                     -1.8                     0     
+0     1.8                      -1.8                     0     
+0     1.8                      1.8                      0     
+0     -1.8                     1.8                      0     
+0     -1.8                     -1.8                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_4N7_X7R_50V                      MM        0.8                      
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC2013X60N                                 A_RESC_RES_2012_62R_1_                       MM        0.65                     
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+DO219AB_SMF                                  A_DIOM_DO219AB_SS1FN6                        MM        1.08                     
+0     -3.225                   -1.05                    0     
+0     2.1                      -1.05                    0     
+0     2.1                      1.05                     0     
+0     -3.225                   1.05                     0     
+0     -3.225                   -1.05                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC2013X140N_A                              A_CAPC_2012_220PF_X7R_50V_SOFT               MM        1.5                      
+0     -1.575                   -0.95                    0     
+0     1.575                    -0.95                    0     
+0     1.575                    0.95                     0     
+0     -1.575                   0.95                     0     
+0     -1.575                   -0.95                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+LASER_SOLDERING_FIDUCIAL                     LASER_SOLDERING_FIDUCIAL                     MM        0.0                      
+0     -0.7                     -0.7                     0     
+0     0.7                      -0.7                     0     
+0     0.7                      0.7                      0     
+0     -0.7                     0.7                      0     
+0     -0.7                     -0.7                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1608X80N                                 A_CAPC_1608_220N_X7R_50V_SOFTTERM            MM        0.85                     
+0     -1.375                   -0.725                   0     
+0     1.375                    -0.725                   0     
+0     1.375                    0.725                    0     
+0     -1.375                   0.725                    0     
+0     -1.375                   -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC3225X60N                                 A_RESC_RES_3225_0R                           MM        0.6                      
+0     -2.325                   -1.425                   0     
+0     2.325                    -1.425                   0     
+0     2.325                    1.425                    0     
+0     -2.325                   1.425                    0     
+0     -2.325                   -1.425                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1608X55N                                 A_RESC_RES_1608_100K_1_                      MM        0.55                     
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC2013X60N                                 A_RESC_RES_2012_10K_1_                       MM        0.6                      
+0     -1.525                   -0.775                   0     
+0     1.525                    -0.775                   0     
+0     1.525                    0.775                    0     
+0     -1.525                   0.775                    0     
+0     -1.525                   -0.775                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+TP050                                        TPCW050                                      MM        0.1                      
+0     0.0                           0.0                           0     
+0     -0.25                         0.0                           360   
+.END_ELECTRICAL
+.ELECTRICAL
+INDC1005X55L                                 A_INDC_1005_180NH_LQW15CNR18J1Z              MM        0.6                      
+0     -0.825                   -0.425                   0     
+0     0.825                    -0.425                   0     
+0     0.825                    0.425                    0     
+0     -0.825                   0.425                    0     
+0     -0.825                   -0.425                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_1N_C0G_50V_1__NOKEMET            MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CON_PINHEAD_2X5PIN_1_27MM                    JTAG_10_PIN_1_27MM                           MM        0.0                      
+0     -4.06647                 -2.5941                  0     
+0     3.3                      -2.5941                  0     
+0     3.3                      1.84                     0     
+0     -4.06647                 1.84                     0     
+0     -4.06647                 -2.5941                  0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1608X55L                                 A_RESC_RES_1608_0R                           MM        0.55                     
+0     -1.175                   -0.55                    0     
+0     1.175                    -0.55                    0     
+0     1.175                    0.55                     0     
+0     -1.175                   0.55                     0     
+0     -1.175                   -0.55                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+INDC_3015_TDK                                A_INDC_VLS3015CX-4R7M-H_TDK                  MM        1.5                      
+0     -1.6                          -1.6                          0     
+0     1.6                           -1.6                          0     
+0     1.6                           1.6                           0     
+0     -1.6                          1.6                           0     
+0     -1.6                          -1.6                          0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_47N_X7R_25V                      MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+QFN-18_MPS                                   IC_QFN18_MPQ6612A_MPS                        MM        1.0                      
+0     -2.32464                 -2.35                    0     
+0     1.85                     -2.35                    0     
+0     1.85                     2.35                     0     
+0     -2.32464                 2.35                     0     
+0     -2.32464                 -2.35                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_220N_X7R_16V                     MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_2K4_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+INDC_ACT1210_TDK                             A_IND_ACT1210D_100U_TDK                      MM        2.5                      
+0     -2.1                     -1.375                   0     
+0     2.1                      -1.375                   0     
+0     2.1                      1.375                    0     
+0     -2.1                     1.375                    0     
+0     -2.1                     -1.375                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT363-6_ONSEMI                              A_DUAL_NPN_PNP_SOT363_MUN531335DW1_ON        MM        1.1                      
+0     -1.33                    -1.3                     0     
+0     1.33                     -1.3                     0     
+0     1.33                     1.65                     0     
+0     -1.33                    1.65                     0     
+0     -1.33                    -1.3                     0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_2K_1_                        MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V_SOFTTERM            MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_390K_1_                      MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+HVSON8_NXP                                   IC_HVSON8_TJA1029TK_20_1J_NXP                MM        1.0                      
+0     -2.2                     -1.65                    0     
+0     1.825                    -1.65                    0     
+0     1.825                    2.075                    0     
+0     -2.2                     2.075                    0     
+0     -2.2                     -1.65                    0     
+.END_ELECTRICAL
+.ELECTRICAL
+SOT353_NEXPERIA                              IC_SOT353_PSSI2021SAY_NEXPERIA               MM        1.1                      
+0     -1.375                   -1.225                   0     
+0     1.375                    -1.225                   0     
+0     1.375                    1.65                     0     
+0     -1.375                   1.65                     0     
+0     -1.375                   -1.225                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_62R_1_                       MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC2013X140N                                A_CAPC_2012_4U7_X7R_16V_10_                  MM        1.4                      
+0     -1.575                   -0.825                   0     
+0     1.575                    -0.825                   0     
+0     1.575                    0.825                    0     
+0     -1.575                   0.825                    0     
+0     -1.575                   -0.825                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+DIOM_DFN1006-2_SOD882                        A_DIO_SOD882_PESD30VF1BBL-QL_NEXPERIA        MM        0.48                     
+0     -0.51                         -0.31                         0     
+0     0.51                          -0.31                         0     
+0     0.51                          0.31                          0     
+0     -0.51                         0.31                          0     
+0     -0.51                         -0.31                         0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_0R                           MM        0.4                      
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+OSCCC_2_00MMX1_60MMX0_55MM_ABRACON           XTAL_FW2000016Q-20MHZ_DIODES                 MM        0.55                     
+0     -1.97002                 -1.71602                 0     
+0     1.425                    -1.71602                 0     
+0     1.425                    1.225                    0     
+0     -1.97002                 1.225                    0     
+0     -1.97002                 -1.71602                 0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_180P_C0G_50V                     MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_6P8_C0G_50V                      MM        0.5                      
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_560P_C0G_50V_1_                  MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_68P_C0G_50V_1_                   MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_1P_C0G_50V_10_                   MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+RESC1005X38L                                 A_RESC_RES_1005_430K_1_                      MM        0.45                     
+0     -0.825                   -0.475                   0     
+0     0.825                    -0.475                   0     
+0     0.825                    0.475                    0     
+0     -0.825                   0.475                    0     
+0     -0.825                   -0.475                   0     
+.END_ELECTRICAL
+.ELECTRICAL
+CAPC1005X55N                                 A_CAPC_1005_8P2_C0G_50V_1_                   MM        0.55                     
+0     -1.1                     -0.725                   0     
+0     1.1                      -0.725                   0     
+0     1.1                      0.725                    0     
+0     -1.1                     0.725                    0     
+0     -1.1                     -0.725                   0     
+.END_ELECTRICAL

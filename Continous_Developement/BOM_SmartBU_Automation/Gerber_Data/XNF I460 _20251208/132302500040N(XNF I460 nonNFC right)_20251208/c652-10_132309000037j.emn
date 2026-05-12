@@ -1,0 +1,1238 @@
+.HEADER
+BOARD_FILE    3.0    "PADS Layout VX.2.8"    2025/08/14.08:00:04    1
+"n:\7322_rc-mc-dc\pcb_c_numbers\c652\c652-10 (i420 - emc-prototype v2)\documentation\internal\c652-10_132309000037j.emn"    MM
+.END_HEADER
+.BOARD_OUTLINE    UNOWNED
+1.0
+0     3.899                         6.61662                       0     
+0     -2.0517                       1.18897                       0     
+0     -2.4296                       -1.95554                      0     
+0     30.44268                      -5.90618                      0     
+0     30.44269                      -5.90618                      0     
+0     52.86256                      -5.90106                      0     
+0     52.86256                      -5.90105                      0     
+0     54.79573                      -5.77032                      0     
+0     54.61114                      -4.92863                      0     
+0     54.61116                      -4.9287                       0     
+0     56.56474                      -4.5003                       -179.9    
+0     56.56477                      -4.50022                      0     
+0     56.81337                      -5.63387                      0     
+0     81.78947                      -3.96828                      0     
+0     88.57696                      -3.51224                      0     
+0     88.91999                      -3.48923                      0     
+0     89.81195                      -3.9656                       0     
+0     97.56842                      -3.70888                      0     
+0     97.73402                      -3.70091                      0     
+0     97.40584                      8.43509                       0     
+0     97.40579                      8.4351                        0     
+0     97.23128                      8.58998                       -0.4      
+0     95.30151                      10.4791                       -5.2      
+0     88.04029                      23.83926                      -29.3     
+0     88.04032                      23.83928                      0     
+0     72.10374                      20.34452                      0     
+0     72.3179                       19.36779                      0     
+0     72.31793                      19.36774                      0     
+0     70.36434                      18.93934                      -179.9    
+0     70.36433                      18.93941                      0     
+0     70.15016                      19.91614                      0     
+0     70.15016                      19.91615                      0     
+0     64.2894                       18.63099                      0     
+0     65.03913                      15.21217                      0     
+0     65.03905                      15.2122                       0     
+0     61.60739                      9.85275                       -90.0     
+0     61.60739                      9.85276                       0     
+0     47.94496                      6.85671                       0     
+0     31.30979                      12.62743                      0     
+0     3.899                         6.61662                       0     
+1     26.42716                      -3.20782                      0     
+1     25.42716                      -3.20782                      360   
+2     0.0172                        -0.03379                      0     
+2     -0.9828                       -0.03379                      360   
+3     88.927                        16.72943                      0     
+3     89.50024                      16.9066                       0     
+3     89.50023                      16.9066                       0     
+3     89.85446                      15.76008                      -180.0    
+3     89.28123                      15.58291                      0     
+3     88.927                        16.72943                      -178.9    
+.END_BOARD_OUTLINE
+.DRILLED_HOLES
+0.250000 2.225000 -1.025000 PTH    BOARD    VIA    UNOWNED
+0.250000 2.275000 -1.675000 PTH    BOARD    VIA    UNOWNED
+0.250000 2.925000 -1.750000 PTH    BOARD    VIA    UNOWNED
+0.250000 3.575000 -1.825000 PTH    BOARD    VIA    UNOWNED
+0.250000 4.225000 -1.900000 PTH    BOARD    VIA    UNOWNED
+0.250000 9.775000 4.375000 PTH    BOARD    VIA    UNOWNED
+0.250000 6.500000 -2.175000 PTH    BOARD    VIA    UNOWNED
+0.250000 5.850000 -2.125000 PTH    BOARD    VIA    UNOWNED
+0.250000 5.200000 -2.025000 PTH    BOARD    VIA    UNOWNED
+0.250000 6.073858 2.987278 PTH    BOARD    VIA    UNOWNED
+0.250000 5.373858 3.037278 PTH    BOARD    VIA    UNOWNED
+0.250000 5.098858 3.662278 PTH    BOARD    VIA    UNOWNED
+0.250000 5.798858 3.587278 PTH    BOARD    VIA    UNOWNED
+0.250000 6.498858 3.512278 PTH    BOARD    VIA    UNOWNED
+0.250000 7.198858 3.437278 PTH    BOARD    VIA    UNOWNED
+0.250000 17.925000 1.800000 PTH    BOARD    VIA    UNOWNED
+0.250000 18.025000 1.150000 PTH    BOARD    VIA    UNOWNED
+0.250000 20.225000 0.975000 PTH    BOARD    VIA    UNOWNED
+0.250000 11.230053 2.965419 PTH    BOARD    VIA    UNOWNED
+0.250000 31.400000 0.200000 PTH    BOARD    VIA    UNOWNED
+0.250000 29.823858 -3.487722 PTH    BOARD    VIA    UNOWNED
+0.250000 21.875000 2.875000 PTH    BOARD    VIA    UNOWNED
+0.250000 28.500000 -2.875000 PTH    BOARD    VIA    UNOWNED
+0.250000 28.450000 -4.325000 PTH    BOARD    VIA    UNOWNED
+0.250000 30.998858 -4.187722 PTH    BOARD    VIA    UNOWNED
+0.250000 31.298858 -0.662722 PTH    BOARD    VIA    UNOWNED
+0.250000 22.675000 2.675000 PTH    BOARD    VIA    UNOWNED
+0.250000 26.075000 -0.275000 PTH    BOARD    VIA    UNOWNED
+0.250000 40.323858 1.687278 PTH    BOARD    VIA    UNOWNED
+0.250000 35.048858 3.687278 PTH    BOARD    VIA    UNOWNED
+0.250000 37.598858 -4.687722 PTH    BOARD    VIA    UNOWNED
+0.250000 31.948858 -4.562722 PTH    BOARD    VIA    UNOWNED
+0.250000 40.998858 -1.612722 PTH    BOARD    VIA    UNOWNED
+0.250000 33.398858 -4.862722 PTH    BOARD    VIA    UNOWNED
+0.250000 32.723858 -4.862722 PTH    BOARD    VIA    UNOWNED
+0.250000 33.600000 2.425000 PTH    BOARD    VIA    UNOWNED
+0.250000 32.898858 2.612278 PTH    BOARD    VIA    UNOWNED
+0.250000 32.898858 3.262278 PTH    BOARD    VIA    UNOWNED
+0.250000 35.300000 -1.250000 PTH    BOARD    VIA    UNOWNED
+0.250000 36.098858 -2.137722 PTH    BOARD    VIA    UNOWNED
+0.250000 32.625000 1.125000 PTH    BOARD    VIA    UNOWNED
+0.250000 39.598858 -2.862722 PTH    BOARD    VIA    UNOWNED
+0.250000 39.573858 -3.512722 PTH    BOARD    VIA    UNOWNED
+0.250000 36.998858 3.062278 PTH    BOARD    VIA    UNOWNED
+0.250000 37.598858 3.312278 PTH    BOARD    VIA    UNOWNED
+0.250000 36.773858 2.462278 PTH    BOARD    VIA    UNOWNED
+0.250000 36.598858 1.662278 PTH    BOARD    VIA    UNOWNED
+0.250000 36.773858 -5.087722 PTH    BOARD    VIA    UNOWNED
+0.250000 35.323858 -5.087722 PTH    BOARD    VIA    UNOWNED
+0.250000 36.798858 3.687278 PTH    BOARD    VIA    UNOWNED
+0.250000 49.798858 -5.037722 PTH    BOARD    VIA    UNOWNED
+0.250000 48.598858 -5.087722 PTH    BOARD    VIA    UNOWNED
+0.250000 43.773858 -0.362722 PTH    BOARD    VIA    UNOWNED
+0.250000 43.773858 -1.012722 PTH    BOARD    VIA    UNOWNED
+0.250000 46.223858 1.587278 PTH    BOARD    VIA    UNOWNED
+0.250000 48.348858 3.587278 PTH    BOARD    VIA    UNOWNED
+0.250000 51.648858 2.512278 PTH    BOARD    VIA    UNOWNED
+0.250000 46.673858 0.037278 PTH    BOARD    VIA    UNOWNED
+0.250000 43.798858 1.337278 PTH    BOARD    VIA    UNOWNED
+0.250000 49.598858 -3.237722 PTH    BOARD    VIA    UNOWNED
+0.250000 48.948858 -3.237722 PTH    BOARD    VIA    UNOWNED
+0.250000 42.800000 -3.475000 PTH    BOARD    VIA    UNOWNED
+0.250000 50.625000 -5.075000 PTH    BOARD    VIA    UNOWNED
+0.250000 47.323858 2.062278 PTH    BOARD    VIA    UNOWNED
+0.250000 46.873858 0.862278 PTH    BOARD    VIA    UNOWNED
+0.250000 47.098858 1.462278 PTH    BOARD    VIA    UNOWNED
+0.250000 43.373858 2.737278 PTH    BOARD    VIA    UNOWNED
+0.250000 44.148858 2.487278 PTH    BOARD    VIA    UNOWNED
+0.250000 45.925000 -2.175000 PTH    BOARD    VIA    UNOWNED
+0.250000 51.050000 -3.050000 PTH    BOARD    VIA    UNOWNED
+0.250000 51.075000 -0.775000 PTH    BOARD    VIA    UNOWNED
+0.250000 43.223858 -1.662722 PTH    BOARD    VIA    UNOWNED
+0.250000 59.650000 -1.125000 PTH    BOARD    VIA    UNOWNED
+0.250000 60.300000 -1.150000 PTH    BOARD    VIA    UNOWNED
+0.250000 52.698858 -3.212722 PTH    BOARD    VIA    UNOWNED
+0.250000 57.323858 -3.287722 PTH    BOARD    VIA    UNOWNED
+0.250000 57.625000 4.375000 PTH    BOARD    VIA    UNOWNED
+0.250000 51.973858 1.687278 PTH    BOARD    VIA    UNOWNED
+0.250000 61.875000 2.400000 PTH    BOARD    VIA    UNOWNED
+0.250000 61.475000 2.975000 PTH    BOARD    VIA    UNOWNED
+0.250000 55.398858 -2.037722 PTH    BOARD    VIA    UNOWNED
+0.250000 59.275000 -4.625000 PTH    BOARD    VIA    UNOWNED
+0.250000 53.775000 -5.000000 PTH    BOARD    VIA    UNOWNED
+0.250000 57.475000 -4.700000 PTH    BOARD    VIA    UNOWNED
+0.250000 56.975000 3.575000 PTH    BOARD    VIA    UNOWNED
+0.250000 56.275000 3.400000 PTH    BOARD    VIA    UNOWNED
+0.250000 55.575000 3.225000 PTH    BOARD    VIA    UNOWNED
+0.250000 54.875000 3.050000 PTH    BOARD    VIA    UNOWNED
+0.250000 56.325000 -1.700000 PTH    BOARD    VIA    UNOWNED
+0.250000 53.798858 -2.512722 PTH    BOARD    VIA    UNOWNED
+0.250000 67.123858 1.687278 PTH    BOARD    VIA    UNOWNED
+0.250000 70.798858 0.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 71.573858 0.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 64.100000 4.250000 PTH    BOARD    VIA    UNOWNED
+0.250000 62.350000 1.525000 PTH    BOARD    VIA    UNOWNED
+0.250000 64.798858 2.062278 PTH    BOARD    VIA    UNOWNED
+0.250000 62.325000 2.900000 PTH    BOARD    VIA    UNOWNED
+0.250000 64.000000 -0.075000 PTH    BOARD    VIA    UNOWNED
+0.250000 62.648858 -1.362722 PTH    BOARD    VIA    UNOWNED
+0.250000 63.498858 -0.912722 PTH    BOARD    VIA    UNOWNED
+0.250000 65.098858 -2.187722 PTH    BOARD    VIA    UNOWNED
+0.250000 66.798858 -2.187722 PTH    BOARD    VIA    UNOWNED
+0.250000 65.523858 3.387278 PTH    BOARD    VIA    UNOWNED
+0.250000 64.825000 -0.325000 PTH    BOARD    VIA    UNOWNED
+0.250000 69.798858 -0.312722 PTH    BOARD    VIA    UNOWNED
+0.250000 68.548858 -1.962722 PTH    BOARD    VIA    UNOWNED
+0.250000 74.923858 4.437278 PTH    BOARD    VIA    UNOWNED
+0.250000 73.623858 3.937278 PTH    BOARD    VIA    UNOWNED
+0.250000 76.098858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 76.798858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 77.498858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 78.198858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 78.898858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 79.598858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 80.298858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 80.998858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 81.698858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 80.798858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 72.373858 0.012278 PTH    BOARD    VIA    UNOWNED
+0.250000 89.601569 2.809356 PTH    BOARD    VIA    UNOWNED
+0.250000 92.109473 -0.038010 PTH    BOARD    VIA    UNOWNED
+0.250000 90.173858 -0.962722 PTH    BOARD    VIA    UNOWNED
+0.250000 90.198858 -0.187722 PTH    BOARD    VIA    UNOWNED
+0.250000 83.348858 3.837278 PTH    BOARD    VIA    UNOWNED
+0.250000 84.073858 3.562278 PTH    BOARD    VIA    UNOWNED
+0.250000 82.848858 4.412278 PTH    BOARD    VIA    UNOWNED
+0.250000 90.083466 3.426442 PTH    BOARD    VIA    UNOWNED
+0.250000 86.550000 4.150000 PTH    BOARD    VIA    UNOWNED
+0.250000 88.173858 -0.312722 PTH    BOARD    VIA    UNOWNED
+0.250000 88.523858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 89.248858 2.037278 PTH    BOARD    VIA    UNOWNED
+0.250000 89.898858 2.037278 PTH    BOARD    VIA    UNOWNED
+0.250000 83.598858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 87.098858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 85.698858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 92.298858 -1.412722 PTH    BOARD    VIA    UNOWNED
+0.250000 92.348858 -0.762722 PTH    BOARD    VIA    UNOWNED
+0.250000 91.723858 -1.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 90.973858 -1.737722 PTH    BOARD    VIA    UNOWNED
+0.250000 90.298858 -1.912722 PTH    BOARD    VIA    UNOWNED
+0.250000 90.173858 1.437278 PTH    BOARD    VIA    UNOWNED
+0.250000 90.223858 0.737278 PTH    BOARD    VIA    UNOWNED
+0.250000 90.098858 -2.612722 PTH    BOARD    VIA    UNOWNED
+0.250000 89.398858 -2.612722 PTH    BOARD    VIA    UNOWNED
+0.250000 82.398858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 83.098858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 87.298858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 86.598858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 85.898858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 85.198858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 84.498858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 83.798858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 87.798858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 86.398858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 84.998858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 84.298858 2.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 87.998858 -2.712722 PTH    BOARD    VIA    UNOWNED
+0.250000 88.698858 -2.612722 PTH    BOARD    VIA    UNOWNED
+0.250000 92.516675 3.493548 PTH    BOARD    VIA    UNOWNED
+0.250000 96.154006 4.158082 PTH    BOARD    VIA    UNOWNED
+0.250000 94.917419 2.911913 PTH    BOARD    VIA    UNOWNED
+0.250000 94.152778 0.871415 PTH    BOARD    VIA    UNOWNED
+0.250000 94.147873 2.094118 PTH    BOARD    VIA    UNOWNED
+0.250000 95.975000 -1.175000 PTH    BOARD    VIA    UNOWNED
+0.250000 9.875000 5.025000 PTH    BOARD    VIA    UNOWNED
+0.250000 14.525000 5.050000 PTH    BOARD    VIA    UNOWNED
+0.250000 14.300000 5.650000 PTH    BOARD    VIA    UNOWNED
+0.250000 22.550000 6.500000 PTH    BOARD    VIA    UNOWNED
+0.250000 30.950000 11.400000 PTH    BOARD    VIA    UNOWNED
+0.250000 29.948858 7.737278 PTH    BOARD    VIA    UNOWNED
+0.250000 31.923858 9.437278 PTH    BOARD    VIA    UNOWNED
+0.250000 33.398858 8.812278 PTH    BOARD    VIA    UNOWNED
+0.250000 32.100000 10.800000 PTH    BOARD    VIA    UNOWNED
+0.250000 41.098858 5.312278 PTH    BOARD    VIA    UNOWNED
+0.250000 40.223858 5.787278 PTH    BOARD    VIA    UNOWNED
+0.250000 39.373858 6.087278 PTH    BOARD    VIA    UNOWNED
+0.250000 37.998858 6.637278 PTH    BOARD    VIA    UNOWNED
+0.250000 37.173858 6.912278 PTH    BOARD    VIA    UNOWNED
+0.250000 43.023858 7.737278 PTH    BOARD    VIA    UNOWNED
+0.250000 48.300000 5.250000 PTH    BOARD    VIA    UNOWNED
+0.250000 61.373858 8.837278 PTH    BOARD    VIA    UNOWNED
+0.250000 60.000000 4.600000 PTH    BOARD    VIA    UNOWNED
+0.250000 54.350000 6.925000 PTH    BOARD    VIA    UNOWNED
+0.250000 53.075000 6.650000 PTH    BOARD    VIA    UNOWNED
+0.250000 53.725000 6.775000 PTH    BOARD    VIA    UNOWNED
+0.250000 51.750000 6.275000 PTH    BOARD    VIA    UNOWNED
+0.250000 51.925000 6.925000 PTH    BOARD    VIA    UNOWNED
+0.250000 56.750000 7.525000 PTH    BOARD    VIA    UNOWNED
+0.250000 57.475000 7.850000 PTH    BOARD    VIA    UNOWNED
+0.250000 58.275000 7.950000 PTH    BOARD    VIA    UNOWNED
+0.250000 55.825000 7.200000 PTH    BOARD    VIA    UNOWNED
+0.250000 72.025000 8.725000 PTH    BOARD    VIA    UNOWNED
+0.250000 70.098858 4.987278 PTH    BOARD    VIA    UNOWNED
+0.250000 66.000000 13.500000 PTH    BOARD    VIA    UNOWNED
+0.250000 66.100000 12.050000 PTH    BOARD    VIA    UNOWNED
+0.250000 67.925000 11.900000 PTH    BOARD    VIA    UNOWNED
+0.250000 65.325000 8.775000 PTH    BOARD    VIA    UNOWNED
+0.250000 64.300000 8.575000 PTH    BOARD    VIA    UNOWNED
+0.250000 65.175000 6.775000 PTH    BOARD    VIA    UNOWNED
+0.250000 65.473858 10.187278 PTH    BOARD    VIA    UNOWNED
+0.250000 67.300000 14.550000 PTH    BOARD    VIA    UNOWNED
+0.250000 67.025000 7.425000 PTH    BOARD    VIA    UNOWNED
+0.250000 66.298858 7.437278 PTH    BOARD    VIA    UNOWNED
+0.250000 71.898858 7.487278 PTH    BOARD    VIA    UNOWNED
+0.250000 68.048858 5.362278 PTH    BOARD    VIA    UNOWNED
+0.250000 67.398858 5.412278 PTH    BOARD    VIA    UNOWNED
+0.250000 64.525000 9.525000 PTH    BOARD    VIA    UNOWNED
+0.250000 69.100000 8.850000 PTH    BOARD    VIA    UNOWNED
+0.250000 65.150000 11.175000 PTH    BOARD    VIA    UNOWNED
+0.250000 64.475000 10.350000 PTH    BOARD    VIA    UNOWNED
+0.250000 66.123858 9.112278 PTH    BOARD    VIA    UNOWNED
+0.250000 66.798858 4.562278 PTH    BOARD    VIA    UNOWNED
+0.250000 74.050000 13.225000 PTH    BOARD    VIA    UNOWNED
+0.250000 75.423858 8.412278 PTH    BOARD    VIA    UNOWNED
+0.250000 75.148858 9.137278 PTH    BOARD    VIA    UNOWNED
+0.250000 80.575000 8.425000 PTH    BOARD    VIA    UNOWNED
+0.250000 74.098858 6.112278 PTH    BOARD    VIA    UNOWNED
+0.250000 81.175000 13.400000 PTH    BOARD    VIA    UNOWNED
+0.250000 75.923858 9.412278 PTH    BOARD    VIA    UNOWNED
+0.250000 79.423858 14.237278 PTH    BOARD    VIA    UNOWNED
+0.250000 79.375000 13.475000 PTH    BOARD    VIA    UNOWNED
+0.250000 81.423858 5.262278 PTH    BOARD    VIA    UNOWNED
+0.250000 77.623858 12.412278 PTH    BOARD    VIA    UNOWNED
+0.250000 77.623858 11.587278 PTH    BOARD    VIA    UNOWNED
+0.250000 82.148858 4.762278 PTH    BOARD    VIA    UNOWNED
+0.250000 73.900000 13.975000 PTH    BOARD    VIA    UNOWNED
+0.250000 74.648858 12.637278 PTH    BOARD    VIA    UNOWNED
+0.250000 72.548858 7.512278 PTH    BOARD    VIA    UNOWNED
+0.250000 79.498858 11.037278 PTH    BOARD    VIA    UNOWNED
+0.250000 77.448858 13.387278 PTH    BOARD    VIA    UNOWNED
+0.250000 75.075000 13.300000 PTH    BOARD    VIA    UNOWNED
+0.250000 88.825000 5.975000 PTH    BOARD    VIA    UNOWNED
+0.250000 90.125000 7.075000 PTH    BOARD    VIA    UNOWNED
+0.250000 84.950000 8.700000 PTH    BOARD    VIA    UNOWNED
+0.250000 92.353166 6.543145 PTH    BOARD    VIA    UNOWNED
+0.250000 89.750000 7.750000 PTH    BOARD    VIA    UNOWNED
+0.250000 88.875000 5.125000 PTH    BOARD    VIA    UNOWNED
+0.250000 87.000000 7.525000 PTH    BOARD    VIA    UNOWNED
+0.250000 90.400000 11.200000 PTH    BOARD    VIA    UNOWNED
+0.250000 92.025000 12.250000 PTH    BOARD    VIA    UNOWNED
+0.250000 90.725000 10.525000 PTH    BOARD    VIA    UNOWNED
+0.250000 94.863531 5.063284 PTH    BOARD    VIA    UNOWNED
+0.250000 94.186400 5.901379 PTH    BOARD    VIA    UNOWNED
+0.250000 95.526030 4.607317 PTH    BOARD    VIA    UNOWNED
+0.250000 93.050000 5.550000 PTH    BOARD    VIA    UNOWNED
+0.250000 93.500000 4.800000 PTH    BOARD    VIA    UNOWNED
+0.250000 93.026050 6.805307 PTH    BOARD    VIA    UNOWNED
+0.250000 94.075000 10.100000 PTH    BOARD    VIA    UNOWNED
+0.250000 96.348858 7.937278 PTH    BOARD    VIA    UNOWNED
+0.250000 67.250000 16.875000 PTH    BOARD    VIA    UNOWNED
+0.250000 67.025000 15.725000 PTH    BOARD    VIA    UNOWNED
+0.250000 66.875000 18.425000 PTH    BOARD    VIA    UNOWNED
+0.250000 69.375000 16.000000 PTH    BOARD    VIA    UNOWNED
+0.250000 69.200000 16.650000 PTH    BOARD    VIA    UNOWNED
+0.250000 71.650000 17.175000 PTH    BOARD    VIA    UNOWNED
+0.250000 82.198858 17.762278 PTH    BOARD    VIA    UNOWNED
+0.250000 81.348858 15.662278 PTH    BOARD    VIA    UNOWNED
+0.250000 76.023858 15.687278 PTH    BOARD    VIA    UNOWNED
+0.250000 81.573858 16.387278 PTH    BOARD    VIA    UNOWNED
+0.250000 80.348858 21.337278 PTH    BOARD    VIA    UNOWNED
+0.250000 72.625000 17.450000 PTH    BOARD    VIA    UNOWNED
+0.250000 73.950000 15.150000 PTH    BOARD    VIA    UNOWNED
+0.250000 78.548858 20.912278 PTH    BOARD    VIA    UNOWNED
+0.250000 75.198858 15.487278 PTH    BOARD    VIA    UNOWNED
+0.250000 75.250000 19.275000 PTH    BOARD    VIA    UNOWNED
+0.250000 78.773858 16.412278 PTH    BOARD    VIA    UNOWNED
+0.250000 79.973858 20.662278 PTH    BOARD    VIA    UNOWNED
+0.250000 75.225000 20.175000 PTH    BOARD    VIA    UNOWNED
+0.250000 83.048858 17.562278 PTH    BOARD    VIA    UNOWNED
+0.250000 83.873858 21.362278 PTH    BOARD    VIA    UNOWNED
+0.250000 87.248858 15.737278 PTH    BOARD    VIA    UNOWNED
+0.250000 87.848858 15.512278 PTH    BOARD    VIA    UNOWNED
+0.250000 89.425000 14.775000 PTH    BOARD    VIA    UNOWNED
+0.250000 83.898858 17.662278 PTH    BOARD    VIA    UNOWNED
+0.700000 86.151509 16.469534 PTH    J200    PIN    UNOWNED
+0.700000 87.388959 16.755222 PTH    J200    PIN    UNOWNED
+0.700000 85.865821 17.706984 PTH    J200    PIN    UNOWNED
+0.700000 87.103271 17.992672 PTH    J200    PIN    UNOWNED
+0.700000 85.580133 18.944434 PTH    J200    PIN    UNOWNED
+0.700000 86.817583 19.230122 PTH    J200    PIN    UNOWNED
+0.700000 85.294445 20.181884 PTH    J200    PIN    UNOWNED
+0.700000 86.531895 20.467572 PTH    J200    PIN    UNOWNED
+0.700000 85.008757 21.419334 PTH    J200    PIN    UNOWNED
+0.700000 86.246207 21.705022 PTH    J200    PIN    UNOWNED
+.END_DRILLED_HOLES
+.PLACE_KEEPOUT   UNOWNED
+BOTTOM    0.0
+0     88.90123                      -4.24073                      0     
+0     91.10008                      -4.16799                      0     
+0     97.14673                      -3.96775                      0     
+0     97.62992                      -3.45144                      90.0      
+0     97.2059                       9.35767                       0     
+0     97.04781                      9.70712                       45.1      
+0     96.34276                      10.36696                      0     
+0     96.34274                      10.36704                      0     
+0     95.98453                      10.50171                      45.0      
+0     95.98456                      10.50164                      0     
+0     90.32048                      10.31415                      0     
+0     89.8373                       9.79859                       89.9      
+0     90.19461                      -0.99635                      0     
+0     90.00134                      -1.20267                      -89.7     
+0     88.80202                      -1.24237                      0     
+0     88.51208                      -1.55233                      90.0      
+0     88.59148                      -3.95026                      0     
+0     88.90123                      -4.24073                      90.1      
+.END_PLACE_KEEPOUT
+.PLACE_KEEPOUT   UNOWNED
+TOP    0.0
+0     12.52092                      -1.83236                      0     
+0     12.29651                      -3.81973                      0     
+0     17.26493                      -4.38075                      0     
+0     17.48935                      -2.39338                      0     
+0     12.52092                      -1.83236                      0     
+.END_PLACE_KEEPOUT
+.PLACEMENT
+TP060                                        TPCW060                                      TP621                                        
+91.25                         3.45                          0.0                           0.0       TOP       PLACED    
+CON_AMP_F300-1B7H1-11017-E100                CON_AMP_F300-1B7H1-11017-E100                X600                                         
+95.29886                      3.18728                       0.0                           268.315   BOTTOM    PLACED    
+X2DFN2_ONSEMI                                A_DIOC_ESD_X2DFNW2_SZESD8551MXWT5G_ONSEM     D600                                         
+91.25                         5.9                           0.0                           270.0     TOP       PLACED    
+RESC1608X55N                                 A_RESC_RES_1608_10R_1_                       R618                                         
+90.0                          5.15                          0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP507                                        
+89.70657                      5.99197                       0.0                           132.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V                      C502                                         
+88.6107                       7.76394                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP622                                        
+91.0                          0.95                          0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP623                                        
+90.8                          2.1                           0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP326                                        
+88.65                         3.0                           0.0                           0.0       TOP       PLACED    
+SOT23-3_VISHAY                               A_PMOS_SOT23_SQ2351CES_VISHAY                Q300                                         
+82.59958                      4.54275                       0.0                           238.0     TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L305                                         
+86.85                         3.0                           0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP511                                        
+86.56701                      3.1945                        0.0                           90.0      BOTTOM    PLACED    
+TP100                                        TPCW100                                      TP307                                        
+80.511                        3.164                         0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10N_X7R_50V                      C301                                         
+85.2                          3.5                           0.0                           90.0      TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L600                                         
+92.75938                      0.92738                       0.0                           180.0     TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L601                                         
+92.754                        2.08105                       0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10N_X7R_50V                      C601                                         
+92.3                          5.1                           0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP509                                        
+89.66437                      5.09966                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_22N_X7R_50V                      C317                                         
+89.83754                      13.71896                      0.0                           38.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C312                                         
+90.16509                      12.32514                      0.0                           308.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP501                                        
+89.211                        12.864                        0.0                           255.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R300                                         
+84.72685                      6.2786                        0.0                           59.0      TOP       PLACED    
+RESC2013X60N                                 A_RESC_RES_2012_3R3_0_5W_1_                  R301                                         
+83.02906                      7.37308                       0.0                           329.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C300                                         
+85.51615                      5.71466                       0.0                           239.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      R306                                         
+83.2107                       8.76394                       0.0                           328.0     TOP       PLACED    
+TQFP50P1000X1000X160-64N                     UC_TQFP64_CY8C4148AZE-S595_INFINEON          U200                                         
+78.95415                      11.92255                      0.0                           256.0     BOTTOM    PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L300                                         
+85.4                          7.6                           0.0                           328.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP510                                        
+85.12242                      5.63084                       0.0                           63.0      BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C308                                         
+80.9107                       9.96394                       0.0                           270.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_47P_X7R_25V                      C303                                         
+67.21383                      9.40761                       0.0                           166.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      R307                                         
+67.1107                       12.46394                      0.0                           166.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP309                                        
+68.2                          10.73667                      0.0                           76.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_470K_1_                      R310                                         
+66.7107                       11.36394                      0.0                           166.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      R308                                         
+66.97191                      10.37791                      0.0                           166.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_47P_X7R_25V                      C311                                         
+69.2203                       14.29192                      0.0                           256.0     BOTTOM    PLACED    
+SOT323-3N_NEXPERIA                           A_NPN_DIGITAL_SOT323_PDTC124XU_NEXPERIA      Q600                                         
+77.69886                      14.38728                      0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V                      C504                                         
+85.71261                      4.47253                       0.0                           243.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V                      C500                                         
+86.9107                       6.86394                       0.0                           180.0     BOTTOM    PLACED    
+XTAL_FL2710030Q-27_120MHZ_DIODES             XTAL_FL2710030Q-27_120MHZ_DIODES             Y700                                         
+78.09886                      6.88728                       0.0                           327.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C313                                         
+83.0107                       13.16394                      0.0                           270.0     TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L302                                         
+83.6107                       11.56394                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V_1_                   C714                                         
+77.59886                      4.48728                       0.0                           147.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP715                                        
+76.74594                      4.06954                       0.0                           147.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_4K7_1_                       R607                                         
+16.33856                      6.29497                       0.0                           7.0       BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_3K92_1_                      R611                                         
+17.18397                      7.07121                       0.0                           187.0     BOTTOM    PLACED    
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_100V                     C607                                         
+16.55646                      5.29926                       0.0                           7.0       BOTTOM    PLACED    
+SOD523_DIODES                                A_DIOC_SOD523_SBAS16XV2T5G_ONSEMI            D601                                         
+11.70227                      7.32731                       0.0                           348.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_4_7N_X7R_50V                     C417                                         
+13.16943                      4.52752                       0.0                           186.0     BOTTOM    PLACED    
+SOD2513X100N_DIODES                          A_DIO_PESD1IVN24-A_NEXPERIA                  D602                                         
+15.8034                       4.06358                       0.0                           187.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP614                                        
+13.199                        3.687                         0.0                           353.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP611                                        
+13.199                        7.687                         0.0                           90.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP610                                        
+15.099                        7.187                         0.0                           261.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP609                                        
+18.499                        7.287                         0.0                           258.0     BOTTOM    PLACED    
+CAPC1608X80N                                 A_CAPC_1608_2N2_C0G_50V                      C210                                         
+88.7                          11.5                          0.0                           180.0     BOTTOM    PLACED    
+CAPC1608X80N                                 A_CAPC_1608_2N2_C0G_50V                      C211                                         
+88.7                          10.5                          0.0                           180.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_470K_1_                      R318                                         
+68.6                          15.85                         0.0                           256.0     BOTTOM    PLACED    
+POWERDI_3333-8_DIODES                        A_PMOS_DI333-8_DMP6023LFGQ_DIODES            Q101                                         
+15.8983                       6.26345                       0.0                           12.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C315                                         
+69.2                          12.95                         0.0                           346.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C304                                         
+69.7                          12.15                         0.0                           346.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP319                                        
+71.2107                       14.76394                      0.0                           256.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C309                                         
+80.9107                       11.76394                      0.0                           270.0     TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L304                                         
+85.7107                       14.76394                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C319                                         
+84.0107                       14.06394                      0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP300                                        
+86.111                        8.464                         0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_33N_X7R_50V                      C411                                         
+72.4                          16.6                          0.0                           344.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C204                                         
+70.8703                       8.89192                       0.0                           76.0      BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C418                                         
+72.84978                      14.6822                       0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_33P_C0G_50V_1_                   C802                                         
+83.39886                      -1.21272                      0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_0_5P_C0G_50V_10_                 C801                                         
+83.39886                      -1.91272                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_4_7N_X7R_50V                     C410                                         
+11.16161                      4.42046                       0.0                           186.0     BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_22N_X7R_50V_SOFTTERM             C415                                         
+12.14804                      5.47472                       0.0                           186.0     BOTTOM    PLACED    
+HSOP-8A-A_1_27_1_60X1_63_ABLIC               IC_HSOP-8A-A_S-19212B33A-E8T1U_ABLIC         U100                                         
+56.37729                      1.22911                       0.0                           347.0     BOTTOM    PLACED    
+RESC3216X60L                                 A_RESC_RES_3216_1K05_1_                      R609                                         
+18.79886                      4.68728                       0.0                           277.0     BOTTOM    PLACED    
+CAPC2013X140N_A                              A_CAPC_2012_4U7_X7R_50V_SOFT                 C117                                         
+35.09886                      3.38728                       0.0                           180.0     BOTTOM    PLACED    
+RESC_RR1632M                                 A_RESC_RES_RR1632_1_5R_1__ANTI_SURGE         R102                                         
+11.9532                       5.95038                       0.0                           102.0     TOP       PLACED    
+POWERDI_3333-8_DIODES                        A_PMOS_DI333-8_DMP6023LFGQ_DIODES            Q400                                         
+19.99682                      7.88052                       0.0                           102.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C113                                         
+62.33323                      3.71609                       0.0                           167.0     BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C414                                         
+49.67651                      -2.43136                      0.0                           343.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       C412                                         
+53.42621                      -0.2655                       0.0                           342.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP209                                        
+87.111                        10.364                        0.0                           345.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP208                                        
+86.911                        11.264                        0.0                           354.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C305                                         
+87.25371                      10.58793                      0.0                           323.0     TOP       PLACED    
+SOT23P450X270-3                              A_NPN_SOT23_BC817_NXP                        Q603                                         
+8.4858                        5.45855                       0.0                           256.0     BOTTOM    PLACED    
+RESC3216X60L                                 A_RESC_RES_3216_1K05_1_                      R608                                         
+20.78395                      4.44354                       0.0                           277.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_22N_X7R_50V                      C307                                         
+86.57657                      11.84947                      0.0                           53.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C306                                         
+87.97588                      11.54629                      0.0                           143.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP500                                        
+86.603                        12.165                        0.0                           255.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C208                                         
+86.20625                      14.12083                      0.0                           76.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K_1_                        R500                                         
+87.76023                      13.10881                      0.0                           345.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       C209                                         
+87.17655                      14.36276                      0.0                           76.0      BOTTOM    PLACED    
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V                      C606                                         
+5.08824                       5.55371                       0.0                           166.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R606                                         
+17.88824                      8.50743                       0.0                           169.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP717                                        
+70.26302                      -2.40529                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP600                                        
+79.45756                      15.57807                      0.0                           270.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R600                                         
+77.99886                      16.58728                      0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP205                                        
+73.15637                      13.01371                      0.0                           0.0       TOP       PLACED    
+HVSON14_SOT1086-2__NXP                       IC_HVSON14_UJA1162ATK_NXP                    U201                                         
+45.54331                      4.63936                       0.0                           20.0      BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_47N_X7R_50V                      C416                                         
+46.99886                      -1.61272                      0.0                           163.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_47N_X7R_50V                      C409                                         
+48.81156                      4.31637                       0.0                           163.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C413                                         
+51.48922                      3.49773                       0.0                           343.0     TOP       PLACED    
+CAPC1608X80N                                 A_CAPC_1608_4U7_X7S_16V                      C214                                         
+50.03616                      4.95444                       0.0                           78.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP216                                        
+49.09886                      3.58728                       0.0                           342.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP123                                        
+29.81459                      0.51115                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_1U_X7R_16V                       C122                                         
+29.82537                      2.34253                       0.0                           90.0      BOTTOM    PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C107                                         
+29.91146                      2.17291                       0.0                           90.0      TOP       PLACED    
+RESC1608X90N                                 A_RESC_VAR_1608_27V_AVR-M1608C270MTABB       V200                                         
+27.11944                      0.95105                       0.0                           309.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP126                                        
+41.68642                      -1.96614                      0.0                           0.0       BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_15K_1_                       R108                                         
+31.39886                      -3.51272                      0.0                           180.0     BOTTOM    PLACED    
+QFN-12_2X3__MPS                              IC_QFN12_MPQ4324GDE-1044-AEC1_MPS            U102                                         
+33.69886                      -0.61272                      0.0                           90.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP121                                        
+31.54909                      1.02853                       0.0                           0.0       BOTTOM    PLACED    
+RESC1608X55N                                 A_RESC_RES_1608_0R                           R104                                         
+60.40381                      7.1046                        0.0                           167.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP112                                        
+58.55205                      4.68012                       0.0                           270.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R403                                         
+60.08628                      5.60547                       0.0                           191.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C206                                         
+72.20811                      6.32425                       0.0                           256.0     BOTTOM    PLACED    
+C100                                         PAD100                                       FID104                                       
+2.88476                       4.07431                       0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP100                                        
+3.89886                       5.08728                       0.0                           0.0       TOP       PLACED    
+C100                                         PAD100                                       FID102                                       
+1.00493                       2.61267                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP215                                        
+48.68548                      6.00149                       0.0                           342.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP206                                        
+73.883                        4.8046                        0.0                           270.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP504                                        
+87.3107                       9.56394                       0.0                           0.0       BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R504                                         
+87.7107                       4.16394                       0.0                           0.0       BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_47K_1_                       R601                                         
+80.39886                      13.78728                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP213                                        
+43.22513                      6.96822                       0.0                           322.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP214                                        
+43.29886                      6.08728                       0.0                           322.0     BOTTOM    PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C405                                         
+42.63735                      5.12455                       0.0                           251.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_2U2_X7S_16V                      C111                                         
+57.9645                       6.41588                       0.0                           77.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP124                                        
+36.09886                      -0.61272                      0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP125                                        
+41.49886                      0.78728                       0.0                           0.0       BOTTOM    PLACED    
+CAPC3216X180N                                A_CAPC_3216_22U_X7R_10V                      C124                                         
+40.09886                      2.48728                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C119                                         
+35.09886                      1.68728                       0.0                           180.0     BOTTOM    PLACED    
+SOT23_95P305X145-5                           IC_SOT23-5_S-19251B33H-M5T1U4_ABLIC          U103                                         
+46.19886                      -2.11272                      0.0                           180.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       C125                                         
+43.79886                      -2.61272                      0.0                           90.0      BOTTOM    PLACED    
+CAPC2013X140N_A                              A_CAPC_2012_4U7_X7R_50V_SOFT                 C118                                         
+35.13727                      -4.3509                       0.0                           180.0     BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C120                                         
+35.17444                      -2.76479                      0.0                           180.0     BOTTOM    PLACED    
+DO214AA_SMB_ST                               A_DIOC_TVS_DO-214A_SM6T33CAY_ST              D100                                         
+5.06421                       1.86065                       0.0                           353.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_560K_1_                      R404                                         
+61.26699                      6.34434                       0.0                           281.0     TOP       PLACED    
+CAPC3216X180N                                A_CAPC_3216_10U_X7R_50V                      C112                                         
+62.59381                      5.51084                       0.0                           167.0     BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C110                                         
+54.38493                      4.36181                       0.0                           167.0     BOTTOM    PLACED    
+CAPC2013X140N                                A_CAPC_2012_2U2_X7R_50V_SOFT                 C109                                         
+52.45891                      5.48045                       0.0                           347.0     BOTTOM    PLACED    
+CAPC2013X140N                                A_CAPC_2012_2U2_X7R_50V_SOFT                 C108                                         
+55.54758                      6.20042                       0.0                           167.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R103                                         
+62.23155                      0.60484                       0.0                           346.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R503                                         
+88.6107                       6.86394                       0.0                           0.0       BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_22K_1_                       R617                                         
+42.09886                      0.58728                       0.0                           270.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_120K_1_                      R616                                         
+41.09886                      0.58728                       0.0                           90.0      TOP       PLACED    
+CON_HOTBAR_XNF_9PIN_MIRROR                   CON_HOTBAR_XNF_9PIN_MIRROR                   X100                                         
+13.69886                      -0.71272                      0.0                           187.082   BOTTOM    PLACED    
+HWQN40_40P500X500X75-41N                     IC_HWQN40_NCJ3321_NXP                        U700                                         
+70.99886                      1.08728                       0.0                           90.0      TOP       PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C400                                         
+26.05264                      8.6941                        0.0                           251.0     TOP       PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C104                                         
+21.6107                       3.06394                       0.0                           90.0      TOP       PLACED    
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V_SOFTTERM             C102                                         
+8.37799                       4.94605                       0.0                           263.0     TOP       PLACED    
+SOT23P450X270-3                              A_NPN_SOT23_BC817_NXP                        Q100                                         
+9.9107                        1.16394                       0.0                           90.0      TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      R101                                         
+10.89862                      -1.11354                      0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R100                                         
+9.08933                       -1.10381                      0.0                           0.0       TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R105                                         
+14.72147                      -1.24972                      0.0                           173.0     TOP       PLACED    
+SOD323_ONSEMI                                A_DIOM_ZEN_SZMM3Z16VT1_ONSEMI                D101                                         
+13.6899                       1.30897                       0.0                           12.0      TOP       PLACED    
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V_SOFTTERM             C103                                         
+13.33674                      2.93846                       0.0                           12.0      TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      R316                                         
+67.70266                      15.61255                      0.0                           256.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_158K_1_                      R303                                         
+68.24402                      17.1715                       0.0                           347.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_17K4_1_                      R305                                         
+81.09886                      20.38728                      0.0                           77.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100R_1_                      R315                                         
+67.02806                      13.79112                      0.0                           166.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       C205                                         
+69.9                          8.65                          0.0                           76.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_52K3_1_                      R313                                         
+80.80329                      19.38147                      0.0                           103.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C316                                         
+91.1107                       13.06394                      0.0                           128.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R502                                         
+88.6107                       8.66394                       0.0                           0.0       BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R505                                         
+84.8107                       4.26394                       0.0                           63.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R501                                         
+86.9107                       5.96394                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_1U_X7R_16V                       C408                                         
+51.7513                       4.82578                       0.0                           163.0     TOP       PLACED    
+SOT23P450X270-3                              A_PNP_SOT23_BC807_NXP                        Q602                                         
+21.54121                      8.38723                       0.0                           348.0     BOTTOM    PLACED    
+SOT23P450X270-3                              A_NPN_SOT23_BC817_NXP                        Q601                                         
+26.04069                      9.34362                       0.0                           348.0     BOTTOM    PLACED    
+SOT23-3_DIODES                               A_DIOC_SOT23-3_PESD2IVN24_NEXPERIA           D200                                         
+25.09886                      2.58728                       0.0                           309.0     BOTTOM    PLACED    
+SOT23-3_DIODES                               A_DIOC_SOT23_BAS16Q                          D401                                         
+26.4107                       3.86394                       0.0                           90.0      TOP       PLACED    
+C100                                         PAD100                                       FID106                                       
+73.31996                      18.58362                      0.0                           0.0       BOTTOM    PLACED    
+C100                                         PAD100                                       FID100                                       
+65.69886                      17.88728                      0.0                           0.0       TOP       PLACED    
+CAPC1608X80N                                 A_CAPC_1608_4N7_X7R_50V                      C212                                         
+27.11269                      5.07415                       0.0                           309.0     BOTTOM    PLACED    
+RESC2013X60N                                 A_RESC_RES_2012_62R_1_                       R202                                         
+26.07283                      6.17356                       0.0                           309.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C610                                         
+74.5107                       19.36394                      0.0                           77.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_52K3_1_                      R304                                         
+68.01907                      18.14587                      0.0                           347.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R612                                         
+76.07049                      19.79711                      0.0                           257.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C608                                         
+76.99886                      20.08728                      0.0                           77.0      BOTTOM    PLACED    
+X2DFN2_ONSEMI                                A_DIOC_ESD_X2DFNW2_SZESD8551MXWT5G_ONSEM     D300                                         
+89.0107                       9.26394                       0.0                           143.0     TOP       PLACED    
+X2DFN2_ONSEMI                                A_DIOC_ESD_X2DFNW2_SZESD8551MXWT5G_ONSEM     D301                                         
+89.73288                      10.2223                       0.0                           323.0     TOP       PLACED    
+X2DFN2_ONSEMI                                A_DIOC_ESD_X2DFNW2_SZESD8551MXWT5G_ONSEM     D302                                         
+91.51955                      10.59152                      0.0                           128.0     TOP       PLACED    
+X2DFN2_ONSEMI                                A_DIOC_ESD_X2DFNW2_SZESD8551MXWT5G_ONSEM     D303                                         
+92.46516                      11.33031                      0.0                           308.0     TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L303                                         
+85.7107                       13.36394                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C318                                         
+83.0107                       14.96394                      0.0                           270.0     TOP       PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L301                                         
+83.6107                       10.16394                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C310                                         
+81.9107                       10.86394                      0.0                           90.0      TOP       PLACED    
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V_SOFTTERM             C105                                         
+23.4107                       1.26394                       0.0                           90.0      TOP       PLACED    
+DO219AB_SMF                                  A_DIOM_DO219AB_SS1FN6                        D102                                         
+19.3107                       3.563                         0.0                           90.0      TOP       PLACED    
+SOD2513X100N_DIODES                          A_DIO_PESD1IVN24-A_NEXPERIA                  D103                                         
+17.7634                       0.23195                       0.0                           353.0     TOP       PLACED    
+CAPC2013X140N_A                              A_CAPC_2012_220PF_X7R_50V_SOFT               C115                                         
+17.1634                       -1.46805                      0.0                           173.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C114                                         
+29.79444                      -2.01298                      0.0                           90.0      TOP       PLACED    
+LASER_SOLDERING_FIDUCIAL                     LASER_SOLDERING_FIDUCIAL                     FID109                                       
+27.88253                      -0.33781                      0.0                           0.0       BOTTOM    PLACED    
+CAPC1608X80N                                 A_CAPC_1608_220N_X7R_50V_SOFTTERM            C106                                         
+31.79676                      2.67546                       0.0                           90.0      TOP       PLACED    
+RESC2013X60N                                 A_RESC_RES_2012_62R_1_                       R203                                         
+28.40427                      4.2856                        0.0                           129.0     BOTTOM    PLACED    
+RESC3225X60N                                 A_RESC_RES_3225_0R                           L100                                         
+26.4107                       0.66394                       0.0                           0.0       TOP       PLACED    
+RESC1608X55N                                 A_RESC_RES_1608_100K_1_                      R400                                         
+23.7107                       4.16394                       0.0                           90.0      TOP       PLACED    
+RESC1608X90N                                 A_RESC_VAR_1608_27V_AVR-M1608C270MTABB       V201                                         
+23.14121                      4.30123                       0.0                           309.0     BOTTOM    PLACED    
+RESC2013X60N                                 A_RESC_RES_2012_10K_1_                       L101                                         
+21.14047                      -2.03729                      0.0                           353.0     TOP       PLACED    
+SOD323_ONSEMI                                A_DIOM_ZEN_SZMM3Z16VT1_ONSEMI                D400                                         
+23.02477                      8.51401                       0.0                           102.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C712                                         
+76.99886                      2.83728                       0.0                           0.0       TOP       PLACED    
+TP050                                        TPCW050                                      TP711                                        
+74.44886                      -0.86272                      0.0                           270.0     TOP       PLACED    
+TP050                                        TPCW050                                      TP712                                        
+74.44886                      0.23728                       0.0                           90.0      TOP       PLACED    
+INDC1005X55L                                 A_INDC_1005_180NH_LQW15CNR18J1Z              L800                                         
+75.39886                      -1.23272                      0.0                           315.0     TOP       PLACED    
+INDC1005X55L                                 A_INDC_1005_180NH_LQW15CNR18J1Z              L801                                         
+75.39886                      0.60728                       0.0                           45.0      TOP       PLACED    
+TP050                                        TPCW050                                      TP713                                        
+78.89886                      -1.91272                      0.0                           90.0      TOP       PLACED    
+TP050                                        TPCW050                                      TP714                                        
+78.89886                      1.28728                       0.0                           270.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_C0G_50V_1__NOKEMET            C800                                         
+79.89886                      -1.91272                      0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_C0G_50V_1__NOKEMET            C815                                         
+79.89886                      1.28728                       0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R802                                         
+81.39886                      1.28728                       0.0                           0.0       TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K5_1_                       R800                                         
+81.39886                      -1.91272                      0.0                           180.0     TOP       PLACED    
+TP050                                        TPCW050                                      TP800                                        
+82.39886                      -1.91272                      0.0                           0.0       TOP       PLACED    
+TP050                                        TPCW050                                      TP802                                        
+82.39886                      1.28728                       0.0                           270.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_0_5P_C0G_50V_10_                 C814                                         
+83.39886                      1.28728                       0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C419                                         
+79.81547                      19.85787                      0.0                           167.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_17K4_1_                      R314                                         
+79.82892                      19.15652                      0.0                           103.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_470K_1_                      R302                                         
+82.09886                      20.58728                      0.0                           77.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_158K_1_                      R312                                         
+81.77766                      19.60642                      0.0                           103.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_470K_1_                      R311                                         
+82.75203                      19.83138                      0.0                           103.0     TOP       PLACED    
+CON_PINHEAD_2X5PIN_1_27MM                    JTAG_10_PIN_1_27MM                           J200                                         
+86.19886                      19.08728                      0.0                           257.0     BOTTOM    MCAD      
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R702                                         
+70.09886                      6.88728                       0.0                           270.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C703                                         
+67.89886                      4.58728                       0.0                           0.0       TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R701                                         
+71.09886                      6.88728                       0.0                           90.0      TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R615                                         
+38.39886                      -1.11272                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C611                                         
+39.99886                      0.58728                       0.0                           270.0     TOP       PLACED    
+RESC1608X55L                                 A_RESC_RES_1608_0R                           R112                                         
+44.99886                      -4.61272                      0.0                           180.0     BOTTOM    PLACED    
+INDC_3015_TDK                                A_INDC_VLS3015CX-4R7M-H_TDK                  L103                                         
+38.59886                      -0.61272                      0.0                           180.0     BOTTOM    PLACED    
+RESC1608X55L                                 A_RESC_RES_1608_0R                           R613                                         
+34.49886                      1.48728                       0.0                           0.0       TOP       PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C404                                         
+35.49886                      6.38728                       0.0                           251.0     TOP       PLACED    
+RESC1608X55L                                 A_RESC_RES_1608_0R                           R614                                         
+35.19886                      2.78728                       0.0                           342.0     TOP       PLACED    
+CAPC3216X180N                                A_CAPC_3216_22U_X7R_10V                      C123                                         
+40.09886                      -3.71272                      0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_47N_X7R_25V                      C121                                         
+37.19886                      -3.71272                      0.0                           90.0      BOTTOM    PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L700                                         
+61.19886                      -2.41272                      0.0                           270.0     TOP       PLACED    
+C100                                         PAD100                                       FID103                                       
+60.19886                      -4.31272                      0.0                           90.0      TOP       PLACED    
+QFN-18_MPS                                   IC_QFN18_MPQ6612A_MPS                        U400                                         
+49.33967                      0.91327                       0.0                           343.0     TOP       PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C403                                         
+32.89886                      6.38728                       0.0                           251.0     TOP       PLACED    
+C100                                         PAD100                                       FID101                                       
+34.39886                      10.28728                      0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_220N_X7R_16V                     C713                                         
+74.39886                      -2.21272                      0.0                           0.0       TOP       PLACED    
+RESC1608X55N                                 A_RESC_RES_1608_0R                           R110                                         
+42.19886                      -0.61272                      0.0                           180.0     BOTTOM    PLACED    
+IND_BLM18PG_MAX_1A_L                         A_IND_BLM18AG102BH1D                         L200                                         
+67.47994                      8.34028                       0.0                           346.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C213                                         
+48.89886                      2.58728                       0.0                           198.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R111                                         
+45.09886                      0.28728                       0.0                           180.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_2K4_1_                       R106                                         
+47.29886                      -4.61272                      0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       C126                                         
+48.69886                      -2.11272                      0.0                           90.0      BOTTOM    PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C218                                         
+37.76942                      7.25598                       0.0                           290.0     BOTTOM    PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C217                                         
+40.02468                      6.43513                       0.0                           290.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R109                                         
+31.19886                      2.28728                       0.0                           270.0     BOTTOM    PLACED    
+INDC_ACT1210_TDK                             A_IND_ACT1210D_100U_TDK                      L201                                         
+31.99886                      6.38728                       0.0                           180.0     BOTTOM    PLACED    
+C100                                         PAD100                                       FID107                                       
+94.69886                      -1.21272                      0.0                           0.0       TOP       PLACED    
+SOT363-6_ONSEMI                              A_DUAL_NPN_PNP_SOT363_MUN531335DW1_ON        Q604                                         
+38.09886                      0.78728                       0.0                           270.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_2K_1_                        R402                                         
+52.80818                      -2.16761                      0.0                           162.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R401                                         
+53.1172                       -1.21656                      0.0                           162.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V_SOFTTERM            C215                                         
+42.79886                      4.58728                       0.0                           290.0     BOTTOM    PLACED    
+CAPC1608X90N                                 A_CAPC_1608_2U2_X7S_16V                      C216                                         
+41.69886                      5.18728                       0.0                           290.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_4K7_1_                       R604                                         
+28.80677                      9.20913                       0.0                           348.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C604                                         
+28.59886                      10.18728                      0.0                           168.0     BOTTOM    PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C401                                         
+28.32188                      7.91273                       0.0                           251.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C605                                         
+29.71984                      8.38767                       0.0                           168.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K_1_                        R603                                         
+29.0961                       11.32211                      0.0                           348.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R605                                         
+23.99886                      7.88728                       0.0                           258.0     BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_390K_1_                      R405                                         
+59.70466                      7.56873                       0.0                           191.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R406                                         
+59.89547                      6.5871                        0.0                           191.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_100K_1_                      R107                                         
+32.19886                      2.28728                       0.0                           90.0      BOTTOM    PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C407                                         
+40.3681                       5.90592                       0.0                           251.0     TOP       PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C406                                         
+38.09886                      6.68728                       0.0                           251.0     TOP       PLACED    
+CAPC3216X127N                                A_CAPC_3216_10U_X7R_50V_SOFTTERM             C402                                         
+30.59113                      7.13137                       0.0                           251.0     TOP       PLACED    
+HVSON8_NXP                                   IC_HVSON8_TJA1029TK_20_1J_NXP                U101                                         
+33.59886                      -2.91272                      0.0                           180.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_22N_X7R_50V_SOFTTERM             C101                                         
+6.98842                       5.11666                       0.0                           263.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C100                                         
+5.59886                       5.28728                       0.0                           263.0     TOP       PLACED    
+C100                                         PAD100                                       FID105                                       
+89.19886                      -1.41272                      0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C602                                         
+75.29886                      14.68728                      0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R700                                         
+65.99886                      1.68728                       0.0                           180.0     TOP       PLACED    
+SOT353_NEXPERIA                              IC_SOT353_PSSI2021SAY_NEXPERIA               U600                                         
+77.69886                      11.78728                      0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_62R_1_                       R602                                         
+75.79886                      11.78728                      0.0                           90.0      TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_100N_X7R_50V_SOFTTERM            C603                                         
+73.99886                      11.68728                      0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_4K7_1_                       R200                                         
+74.46191                      3.41473                       0.0                           302.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C716                                         
+68.99886                      -2.61272                      0.0                           183.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10N_X7R_50V                      C200                                         
+75.30996                      2.88482                       0.0                           302.0     BOTTOM    PLACED    
+CAPC2013X140N                                A_CAPC_2012_4U7_X7R_16V_10_                  C707                                         
+73.49886                      1.08728                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C203                                         
+72.29886                      4.38728                       0.0                           346.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C708                                         
+72.79886                      2.48728                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_220N_X7R_16V                     C709                                         
+70.99886                      1.78728                       0.0                           180.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C710                                         
+70.99886                      0.78728                       0.0                           180.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C706                                         
+71.59886                      -2.51272                      0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_10K_1_                       R703                                         
+69.09886                      6.88728                       0.0                           270.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1U_X7S_10V                       C207                                         
+71.23782                      6.08232                       0.0                           256.0     BOTTOM    PLACED    
+DIOM_DFN1006-2_SOD882                        A_DIO_SOD882_PESD30VF1BBL-QL_NEXPERIA        D800                                         
+89.09886                      -0.81272                      0.0                           180.0     TOP       PLACED    
+DIOM_DFN1006-2_SOD882                        A_DIO_SOD882_PESD30VF1BBL-QL_NEXPERIA        D801                                         
+89.09886                      0.18728                       0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_0R                           R801                                         
+88.99886                      -1.81272                      0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V_1_                   C718                                         
+76.06198                      5.58684                       0.0                           147.0     TOP       PLACED    
+OSCCC_2_00MMX1_60MMX0_55MM_ABRACON           XTAL_FW2000016Q-20MHZ_DIODES                 Y200                                         
+78.39886                      1.18728                       0.0                           180.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1N_X7R_50V                       C711                                         
+65.99886                      0.68728                       0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_220N_X7R_16V                     C715                                         
+65.99886                      -0.31272                      0.0                           180.0     TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_220N_X7R_16V                     C717                                         
+65.99886                      2.68728                       0.0                           180.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_1K_1_                        R201                                         
+83.29886                      20.88728                      0.0                           77.0      BOTTOM    PLACED    
+CAPC2013X140N                                A_CAPC_2012_4U7_X7R_16V_10_                  C705                                         
+66.79886                      -2.41272                      0.0                           270.0     TOP       PLACED    
+CAPC2013X140N                                A_CAPC_2012_4U7_X7R_16V_10_                  C704                                         
+65.09886                      -2.41272                      0.0                           270.0     TOP       PLACED    
+CAPC1608X90N                                 A_CAPC_1608_2U2_X7S_16V                      C702                                         
+63.49886                      -2.41272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C700                                         
+61.69886                      -0.81272                      0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10N_X7R_50V                      C701                                         
+62.29886                      -2.41272                      0.0                           90.0      TOP       PLACED    
+TP050                                        TPCW050                                      TP801                                        
+84.69886                      -1.91272                      0.0                           0.0       TOP       PLACED    
+TP050                                        TPCW050                                      TP803                                        
+84.69886                      1.28728                       0.0                           0.0       TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_0R                           R803                                         
+88.99886                      1.18728                       0.0                           0.0       TOP       PLACED    
+CAPC1608X80N                                 A_CAPC_1608_10N_X7R_50V_SOFTTERM             C609                                         
+34.49886                      0.18728                       0.0                           180.0     TOP       PLACED    
+LASER_SOLDERING_FIDUCIAL                     LASER_SOLDERING_FIDUCIAL                     FID108                                       
+1.66491                       2.92464                       0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_47P_X7R_25V                      C302                                         
+70.1703                       10.89192                      0.0                           76.0      BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_47P_X7R_25V                      C314                                         
+70.1                          16.2                          0.0                           256.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V                      C501                                         
+88.6107                       9.56394                       0.0                           180.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_10P_C0G_50V                      C503                                         
+87.7107                       5.06394                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP101                                        
+7.09886                       2.58728                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP102                                        
+63.48445                      -2.01415                      0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP103                                        
+42.99886                      1.18728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP104                                        
+55.19886                      2.28728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP105                                        
+62.79886                      9.38728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP107                                        
+63.79886                      9.58728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP108                                        
+17.73753                      3.13061                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP109                                        
+23.41192                      -0.53025                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP110                                        
+52.527                        3.94353                       0.0                           193.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP111                                        
+60.91747                      0.26847                       0.0                           347.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP113                                        
+67.28884                      6.33287                       0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP114                                        
+19.19886                      -1.71272                      0.0                           7.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP115                                        
+23.19886                      -2.31272                      0.0                           7.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP116                                        
+35.99886                      -3.91272                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP117                                        
+36.09886                      -3.01272                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP118                                        
+36.09886                      -1.31272                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP119                                        
+32.29886                      -2.51272                      0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP120                                        
+33.09886                      1.78728                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP122                                        
+33.19886                      -2.81272                      0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP127                                        
+45.49886                      1.18728                       0.0                           90.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP200                                        
+75.99886                      3.98728                       0.0                           122.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP201                                        
+83.59886                      18.58728                      0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP202                                        
+83.59886                      19.68728                      0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP203                                        
+78.79886                      3.68728                       0.0                           270.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP204                                        
+77.89886                      3.68728                       0.0                           270.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP207                                        
+69.09886                      7.98728                       0.0                           256.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP210                                        
+28.24546                      6.47301                       0.0                           90.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP211                                        
+24.29886                      5.88728                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP212                                        
+28.39886                      2.38728                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP217                                        
+51.99886                      -3.21272                      0.0                           342.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP218                                        
+48.79886                      4.58728                       0.0                           270.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP219                                        
+43.99886                      7.38728                       0.0                           342.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP301                                        
+82.59886                      18.88728                      0.0                           347.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP302                                        
+69.5                          17.4                          0.0                           167.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP303                                        
+69.3                          18.4                          0.0                           347.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP304                                        
+81.79886                      19.28728                      0.0                           257.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP305                                        
+80.0107                       8.86394                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP306                                        
+84.3107                       9.16394                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP308                                        
+68.46642                      9.80111                       0.0                           346.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP310                                        
+71.09886                      11.78728                      0.0                           166.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP311                                        
+85.4107                       10.66394                      0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP312                                        
+85.3107                       12.16394                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP313                                        
+81.9107                       9.56394                       0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP314                                        
+81.9107                       12.16394                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP315                                        
+83.02197                      18.66213                      0.0                           283.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP316                                        
+82.0476                       18.43718                      0.0                           13.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP317                                        
+81.07323                      18.21223                      0.0                           283.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP318                                        
+80.09886                      17.98728                      0.0                           283.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP320                                        
+70.0226                       14.8448                       0.0                           76.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP321                                        
+70.51866                      13.30746                      0.0                           76.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP322                                        
+87.2107                       13.36394                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP323                                        
+84.0107                       12.76394                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP324                                        
+87.2107                       14.76394                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP325                                        
+84.0107                       15.36394                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP400                                        
+29.87263                      10.27839                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP401                                        
+23.56034                      6.29828                       0.0                           258.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP402                                        
+54.35357                      -1.61828                      0.0                           72.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP403                                        
+63.40445                      3.76175                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP404                                        
+65.54039                      6.00622                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP405                                        
+45.99886                      -0.11272                      0.0                           253.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP406                                        
+47.49886                      3.38728                       0.0                           343.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP407                                        
+51.88082                      -0.81483                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP408                                        
+53.49886                      4.18728                       0.0                           18.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP409                                        
+62.24586                      6.02525                       0.0                           101.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP410                                        
+52.19886                      -0.01272                      0.0                           342.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP411                                        
+51.57181                      -1.76589                      0.0                           72.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP412                                        
+62.05505                      7.00688                       0.0                           167.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP413                                        
+58.81441                      5.37319                       0.0                           101.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP414                                        
+58.59039                      6.36808                       0.0                           204.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP502                                        
+85.9107                       7.76394                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP503                                        
+88.1107                       5.96394                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP505                                        
+89.86033                      8.64365                       0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP506                                        
+86.7107                       8.36394                       0.0                           180.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP508                                        
+86.4107                       5.06394                       0.0                           90.0      BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP601                                        
+75.79886                      13.78728                      0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP602                                        
+79.49886                      11.78728                      0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP603                                        
+79.49886                      12.68728                      0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP604                                        
+75.79886                      12.98728                      0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP605                                        
+31.09886                      9.58728                       0.0                           209.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP606                                        
+27.89886                      10.98728                      0.0                           168.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP607                                        
+28.52527                      8.23599                       0.0                           168.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP608                                        
+23.60383                      9.74576                       0.0                           168.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP612                                        
+75.69886                      18.38728                      0.0                           257.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP613                                        
+16.59886                      1.88728                       0.0                           173.0     BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP615                                        
+36.29886                      0.18728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP616                                        
+41.09886                      1.88728                       0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP618                                        
+42.99886                      0.18728                       0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP617                                        
+37.09886                      -1.11272                      0.0                           270.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP619                                        
+39.69886                      -1.11272                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP620                                        
+39.79886                      2.18728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP700                                        
+62.29886                      -3.71272                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP701                                        
+71.49886                      2.68728                       0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP702                                        
+69.69886                      1.78728                       0.0                           0.0       BOTTOM    PLACED    
+TP060                                        TPCW060                                      TP703                                        
+69.09886                      5.68728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP704                                        
+72.99886                      5.68728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP705                                        
+70.09886                      5.68728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP706                                        
+71.09886                      5.68728                       0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP707                                        
+72.09886                      5.68728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP708                                        
+67.29886                      0.68728                       0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP709                                        
+75.69886                      2.83728                       0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP710                                        
+73.09886                      -2.21272                      0.0                           0.0       TOP       PLACED    
+TP060                                        TPCW060                                      TP716                                        
+67.29886                      -0.31272                      0.0                           90.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP718                                        
+67.29886                      2.68728                       0.0                           180.0     TOP       PLACED    
+TP060                                        TPCW060                                      TP719                                        
+75.99114                      4.55972                       0.0                           57.0      TOP       PLACED    
+TP060                                        TPCW060                                      TP106                                        
+87.99886                      -1.51272                      0.0                           0.0       BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_180P_C0G_50V                     C116                                         
+30.99886                      -1.71272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_6P8_C0G_50V                      C807                                         
+87.59886                      -1.41272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_6P8_C0G_50V                      C812                                         
+87.59886                      0.78728                       0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_33P_C0G_50V_1_                   C813                                         
+83.39886                      0.58728                       0.0                           0.0       TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_560P_C0G_50V_1_                  C803                                         
+76.39886                      -1.46272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_68P_C0G_50V_1_                   C804                                         
+77.09886                      -1.46272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_560P_C0G_50V_1_                  C808                                         
+76.39886                      0.83728                       0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_68P_C0G_50V_1_                   C809                                         
+77.09886                      0.83728                       0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C805                                         
+85.59886                      -1.41272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100P_C0G_50V_1_                  C810                                         
+85.59886                      0.78728                       0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1P_C0G_50V_10_                   C806                                         
+86.59886                      -1.41272                      0.0                           90.0      TOP       PLACED    
+CAPC1005X55N                                 A_CAPC_1005_1P_C0G_50V_10_                   C811                                         
+86.59886                      0.78728                       0.0                           90.0      TOP       PLACED    
+RESC1608X55N                                 A_RESC_RES_1608_0R                           L102                                         
+21.34765                      -0.34996                      0.0                           353.0     TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_47K_1_                       R610                                         
+77.89886                      20.28728                      0.0                           257.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_100N_X7R_50V                     C600                                         
+76.99886                      16.58728                      0.0                           90.0      TOP       PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_430K_1_                      R309                                         
+69.2                          10.65                         0.0                           76.0      BOTTOM    PLACED    
+RESC1005X38L                                 A_RESC_RES_1005_430K_1_                      R317                                         
+68.25                         14.05                         0.0                           256.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_8P2_C0G_50V_1_                   C201                                         
+79.79886                      2.78728                       0.0                           180.0     BOTTOM    PLACED    
+CAPC1005X55N                                 A_CAPC_1005_8P2_C0G_50V_1_                   C202                                         
+77.39886                      2.78728                       0.0                           0.0       BOTTOM    PLACED    
+.END_PLACEMENT
