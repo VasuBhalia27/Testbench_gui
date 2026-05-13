@@ -284,7 +284,99 @@ def banner_info(lines): _banner(lines, "\033[36m")   # cyan
 
 
 # ─────────────────────────────────────────────────────────────────
-# Main
+# Programmatic API  (call from orchestrator without spawning a process)
+# ─────────────────────────────────────────────────────────────────
+
+def run_deflash(
+    barcode: str = "UNKNOWN",
+    device: str = DEFAULT_DEVICE,
+    interface: str = DEFAULT_IF,
+    speed: int = DEFAULT_SPEED,
+    verify: bool = True,
+    timeout: int = DEFAULT_TIMEOUT,
+    log_path: str = "",
+    log_fn=None,
+) -> tuple:
+    """
+    Programmatic entry-point: mass-erase the target MCU via J-Link.
+
+    Parameters
+    ----------
+    barcode   : PCB barcode / serial number for the log.
+    device    : J-Link device string  (default: CY8C4149AZI-S575).
+    interface : "SWD" or "JTAG"  (default: SWD).
+    speed     : SWD speed in kHz  (default: 4000).
+    verify    : Read-back the first word after erase to confirm blank.
+    timeout   : Max seconds to wait for JLink.exe.
+    log_path  : Path to the CSV log file.  Empty = deflash_log.csv
+                beside deflash_pcb.py.
+    log_fn    : Optional callable(str) for progress messages
+                (e.g. self._log from the automation orchestrator).
+                If None, messages are printed to stdout.
+
+    Returns
+    -------
+    (success: bool, detail: str)
+    """
+    def _log(msg):
+        if log_fn is not None:
+            log_fn(msg)
+        else:
+            print(msg)
+
+    if not log_path:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        log_path = os.path.join(script_dir, LOG_FILE_NAME)
+
+    t_start = time.monotonic()
+
+    # Step 1: locate J-Link
+    try:
+        jlink_exe = find_jlink_exe()
+        _log(f"De-flash: J-Link found at {jlink_exe}")
+    except FileNotFoundError as exc:
+        detail = f"J-Link not found: {exc}"
+        _log(f"De-flash: {detail}")
+        write_log(log_path, barcode, device, "FAIL", time.monotonic() - t_start, detail)
+        return False, detail
+
+    # Step 2: release probe (kill Trace32 / Ozone if still alive)
+    _log("De-flash: releasing SWD probe ...")
+    release_probe()
+
+    # Step 3: run mass erase
+    _log("De-flash: starting mass erase (JLink.exe) ...")
+    script_lines = _build_erase_script(device, interface, speed, verify)
+    try:
+        jlink_output = run_jlink_script(jlink_exe, script_lines, timeout)
+    except subprocess.TimeoutExpired:
+        detail = f"J-Link timed out after {timeout}s — check PCB connection."
+        _log(f"De-flash: {detail}")
+        write_log(log_path, barcode, device, "FAIL", time.monotonic() - t_start, detail)
+        return False, detail
+    except Exception as exc:
+        detail = f"J-Link error: {exc}"
+        _log(f"De-flash: {detail}")
+        write_log(log_path, barcode, device, "FAIL", time.monotonic() - t_start, detail)
+        return False, detail
+
+    # Step 4: parse result
+    success, detail = parse_erase_result(jlink_output)
+    duration = time.monotonic() - t_start
+    result_str = "PASS" if success else "FAIL"
+    write_log(log_path, barcode, device, result_str, duration, detail)
+
+    if success:
+        _log(f"De-flash: ✓ PASS — {detail} ({duration:.1f} s)")
+    else:
+        _log(f"De-flash: ✗ FAIL — {detail} ({duration:.1f} s)")
+        _log("De-flash: Check SWD wiring, PCB power, and J-Link connection.")
+
+    return success, detail
+
+
+# ─────────────────────────────────────────────────────────────────
+# Main  (CLI)
 # ─────────────────────────────────────────────────────────────────
 
 def parse_args() -> argparse.Namespace:

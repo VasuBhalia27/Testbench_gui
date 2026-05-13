@@ -238,7 +238,34 @@ class IntegratedAutomationRunner:
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
 
-            # Close the T32 debugger automatically after report is saved
+            # ── De-flash: mass-erase BMW test firmware via TRACE32 ──
+            # Runs BEFORE QuitTrace32 so TRACE32 still holds the SWD probe.
+            # This avoids the J-Link probe re-acquisition race that occurs
+            # when J-Link.exe tries to connect immediately after TRACE32 exits.
+            _df_start = time.monotonic()
+            try:
+                from AutomationScripts.core import path_utils as _pu
+                _smartbu   = _pu.smartbu_repo_path()
+                _erase_cmm = os.path.join(
+                    _smartbu, "Tests", "DebuggerScripts", "erase_automation.cmm"
+                )
+                if os.path.isfile(_erase_cmm) and t32.dbg and hasattr(t32.dbg, 'cmd'):
+                    self._log("De-flash: erasing BMW test firmware via TRACE32...")
+                    t32.dbg.cmd(f'DO "{_erase_cmm}"')   # blocks until erase completes
+                    _df_dur = time.monotonic() - _df_start
+                    self._log(f"De-flash: ✓ PASS — Flash erased via TRACE32 ({_df_dur:.1f} s)")
+                else:
+                    self._log(
+                        "⚠ De-flash skipped: erase_automation.cmm not found or TRACE32 not connected"
+                    )
+            except Exception as _df_exc:
+                _df_dur = time.monotonic() - _df_start
+                self._log(
+                    f"⚠ De-flash FAILED ({_df_dur:.1f} s): {_df_exc}\n"
+                    "  PCB may still contain test firmware — re-run de-flash manually."
+                )
+
+            # Close the T32 debugger after de-flash
             try:
                 self._log("Closing debugger...")
                 t32.QuitTrace32(status_label=None)
