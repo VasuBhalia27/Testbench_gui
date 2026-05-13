@@ -1,0 +1,11 @@
+device CY8C4148XXX-SXXX
+if SWD
+speed 1000
+
+connect
+
+r
+h
+erase
+
+qc

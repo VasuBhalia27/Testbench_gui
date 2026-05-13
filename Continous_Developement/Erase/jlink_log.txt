@@ -1,0 +1,79 @@
+SEGGER J-Link Commander V9.36 (Compiled Apr 15 2026 12:21:59)
+DLL version V9.36, compiled Apr 15 2026 12:21:01
+
+
+J-Link Command File read successfully.
+Processing script file...
+J-Link>device CY8C4148XXX-SXXX
+J-Link connection not established yet but required for command.
+Connecting to J-Link via USB...O.K.
+Firmware: J-Link V13 compiled Mar 26 2026 10:15:03
+Hardware version: V13.00
+J-Link uptime (since boot): 0d 00h 03m 29s
+S/N: 53006385
+License(s): GDB
+USB speed mode: High speed (480 MBit/s)
+VTref=3.309V
+J-Link>if SWD
+Selecting SWD as current target interface.
+J-Link>speed 1000
+Selecting 1000 kHz as target interface speed
+J-Link>connect
+Device "CY8C4148XXX-SXXX" selected.
+
+
+Connecting to target via SWD
+InitTarget() start
+InitTarget() end - Took 3.41ms
+Found SW-DP with ID 0x0BC11477
+DPIDR: 0x0BC11477
+CoreSight SoC-400 or earlier
+Scanning AP map to find all available APs
+AP[1]: Stopped AP scan as end of AP map has been reached
+AP[0]: AHB-AP (IDR: 0x04770031, ADDR: 0x00000000)
+Iterating through AP map to find AHB-AP to use
+AP[0]: Core found
+AP[0]: AHB-AP ROM base: 0xF0000000
+CPUID register: 0x410CC601. Implementer code: 0x41 (ARM)
+Found Cortex-M0 r0p1, Little endian.
+FPUnit: 4 code (BP) slots and 0 literal slots
+CoreSight components:
+ROMTbl[0] @ F0000000
+[0][0]: E00FF000 CID B105100D PID 000BB4C0 ROM Table
+ROMTbl[1] @ E00FF000
+[1][0]: E000E000 CID B105E00D PID 000BB008 SCS
+[1][1]: E0001000 CID B105E00D PID 000BB00A DWT
+[1][2]: E0002000 CID B105E00D PID 000BB00B FPB
+Memory zones:
+  Zone: "Default" Description: Default access mode
+Cortex-M0 identified.
+J-Link>r
+Reset delay: 0 ms
+ResetTarget() start
+Executing ResetTarget()
+ResetTarget() end - Took 116ms
+Device specific reset executed.
+J-Link>h
+PC = 0002A7B4, CycleCnt = 00000000
+R0 = 40100004, R1 = 0002A7B5, R2 = 00000000, R3 = 00000000
+R4 = 20001814, R5 = 08000000, R6 = 0FFFE0E0, R7 = 00000000
+R8 = 02000010, R9 = 00123100, R10= 1FFF1814, R11= 00000000
+R12= 00000001
+SP(R13)= 20001814, MSP= 20001814, PSP= 00008000, R14(LR) = 1000012B
+XPSR = 61000000: APSR = nZCvq, EPSR = 01000000, IPSR = 000 (NoException)
+CFBP = 00000000, CONTROL = 00, FAULTMASK = 00, BASEPRI = 00, PRIMASK = 00
+FPU regs: FPU not enabled / not implemented on connected CPU.
+J-Link>erase
+No address range specified, 'Erase Chip' will be executed
+'erase': Performing implicit reset & halt of MCU.
+ResetTarget() start
+Executing ResetTarget()
+ResetTarget() end - Took 110ms
+Device specific reset executed.
+Erasing device...
+J-Link: Flash download: Total time needed: 0.795s (Prepare: 0.283s, Compare: 0.000s, Erase: 0.289s, Program: 0.000s, Verify: 0.000s, Restore: 0.222s)
+Erasing done.
+J-Link>qc
+
+Script processing completed.
+
