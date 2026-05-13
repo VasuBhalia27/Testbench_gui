@@ -531,8 +531,15 @@ def PauseCode(exec_label):
     dbg.cmd("Break")
     UpdateCodeExecLabel_notrunning(exec_label)
 
-def QuitTrace32():
-    dbg.exit()
+def QuitTrace32(status_label=None):
+    global dbg
+    try:
+        if dbg and hasattr(dbg, 'exit'):
+            dbg.exit()
+    except Exception:
+        pass
+    finally:
+        dbg = ''  # always reset so the next run detects no connection
 
 def Trace32ConnectApp(repo_path_entry, selected_preset, status_label):
     LaunchTrace32(repo_path_entry, selected_preset)

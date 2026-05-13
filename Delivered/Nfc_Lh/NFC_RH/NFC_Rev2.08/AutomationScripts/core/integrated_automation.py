@@ -207,7 +207,78 @@ class IntegratedAutomationRunner:
 
             self.gui.root.after(0, lambda: self.gui.set_result_indicator(all_passed))
 
-            # Generate HTML test report from the actual hardware measurements.
+            # ── De-flash: mass-erase BMW test firmware via TRACE32 ──
+            # Runs BEFORE report generation so the result is included in the
+            # HTML report.  Uses synchronous RCL commands so every step blocks
+            # until TRACE32 confirms completion.
+            _df_start  = time.monotonic()
+            _df_result = {"pass": False, "detail": "Not run",
+                          "duration": 0.0, "addrs": [], "blank_fail": []}
+            try:
+                if t32.dbg and hasattr(t32.dbg, 'cmd'):
+                    self._log("De-flash: erasing BMW test firmware via TRACE32...")
+                    t32.dbg.cmd('Break')
+                    t32.dbg.cmd('FLASH.RESet')
+                    t32.dbg.cmd('FLASH.Create 1. 0x00000000++0x5FFFF 0x100 TARGET Byte')
+                    t32.dbg.cmd(
+                        'FLASH.TARGET 0x20000000 0x20000800 0x300'
+                        ' ~~/demo/arm/flash/long/psoc41x9s.bin /STACKSIZE 0x4D0'
+                    )
+                    t32.dbg.cmd('FLASH.Erase ALL')
+                    t32.dbg.cmd('FLASH.ReProgram OFF')
+                    # Blank-check: PSoC 4 erased flash reads 0x00000000
+                    _CHECK_ADDRS = [0x00000000, 0x00030000, 0x0005FFFC]
+                    _blank_fail  = []
+                    for _addr in _CHECK_ADDRS:
+                        try:
+                            _val = int(t32.dbg.fnc(f"Data.Long(A:0x{_addr:08X})"))
+                            if _val != 0x00000000:
+                                _blank_fail.append(f"0x{_addr:08X}=0x{_val:08X}")
+                        except Exception:
+                            _blank_fail.append(f"0x{_addr:08X}=READ_ERROR")
+                    t32.dbg.cmd('SYStem.Down')   # release SWD probe cleanly
+                    _df_dur = time.monotonic() - _df_start
+                    _df_result = {
+                        "pass":       len(_blank_fail) == 0,
+                        "duration":   _df_dur,
+                        "addrs":      [f"0x{a:08X}" for a in _CHECK_ADDRS],
+                        "blank_fail": _blank_fail,
+                        "detail":     "" if not _blank_fail
+                                      else f"Non-erased words: {', '.join(_blank_fail)}",
+                    }
+                    if _blank_fail:
+                        self._log(
+                            f"⚠ De-flash BLANK-CHECK FAILED ({_df_dur:.1f} s) — "
+                            f"non-erased words: {', '.join(_blank_fail)}\n"
+                            "  PCB may still contain test firmware — re-run de-flash manually."
+                        )
+                    else:
+                        self._log(
+                            f"De-flash: ✓ PASS — Flash erased and blank-checked "
+                            f"via TRACE32 ({_df_dur:.1f} s)\n"
+                            "  Verified 0x00000000 at flash start / mid / end — PCB is clean."
+                        )
+                else:
+                    self._log("⚠ De-flash skipped: TRACE32 not connected")
+                    _df_result["detail"] = "TRACE32 not connected"
+            except Exception as _df_exc:
+                _df_dur = time.monotonic() - _df_start
+                _df_result["duration"] = _df_dur
+                _df_result["detail"]   = str(_df_exc)
+                self._log(
+                    f"⚠ De-flash FAILED ({_df_dur:.1f} s): {_df_exc}\n"
+                    "  PCB may still contain test firmware — re-run de-flash manually."
+                )
+
+            # Close TRACE32 — probe already released by SYStem.Down above.
+            try:
+                self._log("Closing debugger...")
+                t32.QuitTrace32(status_label=None)
+                self._log("Debugger closed.")
+            except Exception as _e:
+                self._log(f"Note: Debugger close: {_e}")
+
+            # Generate HTML test report (de-flash result included as a tab).
             # pcb_count is the sequential number for this PCB (1-based).
             # gui.pass_count + gui.fail_count = total runs BEFORE this one
             # (set_result_indicator hasn't fired yet on the main thread).
@@ -219,6 +290,7 @@ class IntegratedAutomationRunner:
                     pcb_count=pcb_count,
                     all_passed=all_passed,
                     scan_code=scan_code,
+                    deflash_result=_df_result,
                 )
                 self._log(f"HTML Report saved: {report_path}")
                 # Sync GUI counters to match the HTML report exactly
@@ -238,40 +310,7 @@ class IntegratedAutomationRunner:
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
 
-            # ── De-flash: mass-erase BMW test firmware via TRACE32 ──
-            # Runs BEFORE QuitTrace32 so TRACE32 still holds the SWD probe.
-            # This avoids the J-Link probe re-acquisition race that occurs
-            # when J-Link.exe tries to connect immediately after TRACE32 exits.
-            _df_start = time.monotonic()
-            try:
-                from AutomationScripts.core import path_utils as _pu
-                _smartbu   = _pu.smartbu_repo_path()
-                _erase_cmm = os.path.join(
-                    _smartbu, "Tests", "DebuggerScripts", "erase_automation.cmm"
-                )
-                if os.path.isfile(_erase_cmm) and t32.dbg and hasattr(t32.dbg, 'cmd'):
-                    self._log("De-flash: erasing BMW test firmware via TRACE32...")
-                    t32.dbg.cmd(f'DO "{_erase_cmm}"')   # blocks until erase completes
-                    _df_dur = time.monotonic() - _df_start
-                    self._log(f"De-flash: ✓ PASS — Flash erased via TRACE32 ({_df_dur:.1f} s)")
-                else:
-                    self._log(
-                        "⚠ De-flash skipped: erase_automation.cmm not found or TRACE32 not connected"
-                    )
-            except Exception as _df_exc:
-                _df_dur = time.monotonic() - _df_start
-                self._log(
-                    f"⚠ De-flash FAILED ({_df_dur:.1f} s): {_df_exc}\n"
-                    "  PCB may still contain test firmware — re-run de-flash manually."
-                )
 
-            # Close the T32 debugger after de-flash
-            try:
-                self._log("Closing debugger...")
-                t32.QuitTrace32(status_label=None)
-                self._log("Debugger closed.")
-            except Exception as _e:
-                self._log(f"Note: Debugger close: {_e}")
 
             self.is_first_run = False
 
