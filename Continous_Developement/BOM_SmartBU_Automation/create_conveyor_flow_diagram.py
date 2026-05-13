@@ -654,8 +654,69 @@ ax_c.text(11.0, -0.45, sw_note, ha="center", va="center",
 #  SAVE
 # ══════════════════════════════════════════════════════════════════
 out_dir  = os.path.dirname(os.path.abspath(__file__))
-out_file = os.path.join(out_dir, "Conveyor_AutoLoader_Flow_Diagram_Rev1.0.png")
-fig.savefig(out_file, dpi=180, bbox_inches="tight",
+
+# ── PNG (raster, for quick viewing / insertion into documents) ────
+out_png = os.path.join(out_dir, "Conveyor_AutoLoader_Flow_Diagram_Rev1.0.png")
+fig.savefig(out_png, dpi=180, bbox_inches="tight",
             facecolor=C_BG, edgecolor="none")
-print(f"Saved: {out_file}")
+print(f"Saved PNG : {out_png}")
+
+# ── SVG (fully editable vector — open in Inkscape or import into ──
+#         PowerPoint 2016+ via Insert > Pictures > SVG, then        ──
+#         right-click > "Convert to Shape" to edit individual items) ─
+out_svg = os.path.join(out_dir, "Conveyor_AutoLoader_Flow_Diagram_Rev1.0.svg")
+fig.savefig(out_svg, format="svg", bbox_inches="tight",
+            facecolor=C_BG, edgecolor="none")
+print(f"Saved SVG : {out_svg}")
+
 plt.close(fig)
+
+# ── PPTX (PowerPoint slide containing the SVG as an editable ──────
+#          vector object; requires python-pptx)                      ─
+try:
+    from pptx import Presentation
+    from pptx.util import Inches, Pt, Emu
+    from pptx.dml.color import RGBColor
+    from pptx.enum.text import PP_ALIGN
+    import math
+
+    SLIDE_W = Inches(22)   # match figure width (22 inches)
+    SLIDE_H = Inches(30)   # match figure height (30 inches)
+
+    prs = Presentation()
+    prs.slide_width  = SLIDE_W
+    prs.slide_height = SLIDE_H
+
+    slide_layout = prs.slide_layouts[6]  # blank layout
+    slide = prs.slides.add_slide(slide_layout)
+
+    # Insert the high-res PNG onto the slide.
+    # For full vector editing, also import the SVG separately in PowerPoint:
+    #   Insert > Pictures > This Device > select the .svg file, then
+    #   right-click > Convert to Shape (or Ungroup twice) to edit elements.
+    pic = slide.shapes.add_picture(out_png, 0, 0, SLIDE_W, SLIDE_H)
+
+    # Add a small footer text box with revision info
+    txBox = slide.shapes.add_textbox(Inches(0.2), SLIDE_H - Inches(0.35),
+                                     SLIDE_W - Inches(0.4), Inches(0.30))
+    tf = txBox.text_frame
+    tf.word_wrap = False
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    run = p.add_run()
+    run.text = ("Conveyor_AutoLoader_Flow_Diagram_Rev1.0  |  "
+                "SmartBU / XNF I460  |  BMW MAE 032080790003  |  "
+                "Charan Singh  |  11.05.2026  |  "
+                "SVG embedded — use Insert > Pictures > SVG or Convert to Shape for editing")
+    run.font.size = Pt(6)
+    run.font.color.rgb = RGBColor(0x55, 0x55, 0x55)
+
+    out_pptx = os.path.join(out_dir, "Conveyor_AutoLoader_Flow_Diagram_Rev1.0.pptx")
+    prs.save(out_pptx)
+    print(f"Saved PPTX: {out_pptx}")
+    print("  → In PowerPoint: select the diagram image, right-click,")
+    print("    choose 'Convert to Shape' (or Ungroup) to edit individual elements.")
+
+except ImportError:
+    print("python-pptx not installed — PPTX not generated.")
+    print("  Install with:  pip install python-pptx")
