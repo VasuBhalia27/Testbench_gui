@@ -60,6 +60,7 @@ class AutomationGUI:
             self.root.title("NFC_Rev2.08")
             self.root.geometry("1050x550")
             self.root.minsize(1000, 450)
+            self.root.state("zoomed")
         else:
             # Embedded mode: build UI directly in parent widget
             self.root = parent_widget
@@ -180,6 +181,26 @@ class AutomationGUI:
             relief="flat", cursor="hand2",
             command=self._reset_pcb_counts,
         ).pack(side="top", fill="x", padx=4, pady=(0, 4))
+
+        self.automation_progress = ttk.Progressbar(
+            counter_panel,
+            mode="determinate",
+            maximum=100,
+        )
+        self.automation_progress.pack(side="top", fill="x", padx=4, pady=(0, 4))
+        self.automation_progress["value"] = 0
+
+        self.automation_status_label = tk.Label(
+            counter_panel,
+            text="",
+            fg="#FFFFFF",
+            bg="#CB3CE7",
+            font=("Arial", 9, "bold"),
+            anchor="nw",
+            justify="left",
+            wraplength=180,
+        )
+        self.automation_status_label.pack(side="top", fill="x", padx=4, pady=(0, 4), ipady=6)
 
         # --- RIGHT PANEL ---
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
@@ -373,6 +394,8 @@ class AutomationGUI:
         self.status_text.config(state="normal")
         self.status_text.delete(1.0, tk.END)
         self.status_text.config(state="disabled")
+        self.set_progress(0)
+        self.set_status_label("")
         # Reset timer
         self._reset_timer()
         # Pre-select Driver (variant 2) so operator can confirm or change it
@@ -505,6 +528,16 @@ class AutomationGUI:
         self.status_text.config(state="disabled")
         if self.parent_widget is not None:
             self.root.update()  # refresh GUI immediately
+
+    def set_progress(self, value: int) -> None:
+        self.automation_progress["value"] = max(0, min(100, value))
+        if self.parent_widget is not None:
+            self.root.update()
+
+    def set_status_label(self, text: str, bg: str = "#CB3CE7", fg: str = "#FFFFFF") -> None:
+        self.automation_status_label.config(text=text, bg=bg, fg=fg)
+        if self.parent_widget is not None:
+            self.root.update()
 
     def show_restart_warning(self) -> None:
         """Show a warning dialog when battery voltage is 0.0 mV on two consecutive runs.
