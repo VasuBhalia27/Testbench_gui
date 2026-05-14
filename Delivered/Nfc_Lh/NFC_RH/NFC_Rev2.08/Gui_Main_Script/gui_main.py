@@ -324,12 +324,12 @@ canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#
 canvas2.create_text(61.0, 270.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 def _on_connect_trace32():
-    deflash_warning_lbl.config(text="")
+    deflash_warning_lbl.config(text="Flashing in progress...")
     deflash_progress["value"] = 0
     window.update_idletasks()
 
     if code_status_label:
-        code_status_label.config(text="Status: Flashing in progress", fg="blue")
+        code_status_label.config(text="Status: Flashing in progress...", fg="blue")
 
     def update_progress(percent):
         deflash_progress["value"] = percent
@@ -339,9 +339,11 @@ def _on_connect_trace32():
         Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label, progress_callback=update_progress)
         deflash_progress["value"] = 100
         window.update_idletasks()
+        deflash_warning_lbl.config(text="Flashing done!")
     except Exception:
         if code_status_label:
             code_status_label.config(text="Status: Flashing ERROR", fg="#C0392B")
+        deflash_warning_lbl.config(text="Flashing ERROR")
 
 connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], 
                          command=_on_connect_trace32, 
@@ -359,7 +361,7 @@ canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#F
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 def _on_disconnect_trace32():
     df_result = None
-    deflash_warning_lbl.config(text="De-flash in progress, don't close     GUI window")
+    deflash_warning_lbl.config(text="De-flashing in progress..., don't\n close GUI window")
     deflash_progress["value"] = 100
     window.update_idletasks()
     
@@ -372,8 +374,10 @@ def _on_disconnect_trace32():
         df_result = DeflashPcb(code_status_label, progress_callback=update_progress)
         if df_result and df_result.get("pass"):
             code_status_label.config(text="Status: De-flash PASS", fg="#27AE60")
+            deflash_warning_lbl.config(text="De-flash done!")
         else:
             code_status_label.config(text="Status: De-flash FAILED", fg="#C0392B")
+            deflash_warning_lbl.config(text="De-flash FAILED")
     except Exception as exc:
         df_result = {
             "pass": False,
@@ -383,9 +387,9 @@ def _on_disconnect_trace32():
             "detail": str(exc) or "De-flash failed",
         }
         code_status_label.config(text=f"Status: De-flash ERROR", fg="#C0392B")
+        deflash_warning_lbl.config(text=f"De-flash ERROR")
     finally:
         deflash_progress["value"] = 0
-        deflash_warning_lbl.config(text="De-flash Done")
 
     _collect_and_save_all_manual_tests(deflash_result=df_result)
     QuitTrace32(code_status_label)

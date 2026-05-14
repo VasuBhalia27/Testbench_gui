@@ -563,7 +563,7 @@ def Trace32ConnectApp(repo_path_entry, selected_preset, status_label, progress_c
         progress_callback(100)
     # Update status after successful connection and loading
     if status_label:
-        status_label.config(text="Status: Flashing done, stopped at breakpoint", fg="#27AE60")
+        status_label.config(text="Status: Stopped at breakpoint", fg="#27AE60")
 
 def ResetTarget(status_label):
     global dbg
