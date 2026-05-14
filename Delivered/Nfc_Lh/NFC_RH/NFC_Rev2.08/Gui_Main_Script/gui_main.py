@@ -361,7 +361,7 @@ canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#F
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 def _on_disconnect_trace32():
     df_result = None
-    deflash_warning_lbl.config(text="De-flashing in progress..., don't\n close GUI window")
+    deflash_warning_lbl.config(text="Status: De-flashing in progress...,\n don't close GUI window")
     deflash_progress["value"] = 100
     window.update_idletasks()
     
@@ -370,14 +370,12 @@ def _on_disconnect_trace32():
         window.update_idletasks()
     
     try:
-        code_status_label.config(text="Status: De-flashing...", fg="blue")
+        code_status_label.config(text="")
         df_result = DeflashPcb(code_status_label, progress_callback=update_progress)
         if df_result and df_result.get("pass"):
-            code_status_label.config(text="Status: De-flash PASS", fg="#27AE60")
-            deflash_warning_lbl.config(text="De-flash done!")
+            deflash_warning_lbl.config(text="Status: De-flash PASS")
         else:
-            code_status_label.config(text="Status: De-flash FAILED", fg="#C0392B")
-            deflash_warning_lbl.config(text="De-flash FAILED")
+            deflash_warning_lbl.config(text="Status: De-flash FAILED")
     except Exception as exc:
         df_result = {
             "pass": False,
@@ -386,8 +384,8 @@ def _on_disconnect_trace32():
             "blank_fail": [],
             "detail": str(exc) or "De-flash failed",
         }
-        code_status_label.config(text=f"Status: De-flash ERROR", fg="#C0392B")
-        deflash_warning_lbl.config(text=f"De-flash ERROR")
+        code_status_label.config(text="")
+        deflash_warning_lbl.config(text="Status: De-flash ERROR")
     finally:
         deflash_progress["value"] = 0
 
@@ -508,13 +506,13 @@ deflash_warning_lbl = tk.Label(
     tab2,
     text="",
     fg="#FFFFFF",
-    bg="#E74C3C",
+    bg="#CB3CE7",
     font=("Arial", 9, "bold"),
     anchor="nw",
     justify="left",
     wraplength=240,
 )
-deflash_warning_lbl.place(x=555, y=315, width=198, height=50)
+deflash_warning_lbl.place(x=555, y=315, width=198, height=40)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
 
