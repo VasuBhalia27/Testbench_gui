@@ -43,12 +43,18 @@ class HardwareSetupVerifier:
         """Log a status message via callback."""
         self.status_callback(message)
 
-    def connect_trace32(self, preset: int, timeout: float = 30.0) -> None:
+    def connect_trace32(
+        self,
+        preset: int,
+        timeout: float = 30.0,
+        progress_callback=None,
+    ) -> None:
         """
         Connect to Trace32 and wait for "stopped at breakpoint" status.
 
         :param preset: 1 = Non-NFC, 2 = NFC
         :param timeout: max seconds to wait for breakpoint status
+        :param progress_callback: optional callable(percent) to report progress
         :raises HardwareSetupVerificationError: if connection fails or timeout
         """
         self._log("Connecting to Trace32...")
@@ -64,7 +70,12 @@ class HardwareSetupVerifier:
         dummy_entry = DummyEntry(self.repo_path)
 
         try:
-            t32.Trace32ConnectApp(dummy_entry, dummy_sel, status_label=None)
+            t32.Trace32ConnectApp(
+                dummy_entry,
+                dummy_sel,
+                status_label=None,
+                progress_callback=progress_callback,
+            )
         except Exception as e:
             # Best-effort cleanup so the next Start attempt is not blocked by
             # a half-started or hung PowerView process.
@@ -140,13 +151,19 @@ class HardwareSetupVerifier:
 
         raise HardwareSetupVerificationError("Timeout verifying running status")
 
-    def verify_setup(self, preset: int, skip_connect: bool = False) -> bool:
+    def verify_setup(
+        self,
+        preset: int,
+        skip_connect: bool = False,
+        progress_callback=None,
+    ) -> bool:
         """
         Perform complete hardware setup verification.
 
         :param preset: 1 = Non-NFC, 2 = NFC
         :param skip_connect: if True, skip Trace32 connection (reuse existing connection)
                             Used for subsequent runs to avoid redundant connection setup.
+        :param progress_callback: optional callable(percent) to report connection progress
         :return: True if fully verified, False otherwise
         """
         max_attempts = 2
@@ -154,7 +171,7 @@ class HardwareSetupVerifier:
             try:
                 # Only connect on first run; reuse connection for subsequent runs
                 if not skip_connect:
-                    self.connect_trace32(preset)
+                    self.connect_trace32(preset, progress_callback=progress_callback)
                 self.run_code_and_verify()
                 self._log("Hardware setup verified successfully!")
                 return True

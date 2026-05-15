@@ -68,8 +68,6 @@ class IntegratedAutomationRunner:
     def _run_automation_thread(self, variant: int) -> None:
         """Background thread that orchestrates the full automation."""
         try:
-            self._log("Starting automation sequence...")
-
             # Capture the 2D scan code entered by the operator before the run starts
             scan_code = getattr(self.gui, "scan_code", None)
             scan_code = scan_code.get().strip() if scan_code is not None else ""
@@ -85,7 +83,9 @@ class IntegratedAutomationRunner:
                 # This guarantees a clean start regardless of the supply's previous state.
                 self._log("Power cycling supply: turning OFF...")
                 self.power_off_supply()
-                self._log(f"Supply OFF — waiting {TIMING.supply_off_wait:.1f} seconds...")
+                self._log(
+                    f"Supply OFF — waiting {TIMING.supply_off_wait:.1f} seconds..."
+                )
                 time.sleep(TIMING.supply_off_wait)
                 self._log("Powering supply ON...")
                 self.power_on_supply()
@@ -94,7 +94,9 @@ class IntegratedAutomationRunner:
                 )
                 time.sleep(TIMING.supply_on_wait)
             else:
-                self._log("PSU automation disabled — skipping automated power OFF/ON sequence")
+                self._log(
+                    "PSU automation disabled — skipping automated power OFF/ON sequence"
+                )
 
             # On subsequent runs a new PCB has been inserted into the fixture.
             # The SWD probe loses its link to the old board; Trace32 then crashes
@@ -113,14 +115,19 @@ class IntegratedAutomationRunner:
 
             # Hardware setup verification
             verifier = hardware_setup.HardwareSetupVerifier(
-                status_callback=self._log,
+                status_callback=None,
                 gui_root=self.gui.root,
             )
+            self._status_progress("Flashing in progress...", 0)
             # After QuitTrace32, dbg is '' so already_connected is False and
             # verify_setup will perform a full Trace32 relaunch.
             # On first run, dbg may already be set from a manual connect.
             already_connected = bool(getattr(t32, 'dbg', None))
-            success = verifier.verify_setup(variant, skip_connect=already_connected)
+            success = verifier.verify_setup(
+                variant,
+                skip_connect=already_connected,
+                progress_callback=self._update_progress,
+            )
 
             if not success:
                 self._log("\n✗ HARDWARE SETUP FAILED")
@@ -130,6 +137,7 @@ class IntegratedAutomationRunner:
                 self.gui.root.after(0, self.gui.reset_for_new_run)
                 return
 
+            self._status_progress("Flashing Done!", 100)
             self._log("\n✓ HARDWARE SETUP COMPLETE")
 
             # On the very first power-on debug session the firmware sets
@@ -207,7 +215,98 @@ class IntegratedAutomationRunner:
 
             self.gui.root.after(0, lambda: self.gui.set_result_indicator(all_passed))
 
-            # Generate HTML test report from the actual hardware measurements.
+            # ── De-flash: mass-erase BMW test firmware via TRACE32 ──
+            # Runs BEFORE report generation so the result is included in the
+            # HTML report.  Uses synchronous RCL commands so every step blocks
+            # until TRACE32 confirms completion.
+            _df_start  = time.monotonic()
+            _df_result = {"pass": False, "detail": "Not run",
+                          "duration": 0.0, "addrs": [], "blank_fail": []}
+            try:
+                if t32.dbg and hasattr(t32.dbg, 'cmd'):
+                    self._log("De-flash in progress...")
+                    self.gui.set_status_label("De-flash in progress...")
+                    self._update_progress(100)  # Start at 100%
+                    t32.dbg.cmd('Break')
+                    self._update_progress(90)
+                    t32.dbg.cmd('FLASH.RESet')
+                    self._update_progress(80)
+                    t32.dbg.cmd('FLASH.Create 1. 0x00000000++0x5FFFF 0x100 TARGET Byte')
+                    self._update_progress(70)
+                    t32.dbg.cmd(
+                        'FLASH.TARGET 0x20000000 0x20000800 0x300'
+                        ' ~~/demo/arm/flash/long/psoc41x9s.bin /STACKSIZE 0x4D0'
+                    )
+                    self._update_progress(60)
+                    t32.dbg.cmd('FLASH.Erase ALL')
+                    self._update_progress(40)
+                    t32.dbg.cmd('FLASH.ReProgram OFF')
+                    self._update_progress(30)
+                    # Blank-check: PSoC 4 erased flash reads 0x00000000
+                    _CHECK_ADDRS = [0x00000000, 0x00030000, 0x0005FFFC]
+                    _blank_fail  = []
+                    for _addr in _CHECK_ADDRS:
+                        try:
+                            _val = int(t32.dbg.fnc(f"Data.Long(A:0x{_addr:08X})"))
+                            if _val != 0x00000000:
+                                _blank_fail.append(f"0x{_addr:08X}=0x{_val:08X}")
+                        except Exception:
+                            _blank_fail.append(f"0x{_addr:08X}=READ_ERROR")
+                    t32.dbg.cmd('SYStem.Down')   # release SWD probe cleanly
+                    self._update_progress(10)
+                    _df_dur = time.monotonic() - _df_start
+                    _df_result = {
+                        "pass":       len(_blank_fail) == 0,
+                        "duration":   _df_dur,
+                        "addrs":      [f"0x{a:08X}" for a in _CHECK_ADDRS],
+                        "blank_fail": _blank_fail,
+                        "detail":     "" if not _blank_fail
+                                      else f"Non-erased words: {', '.join(_blank_fail)}",
+                    }
+                    if _blank_fail:
+                        self._log(
+                            f"⚠ De-flash BLANK-CHECK FAILED ({_df_dur:.1f} s) — "
+                            f"non-erased words: {', '.join(_blank_fail)}"
+                        )
+                        self._log("  PCB may still contain test firmware — re-run de-flash manually.")
+                        self._status_progress(
+                            f"⚠ De-flash BLANK-CHECK FAILED ({_df_dur:.1f} s)",
+                            0,
+                        )
+                    else:
+                        self._log(
+                            f"De-flash: ✓ PASS — Flash erased and blank-checked "
+                            f"via TRACE32 ({_df_dur:.1f} s)"
+                        )
+                        self._log("  Verified 0x00000000 at flash start / mid / end — PCB is clean.")
+                        self._status_progress("De-flash Done!", 0)
+                    self._update_progress(0)
+                else:
+                    self._log("⚠ De-flash skipped: TRACE32 not connected")
+                    self._status_progress("⚠ De-flash skipped: TRACE32 not connected", 0)
+                    _df_result["detail"] = "TRACE32 not connected"
+            except Exception as _df_exc:
+                _df_dur = time.monotonic() - _df_start
+                _df_result["duration"] = _df_dur
+                _df_result["detail"]   = str(_df_exc)
+                self._log(
+                    f"⚠ De-flash FAILED ({_df_dur:.1f} s): {_df_exc}"
+                )
+                self._log("  PCB may still contain test firmware — re-run de-flash manually.")
+                self._status_progress(
+                    f"⚠ De-flash FAILED ({_df_dur:.1f} s)",
+                    0,
+                )
+
+            # Close TRACE32 — probe already released by SYStem.Down above.
+            try:
+                self._log("Closing debugger...")
+                t32.QuitTrace32(status_label=None)
+                self._log("Debugger closed.")
+            except Exception as _e:
+                self._log(f"Note: Debugger close: {_e}")
+
+            # Generate HTML test report (de-flash result included as a tab).
             # pcb_count is the sequential number for this PCB (1-based).
             # gui.pass_count + gui.fail_count = total runs BEFORE this one
             # (set_result_indicator hasn't fired yet on the main thread).
@@ -219,6 +318,7 @@ class IntegratedAutomationRunner:
                     pcb_count=pcb_count,
                     all_passed=all_passed,
                     scan_code=scan_code,
+                    deflash_result=_df_result,
                 )
                 self._log(f"HTML Report saved: {report_path}")
                 # Sync GUI counters to match the HTML report exactly
@@ -238,13 +338,7 @@ class IntegratedAutomationRunner:
             except Exception as _exc:
                 self._log(f"⚠ Report generation failed: {_exc}")
 
-            # Close the T32 debugger automatically after report is saved
-            try:
-                self._log("Closing debugger...")
-                t32.QuitTrace32(status_label=None)
-                self._log("Debugger closed.")
-            except Exception as _e:
-                self._log(f"Note: Debugger close: {_e}")
+
 
             self.is_first_run = False
 
@@ -265,8 +359,22 @@ class IntegratedAutomationRunner:
             self.gui.root.after(0, self.gui.reset_for_new_run)
 
     def _log(self, message: str) -> None:
-        """Log a message to the GUI status area."""
-        self.gui.append_status(message)
+        """Log a message to the GUI status area (thread-safe)."""
+        self.gui.root.after(0, lambda: self.gui.append_status(message))
+
+    def _update_progress(self, percent: int) -> None:
+        """Update the automation progress bar in the GUI (thread-safe)."""
+        try:
+            self.gui.root.after(0, lambda: self.gui.set_progress(percent))
+        except Exception:
+            pass
+
+    def _status_progress(self, message: str, progress: int = None) -> None:
+        """Update the status label and optional progress bar in the GUI (thread-safe)."""
+        self.gui.root.after(0, lambda: self.gui.append_status(message))
+        self.gui.root.after(0, lambda: self.gui.set_status_label(message.splitlines()[0] if message else ""))
+        if progress is not None:
+            self.gui.set_progress(progress)
 
     def _motor_ocp_recovery(self) -> None:
         """Recover from PSU over-current protection triggered by the motor test.

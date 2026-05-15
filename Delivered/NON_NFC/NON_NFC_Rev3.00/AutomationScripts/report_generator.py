@@ -33,7 +33,7 @@ TEMPLATE_PATH = os.path.join(_ROOT, "AutomationTest", "Smart_BU_Test Specificati
 REPORTS_DIR   = os.path.join(_ROOT, "AutomationTest", "reports")
 
 # Software revision — shown in the report filename and HTML header
-_SW_REVISION = "NON_NFC_Rev2.08"
+_SW_REVISION = "NON_NFC_Rev3.00"
 
 # ── Cell fill colours ─────────────────────────────────────────────────────────
 _PASS_FILL = PatternFill("solid", fgColor="92D050")   # green
@@ -633,6 +633,7 @@ def generate_report(
     pcb_count: Optional[int] = None,
     all_passed: Optional[bool] = None,
     scan_code: Optional[str] = None,
+    deflash_result: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Generate an HTML test report from the test results.
@@ -659,6 +660,57 @@ def generate_report(
         Absolute path to the generated HTML report file.
     """
     results_by_sheet = results_from_run(run_results) if run_results else {}
+
+    # ── Add De-flash tab if a result was supplied ─────────────────────────────
+    if deflash_result is not None:
+        _df_pass   = deflash_result.get("pass", False)
+        _df_dur    = deflash_result.get("duration", 0.0)
+        _df_bf     = deflash_result.get("blank_fail", [])
+        _df_addrs  = deflash_result.get("addrs") or ["0x00000000", "0x00030000", "0x0005FFFC"]
+        _df_detail = deflash_result.get("detail", "")
+        if _df_pass:
+            _df_obs = (
+                f"Erase duration : {_df_dur:.1f} s\n"
+                f"Addresses checked : {', '.join(_df_addrs)}\n"
+                "Result : All addresses read 0x00000000 \u2014 PCB flash is blank."
+            )
+        elif _df_bf:
+            _df_obs = (
+                f"Erase duration : {_df_dur:.1f} s\n"
+                f"Addresses checked : {', '.join(_df_addrs)}\n"
+                f"FAILED (non-zero) : {', '.join(_df_bf)}"
+            )
+        else:
+            _df_obs = (
+                f"Erase duration : {_df_dur:.1f} s\n"
+                f"Detail : {_df_detail}"
+            )
+        results_by_sheet["De-flash"] = [_row(
+            "TC_DEFLASH_01",
+            "Post-EOL De-flash \u2014 mass-erase BMW test firmware from MCU internal flash",
+            pre_action=(
+                "1. EOL functional test sequence completed\n"
+                "2. TRACE32 still connected and holding SWD probe\n"
+                "3. PCB power supply ON (12 V)"
+            ),
+            test_steps=(
+                "1. Break \u2014 halt CPU execution\n"
+                "2. FLASH.RESet \u2014 clear flash declarations\n"
+                "3. FLASH.Create \u2014 declare 384 KB flash (CY8C4149AZI-S575, sector 256 B)\n"
+                "4. FLASH.TARGET \u2014 load PSoC 4 flash algorithm into SRAM\n"
+                "5. FLASH.Erase ALL \u2014 mass-erase all flash sectors\n"
+                "6. FLASH.ReProgram OFF \u2014 release flash resources\n"
+                "7. Blank-check: read 0x00000000, 0x00030000, 0x0005FFFC\n"
+                "8. SYStem.Down \u2014 release SWD probe"
+            ),
+            expected=(
+                "All flash sectors erased (FLASH.Erase ALL reports OK)\n"
+                "Blank-check: 0x00000000 at start / mid / end of flash"
+            ),
+            observed=_df_obs,
+            status="PASS" if _df_pass else "FAIL",
+            post_action="TRACE32 closed \u2014 PCB power supply turned OFF",
+        )]
 
     today_dir = os.path.join(REPORTS_DIR, f"{datetime.now().strftime('%Y-%m-%d')}_{_SW_REVISION}")
     os.makedirs(today_dir, exist_ok=True)

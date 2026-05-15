@@ -177,7 +177,9 @@ def format_value_with_unit(variable_name, value):
         return str(value)
 
 
-def LaunchTrace32(repo_path_entry, selected_preset):
+def LaunchTrace32(repo_path_entry, selected_preset, progress_callback=None):
+    if progress_callback:
+        progress_callback(0)
     # --- STEP 1: Aggressive Cleanup ---
     # Kill ALL known T32 executable names so that a stale instance from a
     # previous run (or a manually-opened debugger) cannot block the PODBUS
@@ -212,6 +214,8 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     repo_path_XNF = repo_path_entry.get()
     if repo_path_XNF and os.path.exists(repo_path_XNF):
         autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry)
+        if progress_callback:
+            progress_callback(20)
     else:
         messagebox.showerror("Error", "BMW repository not found")
         return  # Stop execution if path is invalid
@@ -243,6 +247,8 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     autoexec_script_path = f"{repo_path_XNF_cleaned}\\Tests\\DebuggerScripts\\autoexec_automation.cmm"
 
     edit_trace32_config_file(trace_configfile_path)
+    if progress_callback:
+        progress_callback(40)
     
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     # Kill any stale T32 process before launching to avoid PODBUS "device already used" error
@@ -255,8 +261,12 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     time.sleep(5)  # Give the PODBUS driver time to release before new instance starts
                    # 5 s is required on some benches; 2 s caused "device already used" PODBUS error on retry
     subprocess.Popen(command)
+    if progress_callback:
+        progress_callback(60)
     # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
-    time.sleep(8) 
+    time.sleep(8)
+    if progress_callback:
+        progress_callback(80)
 
 def autoexec_cmm_handler(repo_path_XNF, selected_preset, repo_path_entry):
     autoexec_cmm = "autoexec.cmm"
@@ -531,16 +541,29 @@ def PauseCode(exec_label):
     dbg.cmd("Break")
     UpdateCodeExecLabel_notrunning(exec_label)
 
-def QuitTrace32():
-    dbg.exit()
+def QuitTrace32(status_label=None):
+    global dbg
+    try:
+        if dbg and hasattr(dbg, 'exit'):
+            dbg.exit()
+    except Exception:
+        pass
+    finally:
+        dbg = ''  # always reset so the next run detects no connection
 
-def Trace32ConnectApp(repo_path_entry, selected_preset, status_label):
-    LaunchTrace32(repo_path_entry, selected_preset)
+def Trace32ConnectApp(repo_path_entry, selected_preset, status_label, progress_callback=None):
+    if status_label:
+        status_label.config(text="Status: Flashing in progress", fg="blue")
+    LaunchTrace32(repo_path_entry, selected_preset, progress_callback=progress_callback)
+    if progress_callback:
+        progress_callback(90)
     ConnectToTraceUDP()
     time.sleep(2)
+    if progress_callback:
+        progress_callback(100)
     # Update status after successful connection and loading
     if status_label:
-        status_label.config(text="Status: stopped at breakpoint", fg="#D35400") # Orange color
+        status_label.config(text="Status: Stopped at breakpoint", fg="#27AE60")
 
 def ResetTarget(status_label):
     global dbg
@@ -626,6 +649,88 @@ def QuitTrace32(status_label=None):
         dbg = ''
         if status_label:
             status_label.config(text="Status: Disconnected", fg="red")
+
+
+def DeflashPcb(status_label=None, progress_callback=None):
+    """Erase the PSoC4 flash via TRACE32 and verify it is blank.
+    
+    Args:
+        status_label: optional label widget to update with status messages
+        progress_callback: optional callable(percent) to update progress (0-100)
+    """
+    global dbg
+    result = {
+        "pass": False,
+        "duration": 0.0,
+        "addrs": ["0x00000000", "0x00030000", "0x0005FFFC"],
+        "blank_fail": [],
+        "detail": "TRACE32 not connected",
+    }
+    if not (dbg and hasattr(dbg, 'cmd')):
+        if status_label:
+            messagebox.showwarning("Warning", "Trace32 not connected! De-flash skipped.")
+            status_label.config(text="Status: Trace32 not connected", fg="#C0392B")
+        return result
+
+    start_time = time.monotonic()
+    try:
+        if progress_callback: progress_callback(0)
+        dbg.cmd('Break')
+        if progress_callback: progress_callback(10)
+        
+        dbg.cmd('FLASH.RESet')
+        if progress_callback: progress_callback(20)
+        
+        dbg.cmd('FLASH.Create 1. 0x00000000++0x5FFFF 0x100 TARGET Byte')
+        if progress_callback: progress_callback(30)
+        
+        dbg.cmd('FLASH.TARGET 0x20000000 0x20000800 0x300'
+                ' ~~/demo/arm/flash/long/psoc41x9s.bin /STACKSIZE 0x4D0')
+        if progress_callback: progress_callback(40)
+        
+        dbg.cmd('FLASH.Erase ALL')
+        if progress_callback: progress_callback(60)
+        
+        dbg.cmd('FLASH.ReProgram OFF')
+        if progress_callback: progress_callback(70)
+
+        blank_check_addrs = [0x00000000, 0x00030000, 0x0005FFFC]
+        blank_fail = []
+        for i, addr in enumerate(blank_check_addrs):
+            try:
+                val = int(dbg.fnc(f"Data.Long(A:0x{addr:08X})"))
+                if val != 0x00000000:
+                    blank_fail.append(f"0x{addr:08X}=0x{val:08X}")
+            except Exception:
+                blank_fail.append(f"0x{addr:08X}=READ_ERROR")
+            if progress_callback: progress_callback(70 + (i + 1) * 10)
+
+        dbg.cmd('SYStem.Down')
+        if progress_callback: progress_callback(100)
+        
+        duration = time.monotonic() - start_time
+        result.update({
+            "pass": len(blank_fail) == 0,
+            "duration": duration,
+            "blank_fail": blank_fail,
+            "detail": "" if not blank_fail else f"Non-erased words: {', '.join(blank_fail)}",
+        })
+        if status_label:
+            if result["pass"]:
+                status_label.config(text="Status: De-flash PASS", fg="#27AE60")
+            else:
+                status_label.config(text="Status: De-flash FAILED", fg="#C0392B")
+        return result
+    except Exception as exc:
+        duration = time.monotonic() - start_time
+        result.update({
+            "duration": duration,
+            "detail": str(exc),
+        })
+        if status_label:
+            status_label.config(text="Status: De-flash ERROR", fg="#C0392B")
+        return result
+
 
 def motor_decouple_couple(selected_motor_state):
     if selected_motor_state.get() == 1:
