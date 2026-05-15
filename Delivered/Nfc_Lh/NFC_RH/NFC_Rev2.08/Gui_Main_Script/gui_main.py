@@ -323,30 +323,8 @@ canvas2.create_text(60.0, 240.0, anchor="nw", text=" Debugger Setting ", fill="#
 #Connect Trace32 Button
 canvas2.create_text(61.0, 270.0, anchor="nw", text="Connect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_connect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-def _on_connect_trace32():
-    deflash_warning_lbl.config(text="Flashing in progress...")
-    deflash_progress["value"] = 0
-    window.update_idletasks()
-
-    if code_status_label:
-        code_status_label.config(text="Status: Flashing in progress...", fg="blue")
-
-    def update_progress(percent):
-        deflash_progress["value"] = percent
-        window.update_idletasks()
-
-    try:
-        Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label, progress_callback=update_progress)
-        deflash_progress["value"] = 100
-        window.update_idletasks()
-        deflash_warning_lbl.config(text="Flashing done!")
-    except Exception:
-        if code_status_label:
-            code_status_label.config(text="Status: Flashing ERROR", fg="#C0392B")
-        deflash_warning_lbl.config(text="Flashing ERROR")
-
 connect_trace32 = Button(tab2, image=images["tab2_connect_trace32"], 
-                         command=_on_connect_trace32, 
+                         command=lambda: Trace32ConnectApp(repo_path_entry, selected_preset, code_status_label), 
                          bd = 0)
 connect_trace32.place(x=200, y=260, width=34, height=34)
 
@@ -360,38 +338,8 @@ go_button.place(x=200, y=305, width=34, height=34)
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
 def _on_disconnect_trace32():
-    df_result = None
-    deflash_warning_lbl.config(text="Status: De-flashing in progress...,\n don't close GUI window")
-    deflash_progress["value"] = 100
-    window.update_idletasks()
-    
-    def update_progress(percent):
-        deflash_progress["value"] = max(0, min(100, 100 - percent))
-        window.update_idletasks()
-    
-    try:
-        code_status_label.config(text="")
-        df_result = DeflashPcb(code_status_label, progress_callback=update_progress)
-        if df_result and df_result.get("pass"):
-            deflash_warning_lbl.config(text="Status: De-flash PASS")
-        else:
-            deflash_warning_lbl.config(text="Status: De-flash FAILED")
-    except Exception as exc:
-        df_result = {
-            "pass": False,
-            "duration": 0.0,
-            "addrs": [],
-            "blank_fail": [],
-            "detail": str(exc) or "De-flash failed",
-        }
-        code_status_label.config(text="")
-        deflash_warning_lbl.config(text="Status: De-flash ERROR")
-    finally:
-        deflash_progress["value"] = 0
-
-    _collect_and_save_all_manual_tests(deflash_result=df_result)
+    _collect_and_save_all_manual_tests()
     QuitTrace32(code_status_label)
-    # Keep "De-flash Done" visible in notification area
     manual_scan_entry.delete(0, tk.END)
     manual_scan_entry.focus_set()
     automation_gui.scan_code.set("")
@@ -497,22 +445,6 @@ tk.Button(
     relief="flat", cursor="hand2",
     command=_reset_manual_counts,
 ).place(x=555, y=253, width=195, height=26)
-
-deflash_progress = ttk.Progressbar(tab2, mode="determinate", maximum=100)
-deflash_progress.place(x=555, y=285, width=195, height=10)
-deflash_progress["value"] = 0
-
-deflash_warning_lbl = tk.Label(
-    tab2,
-    text="",
-    fg="#FFFFFF",
-    bg="#CB3CE7",
-    font=("Arial", 9, "bold"),
-    anchor="nw",
-    justify="left",
-    wraplength=240,
-)
-deflash_warning_lbl.place(x=555, y=315, width=198, height=40)
 
 window.after(1000, lambda: poll_target_state(running_status, window))
 
@@ -1947,7 +1879,7 @@ canvas11.create_text(
 # ========== TAB 12 (AUTO) =======================================================================================
 
 # ─── Combined manual test report (all tabs → one HTML on Disconnect) ──────────
-def _collect_and_save_all_manual_tests(deflash_result=None):
+def _collect_and_save_all_manual_tests():
     """Collect current entry values from every manual-test tab and save one report."""
     sections = []
 
@@ -2060,26 +1992,6 @@ def _collect_and_save_all_manual_tests(deflash_result=None):
         fields = [("LinRxDataValid", tab11_rx_valid.get().strip(), p_rx),
                   ("LinRxPid", tab11_rx_pid.get().strip(), True)] + rx_fields
         sections.append({"name": "LIN Test", "fields": fields, "overall": p_rx})
-
-    manual_sections = list(sections)
-    if deflash_result is not None:
-        if manual_sections:
-            df_pass = bool(deflash_result.get("pass", False))
-            df_addrs = deflash_result.get("addrs", [])
-            df_detail = deflash_result.get("detail", "") or "Blank-check completed"
-            df_fields = [
-                ("Result", "PASS" if df_pass else "FAIL", df_pass),
-                ("Checked addresses", ", ".join(df_addrs) if df_addrs else "N/A", True),
-                ("Detail", df_detail, True),
-            ]
-            sections.append({
-                "name": "De-flash",
-                "fields": df_fields,
-                "overall": df_pass,
-            })
-        else:
-            code_status_label.config(text="No manual test results to save.")
-            return
 
     if not sections:
         code_status_label.config(text="No manual test results to save.")
