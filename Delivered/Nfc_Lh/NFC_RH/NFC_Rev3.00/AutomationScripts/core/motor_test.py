@@ -1,0 +1,311 @@
+"""Motor-specific test logic.
+
+The motor monitor test reads three variables:
+  - ``TestFw_MotorVoltage``
+  - ``TestFw_MotorCurrentValue``
+  - ``TestFw_MotorLoadError``
+
+and waits for them to stabilise after triggering the appropriate DID.
+Pass criteria: voltage > 0 mV, current > 0 mA and != 65535 mA (saturation sentinel), and load error == 0.
+"""
+
+import time
+from typing import Any, Callable, Optional, Tuple
+
+from AutomationScripts.core.trace32_adapter import Trace32Interface
+from AutomationScripts.core.timing_profile import TIMING
+from Functional.trace32 import TestFunctionCmd
+
+
+class MotorOCPError(Exception):
+    """Raised when PSU over-current protection trips during motor actuation.
+
+    This usually means the motor drew too much current, the power supply
+    entered OCP mode and the target ECU is no longer powered.  A full
+    PSU power-cycle and target reset is required to continue testing.
+    """
+
+
+class MotorTest:
+    """Standalone motor test implementation."""
+
+    @staticmethod
+    def _measure_once(adapter: Trace32Interface, timeout: float):
+        """Run one motor actuation + readback cycle."""
+        adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 1)
+        adapter.send_did(TestFunctionCmd.TESTFW_GUI_CMD_MOTOR_TEST_e)
+        # Read while request is still active (manual GUI equivalent).
+        time.sleep(0.5)
+        voltage, current, load_error = MotorTest._read_once(adapter)
+
+        # Auto-reset request after sampling.
+        # Wrapped in try/except: if the PSU over-current protection tripped
+        # while the motor was running the target will be down and this command
+        # will fail.  Raise MotorOCPError so the caller can perform a full
+        # power-cycle recovery before continuing with the remaining tests.
+        wait_left = max(TIMING.motor_actuate_wait - 0.5, 0.0)
+        if wait_left > 0:
+            time.sleep(wait_left)
+        try:
+            adapter.set_variable("MotorTest_SetGuiMotorActuateRequest", 0)
+        except Exception as _reset_err:
+            raise MotorOCPError(
+                "PSU over-current protection likely triggered — "
+                "motor reset command failed (target system down)"
+            ) from _reset_err
+
+        # If first read looks like transient/sentinel, take one more quick sample.
+        if current in (None, 65535.0) or voltage in (None, 0.0):
+            time.sleep(0.3)
+            voltage2, current2, load_error2 = MotorTest._read_once(adapter)
+            if voltage2 is not None:
+                voltage = voltage2
+            if current2 is not None:
+                current = current2
+            if load_error2 is not None:
+                load_error = load_error2
+
+        if voltage is None or current is None or load_error is None:
+            return MotorTest._wait_for_stable_values(
+                adapter, timeout=timeout, poll_interval=TIMING.stable_poll_interval
+            )
+        return (
+            voltage,
+            current,
+            load_error,
+            {"voltage": voltage, "current": current, "load_error": load_error},
+        )
+
+    @staticmethod
+    def _read_once(adapter: Trace32Interface):
+        try:
+            voltage = float(adapter.read_variable("TestFw_MotorVoltage"))
+        except Exception:
+            voltage = None
+        try:
+            current = float(adapter.read_variable("TestFw_MotorCurrentValue"))
+        except Exception:
+            current = None
+        try:
+            load_error = float(adapter.read_variable("TestFw_MotorLoadError"))
+        except Exception:
+            load_error = None
+        return voltage, current, load_error
+
+    @staticmethod
+    def run(
+        adapter: Trace32Interface,
+        status_callback: Optional[Callable[[str], None]] = None,
+        timeout: float = 1.0,
+    ) -> bool:
+        """Execute one motor test case.
+
+        :param adapter: trace32 adapter to use for communication
+        :param status_callback: optional logger for progress
+        :param timeout: maximum number of seconds to wait for stable readings
+        :return: ``True`` if all three values stabilise and meet pass criteria,
+                 ``False`` otherwise.
+        """
+        log = status_callback or (lambda msg: None)
+
+        log("MOTOR: setting DecoupleCouple state")
+        voltage, current, load_error, last_readings = MotorTest._measure_once(adapter, timeout)
+
+        # Retry once when current saturates at 0xFFFF or values are invalid.
+        # Re-read only — the motor actuation DID was already sent; do NOT
+        # resend it or the motor will be commanded a second time.
+        if current in (None, 65535.0) or voltage in (None, 0.0):
+            log("MOTOR: transient/sentinel readback, retrying once")
+            time.sleep(0.5)
+            voltage2, current2, load_error2 = MotorTest._read_once(adapter)
+            if voltage2 is not None:
+                voltage = voltage2
+                last_readings['voltage'] = voltage2
+            if current2 is not None:
+                current = current2
+                last_readings['current'] = current2
+            if load_error2 is not None:
+                load_error = load_error2
+                last_readings['load_error'] = load_error2
+
+        # If any value failed to stabilize, log the last-read values for debugging
+        if voltage is None:
+            log(f"MOTOR: voltage never stabilised within timeout (last read: {last_readings.get('voltage')})")
+            if current is not None:
+                log(f"MOTOR: current last value: {current} mA")
+            if load_error is not None:
+                log(f"MOTOR: load_error last value: {load_error}")
+            return False
+        if current is None:
+            log(f"MOTOR: current never stabilised within timeout (last read: {last_readings.get('current')})")
+            if voltage is not None:
+                log(f"MOTOR: voltage last value: {voltage} mV")
+            if load_error is not None:
+                log(f"MOTOR: load_error last value: {load_error}")
+            return False
+        if load_error is None:
+            log(f"MOTOR: load_error never stabilised within timeout (last read: {last_readings.get('load_error')})")
+            if voltage is not None:
+                log(f"MOTOR: voltage last value: {voltage} mV")
+            if current is not None:
+                log(f"MOTOR: current last value: {current} mA")
+            return False
+
+        log(
+            f"MOTOR: final values - voltage={voltage} mV, "
+            f"current={current} mA, load_error={load_error}"
+        )
+
+        pass_voltage = voltage > 0
+        pass_current = current > 0 and current != 65535
+        pass_load_error = load_error == 0
+
+        if pass_voltage and pass_current and pass_load_error:
+            log("MOTOR: ✓ all values in pass range")
+            return True
+        else:
+            if not pass_voltage:
+                log(f"MOTOR: ✗ voltage {voltage} is not > 0")
+            if not pass_current:
+                if current == 65535:
+                    log(f"MOTOR: ✗ current {current} mA is a saturation sentinel (0xFFFF) — hardware error")
+                else:
+                    log(f"MOTOR: ✗ current {current} is not > 0")
+            if not pass_load_error:
+                log(f"MOTOR: ✗ load_error {load_error} is not == 0")
+            return False
+
+    @staticmethod
+    def run_with_values(
+        adapter: Trace32Interface,
+        status_callback: Optional[Callable[[str], None]] = None,
+        timeout: float = 1.0,
+    ) -> tuple:
+        """Like :meth:`run` but also returns the measured values.
+
+        :return: tuple ``(passed, voltage_mV, current_mA, load_error)``;
+                 numeric values are 0.0 when readings could not be obtained.
+        """
+        log = status_callback or (lambda msg: None)
+
+        log("MOTOR: setting DecoupleCouple state")
+        voltage, current, load_error, _ = MotorTest._measure_once(adapter, timeout)
+        if current in (None, 65535.0) or voltage in (None, 0.0):
+            log("MOTOR: transient/sentinel readback, retrying once")
+            time.sleep(0.5)
+            voltage2, current2, load_error2 = MotorTest._read_once(adapter)
+            if voltage2 is not None:
+                voltage = voltage2
+            if current2 is not None:
+                current = current2
+            if load_error2 is not None:
+                load_error = load_error2
+
+        v = voltage if voltage is not None else 0.0
+        i = current if current is not None else 0.0
+        e = load_error if load_error is not None else -1.0
+
+        if voltage is None or current is None or load_error is None:
+            return False, v, i, e
+
+        log(f"MOTOR: final values - voltage={v} mV, current={i} mA, load_error={e}")
+
+        passed = v > 0 and 0 < i < 65535 and e == 0
+        if passed:
+            log("MOTOR: \u2713 all values in pass range")
+        return passed, v, i, e
+
+    @staticmethod
+    def _wait_for_stable_values(
+        adapter: Trace32Interface,
+        timeout: float = 2.0,
+        poll_interval: float = TIMING.stable_poll_interval,
+        tolerance: float = 1.0,
+    ):
+        """Poll all three motor variables until each is stable.
+
+        Stability is defined as two consecutive reads within `tolerance` for each.
+        Motor readings tend to have more noise than other sensors, so tolerance
+        defaults to 1.0 (1 mV for voltage, 1 mA for current, 1 for load_error).
+
+        Returns a tuple (voltage, current, load_error, last_readings) where
+        the first three are the stabilised values or None, and last_readings
+        is a dict containing the final values read (even if None).
+        """
+        start = time.time()
+        last_voltage = None
+        last_current = None
+        last_load_error = None
+        stable_counts = {"voltage": 0, "current": 0, "load_error": 0}
+        iteration = 0
+
+        while time.time() - start < timeout:
+            iteration += 1
+            try:
+                raw_voltage = adapter.read_variable("TestFw_MotorVoltage")
+                voltage = float(raw_voltage)
+            except Exception:
+                voltage = None
+
+            try:
+                raw_current = adapter.read_variable("TestFw_MotorCurrentValue")
+                current = float(raw_current)
+            except Exception:
+                current = None
+
+            try:
+                raw_load_error = adapter.read_variable("TestFw_MotorLoadError")
+                load_error = float(raw_load_error)
+            except Exception:
+                load_error = None
+
+            # Check voltage stability
+            if voltage is not None:
+                if last_voltage is not None and abs(voltage - last_voltage) < tolerance:
+                    stable_counts["voltage"] += 1
+                else:
+                    stable_counts["voltage"] = 0
+                last_voltage = voltage
+
+            # Check current stability
+            if current is not None:
+                if last_current is not None and abs(current - last_current) < tolerance:
+                    stable_counts["current"] += 1
+                else:
+                    stable_counts["current"] = 0
+                last_current = current
+
+            # Check load error stability
+            if load_error is not None:
+                if (
+                    last_load_error is not None
+                    and abs(load_error - last_load_error) < tolerance
+                ):
+                    stable_counts["load_error"] += 1
+                else:
+                    stable_counts["load_error"] = 0
+                last_load_error = load_error
+
+            # All three must be stable (1+ consecutive stable reads)
+            if (
+                stable_counts["voltage"] >= 1
+                and stable_counts["current"] >= 1
+                and stable_counts["load_error"] >= 1
+            ):
+                # return the stable values and also include a last_readings dict
+                last_readings = {
+                    "voltage": last_voltage,
+                    "current": last_current,
+                    "load_error": last_load_error,
+                }
+                return (last_voltage, last_current, last_load_error, last_readings)
+
+            time.sleep(poll_interval)
+
+        # Strict behavior: timeout means measurement is not trustworthy.
+        last_readings = {
+            "voltage": last_voltage,
+            "current": last_current,
+            "load_error": last_load_error,
+        }
+        return (None, None, None, last_readings)
