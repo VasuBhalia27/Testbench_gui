@@ -31,6 +31,26 @@ from pathlib import Path
 
 _ASSETS_DIR = Path(__file__).parent.parent.parent / "assets_GC" / "Page_12(Auto)" / "assets" / "frame0"
 _SETTINGS_FILE = Path(__file__).parent.parent.parent / "AutomationScripts" / "automation_gui_settings.json"
+_MODELS_FILE = Path(__file__).parent.parent / "models.json"
+_MANAGE_PASSWORD = "banwa"  # password required to add / delete models
+
+
+def _load_models() -> list:
+    """Load model list from models.json.  Returns list of dicts with 'model' and 'prefix'."""
+    try:
+        import json as _json
+        if _MODELS_FILE.exists():
+            return _json.loads(_MODELS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return []
+
+
+def _save_models(models: list) -> None:
+    """Persist the model list back to models.json."""
+    import json as _json
+    _MODELS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _MODELS_FILE.write_text(_json.dumps(models, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 class AutomationGUI:
@@ -57,7 +77,7 @@ class AutomationGUI:
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("NFC_OR_NON_NFC_LH_Rev2.03")
+            self.root.title("NFC_Rev3.xx")
             self.root.geometry("1050x550")
             self.root.minsize(1000, 450)
         else:
@@ -92,6 +112,10 @@ class AutomationGUI:
         saved_counts = self._load_pcb_counts()
         self.pass_count = saved_counts[0]
         self.fail_count = saved_counts[1]
+
+        # Model selection — loaded from models.json
+        self._models = _load_models()  # list of {"model": ..., "prefix": ...}
+        self.selected_model = tk.StringVar(master=self.root, value="")
 
         # build the interface into whichever container we've chosen
         self._build_ui(self.root)
@@ -179,31 +203,62 @@ class AutomationGUI:
             activebackground="#333333", activeforeground="#FFFFFF",
             relief="flat", cursor="hand2",
             command=self._reset_pcb_counts,
-        ).pack(side="top", fill="x", padx=4, pady=(0, 4))
+        ).pack(side="top", fill="x", padx=4, pady=(0, 2))
+
+        
 
         # --- RIGHT PANEL ---
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
         right_panel.pack(side="left", fill="both", expand=True, padx=(10, 8))
 
-        # Welcome header
-        header = ttk.Label(right_panel, text="NFC_OR_NON_NFC_LH_Rev2.03",
-                           font=(None, 16, "bold"))
-        header.pack(pady=(10, 4))
+        # ── PCBA Model Selection ────────────────────────────────────────────
+        model_outer = tk.Frame(right_panel, bg="#DFDFDF")
+        model_outer.pack(pady=(0, 8))
 
-        welcome = ttk.Label(right_panel,
-                            text="Welcome to NFC_OR_NON_NFC_LH_Rev2.03\n"
-                                 "Click 'Start' to begin the setup and test sequence.",
-                            font=(None, 10), justify="center")
-        welcome.pack(pady=(0, 6))
+        model_lf = ttk.Labelframe(model_outer, text="PCBA Model Select")
+        model_lf.pack(side="left", padx=(0, 6))
+
+        model_names = [m["model"] for m in self._models]
+        self.model_cb = ttk.Combobox(
+            model_lf,
+            textvariable=self.selected_model,
+            values=model_names,
+            state="readonly",
+            width=24,
+        )
+        self.model_cb.pack(padx=6, pady=6)
+        self.model_cb.bind("<<ComboboxSelected>>", lambda _e: self._update_start_button_state())
+
+        tk.Button(
+            model_outer,
+            text="Manage Models",
+            font=("Arial", 8, "bold"),
+            fg="#FFFFFF", bg="#6A1B9A",
+            activebackground="#4A148C", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._open_manage_models,
+        ).pack(side="left", pady=(4, 35))
+
+        # View DB Records button
+        tk.Button(
+            model_outer,
+            text="View DB",
+            font=("Arial", 9, "bold"),
+            fg="#FFFFFF", bg="#1565C0",
+            activebackground="#0D47A1", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._view_db_records,
+        ).pack(side="left", padx=8, pady=(4, 35))
+        # ───────────────────────────────────────────────────────────────────
 
         # Button row: Start / Power Supply
         btn_frame = ttk.Frame(right_panel)
-        btn_frame.pack(pady=(0, 8))
+        btn_frame.pack(pady=(0, 35))
 
         self.start_button = ttk.Button(btn_frame, text="Start",
                                        command=self._on_start)
         self.start_button.pack(side="left", padx=8)
-        self.start_button.config(state="disabled")  # enabled only after 2D scan entered
+        self.start_button.config(state="disabled")  # enabled only after 2D scan + model selected
 
         # Power Supply frame — always visible so it can be changed before Start.
         self.psu_frame = ttk.Labelframe(btn_frame, text="Power Supply")
@@ -234,7 +289,7 @@ class AutomationGUI:
                   font=("Arial", 11, "bold")).pack(side="left", padx=(0, 8))
         self.scan_code = tk.StringVar(master=self.root)
         self.scan_code.trace_add("write", lambda *_: self._update_start_button_state())
-        _vcmd = (self.root.register(lambda s: len(s) <= 19), "%P")
+        _vcmd = (self.root.register(lambda s: len(s) <= 20), "%P")
         self.scan_entry = tk.Entry(
             scan_row,
             textvariable=self.scan_code,
@@ -345,38 +400,82 @@ class AutomationGUI:
 
         # Initially control_frame is not gridded; it will be shown on Start
 
-    def _update_start_button_state(self) -> None:
-        """Enable Start button only when exactly 19 characters are entered in 2D Scan.
+    def _get_selected_prefix(self) -> str:
+        """Return the expected 4-digit prefix for the currently selected model, or ''."""
+        try:
+            sel = self.selected_model.get()
+            for entry in self._models:
+                if entry.get("model") == sel:
+                    return entry.get("prefix", "")
+        except Exception:
+            pass
+        return ""
 
-        Also updates the scan entry background colour and status label to give
-        the operator immediate visual feedback on barcode validity.
+    def _update_start_button_state(self) -> None:
+        """Enable Start button only when a model is selected AND the 2D scan is exactly
+        19 characters with a prefix matching the selected model.
+
+        Updates scan entry background and status label for immediate operator feedback.
         """
         try:
             code = self.scan_code.get().strip()
-            valid = len(code) == 19
-            if valid:
-                self.start_button.config(state="normal")
-                self.scan_entry.config(background="#90EE90")        # light green
-                self.scan_status_label.config(text="\u2713 Valid", foreground="green")
+            model = self.selected_model.get()
+            expected_prefix = self._get_selected_prefix()
+
+            length_ok = len(code) == 19
+            model_ok = bool(model)
+
+            if length_ok and model_ok and expected_prefix:
+                prefix_ok = code[:4] == expected_prefix
+            elif length_ok and model_ok:
+                # No prefix defined for this model — length alone is enough
+                prefix_ok = True
             else:
+                prefix_ok = False
+
+            valid = length_ok and model_ok and prefix_ok
+
+            if not model_ok:
+                # No model selected — grey out scan field
+                self.start_button.config(state="disabled")
+                self.scan_entry.config(background="white")
+                self.scan_status_label.config(text="", foreground="black")
+            elif not length_ok:
                 self.start_button.config(state="disabled")
                 if code:
-                    self.scan_entry.config(background="#FFB3B3")    # light red
+                    self.scan_entry.config(background="#FFB3B3")
                     self.scan_status_label.config(text="\u2717 Invalid", foreground="red")
                 else:
                     self.scan_entry.config(background="white")
                     self.scan_status_label.config(text="", foreground="black")
+            elif not prefix_ok:
+                # Right length but wrong prefix for the selected model
+                self.start_button.config(state="disabled")
+                self.scan_entry.config(background="#FFB3B3")
+                self.scan_status_label.config(
+                    text=f"\u2717 Prefix {code[:4]}",
+                    foreground="red",
+                )
+            else:
+                # All checks passed
+                self.start_button.config(state="normal")
+                self.scan_entry.config(background="#90EE90")
+                self.scan_status_label.config(text="\u2713 Valid", foreground="green")
         except Exception:
             pass
 
     def _on_barcode_enter(self, _event=None) -> None:
         """Called when the barcode scanner sends Enter after completing a scan.
 
-        Auto-triggers the Start button if the scanned barcode is valid (exactly 19 chars).
+        Auto-triggers the Start button if the scanned barcode is valid (exactly 19 chars,
+        correct model prefix, and a model is selected).
         """
         try:
-            if len(self.scan_code.get().strip()) == 19:
-                self._on_start()
+            code = self.scan_code.get().strip()
+            if len(code) == 19 and self.selected_model.get():
+                expected = self._get_selected_prefix()
+                if (not expected) or code[:4] == expected:
+                    self._on_start()
         except Exception:
             pass
 
@@ -700,6 +799,392 @@ class AutomationGUI:
         self.pass_counter_label.config(text="PASS\n0")
         self.fail_counter_label.config(text="FAIL\n0")
         self._save_pcb_counts()
+
+    # ------------------------------------------------------------------
+    # Model management (password-protected — for Ban-wa Thailand only)
+    # ------------------------------------------------------------------
+
+    def _open_manage_models(self) -> None:
+        """Prompt for the management password, then open the model editor popup."""
+        from tkinter import simpledialog, messagebox
+
+        pwd = simpledialog.askstring(
+            "Manage Models",
+            "Enter the management password:",
+            show="*",
+            parent=self.root,
+        )
+        if pwd is None:
+            return  # cancelled
+        if pwd != _MANAGE_PASSWORD:
+            messagebox.showerror("Access Denied", "Incorrect password.", parent=self.root)
+            return
+        self._open_model_editor()
+
+    def _open_model_editor(self) -> None:
+        """Open the model editor Toplevel window."""
+        import tkinter as _tk
+        from tkinter import ttk as _ttk, simpledialog, messagebox
+
+        win = _tk.Toplevel(self.root)
+        win.title("Manage PCBA Models")
+        win.resizable(False, False)
+        win.grab_set()
+
+        _ttk.Label(win, text="Models (name → 4-digit prefix)",
+                   font=(None, 10, "bold")).grid(row=0, column=0, columnspan=3,
+                                                  padx=10, pady=(10, 4))
+
+        # Treeview listing models + prefixes
+        tree = _ttk.Treeview(win, columns=("model", "prefix"), show="headings",
+                              height=8, selectmode="browse")
+        tree.heading("model", text="Model Name")
+        tree.heading("prefix", text="Prefix (4 digits)")
+        tree.column("model", width=220, anchor="w")
+        tree.column("prefix", width=100, anchor="center")
+        tree.grid(row=1, column=0, columnspan=3, padx=10, pady=4, sticky="nsew")
+
+        def _refresh_tree():
+            tree.delete(*tree.get_children())
+            for entry in self._models:
+                tree.insert("", "end", values=(entry.get("model", ""), entry.get("prefix", "")))
+
+        _refresh_tree()
+
+        # Entry fields for new model
+        entry_frame = _ttk.Frame(win)
+        entry_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=4, sticky="ew")
+
+        _ttk.Label(entry_frame, text="Model Name:").grid(row=0, column=0, padx=4, sticky="e")
+        model_var = _tk.StringVar()
+        model_entry = _ttk.Entry(entry_frame, textvariable=model_var, width=26)
+        model_entry.grid(row=0, column=1, padx=4, sticky="w")
+
+        _ttk.Label(entry_frame, text="Prefix:").grid(row=0, column=2, padx=(8, 4), sticky="e")
+        prefix_var = _tk.StringVar()
+        prefix_entry = _ttk.Entry(entry_frame, textvariable=prefix_var, width=8)
+        prefix_entry.grid(row=0, column=3, padx=4, sticky="w")
+
+        def _add_model():
+            name = model_var.get().strip()
+            prefix = prefix_var.get().strip()
+            if not name:
+                messagebox.showerror("Input Error", "Model name cannot be empty.", parent=win)
+                return
+            if not prefix.isdigit() or len(prefix) != 4:
+                messagebox.showerror("Input Error", "Prefix must be exactly 4 digits.", parent=win)
+                return
+            # Check duplicate
+            for e in self._models:
+                if e.get("model") == name:
+                    messagebox.showerror("Duplicate", f"'{name}' already exists.", parent=win)
+                    return
+            self._models.append({"model": name, "prefix": prefix})
+            _save_models(self._models)
+            self._refresh_model_combobox()
+            model_var.set("")
+            prefix_var.set("")
+            _refresh_tree()
+
+        def _delete_selected():
+            sel = tree.selection()
+            if not sel:
+                messagebox.showinfo("Select Model", "Please select a model to delete.", parent=win)
+                return
+            row_vals = tree.item(sel[0], "values")
+            name = row_vals[0] if row_vals else ""
+            if not messagebox.askyesno("Confirm Delete",
+                                       f"Delete model '{name}'?", parent=win):
+                return
+            self._models = [e for e in self._models if e.get("model") != name]
+            _save_models(self._models)
+            self._refresh_model_combobox()
+            _refresh_tree()
+
+        btn_row = _ttk.Frame(win)
+        btn_row.grid(row=3, column=0, columnspan=3, pady=(4, 10))
+        _ttk.Button(btn_row, text="Add Model", command=_add_model).pack(side="left", padx=6)
+        _ttk.Button(btn_row, text="Delete Selected", command=_delete_selected).pack(side="left", padx=6)
+        _ttk.Button(btn_row, text="Close", command=win.destroy).pack(side="left", padx=6)
+
+    def _refresh_model_combobox(self) -> None:
+        """Rebuild the model combobox values after models.json has been modified."""
+        try:
+            names = [m["model"] for m in self._models]
+            self.model_cb.config(values=names)
+            # If the currently selected model was deleted, clear the selection
+            if self.selected_model.get() not in names:
+                self.selected_model.set("")
+            self._update_start_button_state()
+        except Exception:
+            pass
+
+    def _view_db_records(self) -> None:
+        """Open a popup window showing all rows from the MySQL test_results table."""
+        try:
+            import mysql.connector  # type: ignore[import]
+        except ImportError:
+            from tkinter import messagebox
+            messagebox.showerror(
+                "MySQL not installed",
+                "mysql-connector-python is not installed.\nRun: pip install mysql-connector-python",
+            )
+            return
+
+        # Import DB config from mysql_logger
+        try:
+            from AutomationScripts.mysql_logger import DB_CONFIG, TABLE_NAME
+        except ImportError:
+            from mysql_logger import DB_CONFIG, TABLE_NAME  # type: ignore[import]
+
+        try:
+            conn = mysql.connector.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            cursor.execute(
+                f"SELECT id, Test_Date, Test_Time, Model, `2D_Data`, Test_Result "
+                f"FROM `{TABLE_NAME}` ORDER BY id DESC LIMIT 200"
+            )
+            rows = cursor.fetchall()
+            conn.close()
+        except Exception as exc:
+            from tkinter import messagebox
+            messagebox.showerror("DB Error", f"Could not fetch records:\n{exc}")
+            return
+
+        # Build popup window
+        popup = tk.Toplevel(self.root)
+        popup.title(f"MySQL — {TABLE_NAME} ({len(rows)} records, latest first)")
+        popup.geometry("820x420")
+        popup.resizable(True, True)
+
+        columns = ("id", "Test_Date", "Test_Time", "Model", "2D_Data", "Test_Result")
+        col_widths = (45, 95, 80, 180, 180, 90)
+
+        frame = tk.Frame(popup)
+        frame.pack(fill="both", expand=True, padx=8, pady=8)
+
+        tree = ttk.Treeview(frame, columns=columns, show="headings", height=16)
+        for col, w in zip(columns, col_widths):
+            tree.heading(col, text=col)
+            tree.column(col, width=w, anchor="center")
+
+        # Tag colours for PASS/FAIL rows
+        tree.tag_configure("PASS", background="#E8F5E9", foreground="#1B5E20")
+        tree.tag_configure("FAIL", background="#FFEBEE", foreground="#B71C1C")
+
+        for row in rows:
+            result = str(row[-1]).upper()
+            tag = "PASS" if result == "PASS" else "FAIL"
+            tree.insert("", "end", values=row, tags=(tag,))
+
+        vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+        hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+
+        tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        # Refresh, Delete Selected, Delete All, and Close buttons
+        btn_row = tk.Frame(popup)
+        btn_row.pack(fill="x", padx=8, pady=(0, 8))
+        tk.Button(
+            btn_row, text="Refresh",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#1565C0",
+            activebackground="#0D47A1", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=lambda: self._refresh_db_tree(tree, TABLE_NAME, DB_CONFIG, popup),
+        ).pack(side="left", padx=4)
+        tk.Button(
+            btn_row, text="Delete Selected",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#E65100",
+            activebackground="#BF360C", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=lambda: self._delete_selected_rows(tree, TABLE_NAME, DB_CONFIG, popup),
+        ).pack(side="left", padx=4)
+        tk.Button(
+            btn_row, text="Delete All Records",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#C62828",
+            activebackground="#7F0000", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=lambda: self._delete_all_rows(tree, TABLE_NAME, DB_CONFIG, popup),
+        ).pack(side="left", padx=4)
+        tk.Button(
+            btn_row, text="Close",
+            font=("Arial", 9, "bold"), fg="#FFFFFF", bg="#555555",
+            activebackground="#333333", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=popup.destroy,
+        ).pack(side="left", padx=4)
+
+    def _refresh_db_tree(self, tree: "ttk.Treeview", table: str, db_config: dict, popup=None) -> None:
+        """Re-query the DB and repopulate the Treeview in the popup."""
+        try:
+            import mysql.connector  # type: ignore[import]
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(
+                f"SELECT id, Test_Date, Test_Time, Model, `2D_Data`, Test_Result "
+                f"FROM `{table}` ORDER BY id DESC LIMIT 200"
+            )
+            rows = cursor.fetchall()
+            conn.close()
+        except Exception as exc:
+            from tkinter import messagebox
+            messagebox.showerror("DB Error", f"Could not refresh:\n{exc}")
+            return
+
+        tree.delete(*tree.get_children())
+        for row in rows:
+            result = str(row[-1]).upper()
+            tag = "PASS" if result == "PASS" else "FAIL"
+            tree.insert("", "end", values=row, tags=(tag,))
+
+        if popup is not None:
+            try:
+                popup.title(f"MySQL — {table} ({len(rows)} records, latest first)")
+            except Exception:
+                pass
+
+    def _delete_selected_rows(self, tree: "ttk.Treeview", table: str, db_config: dict, popup=None) -> None:
+        """Delete the rows currently selected in the Treeview from the database and their reports."""
+        from tkinter import messagebox
+        selected = tree.selection()
+        if not selected:
+            messagebox.showinfo("No selection", "Please select one or more rows to delete.")
+            return
+
+        # Capture full row values before deletion (id, Test_Date, Test_Time, Model, 2D_Data, Test_Result)
+        row_data = [tree.item(item, "values") for item in selected]
+        ids = [vals[0] for vals in row_data]
+        id_list = ", ".join(str(i) for i in ids)
+
+        if not messagebox.askyesno(
+            "Confirm Delete",
+            f"Delete {len(ids)} selected record(s) with ID(s): {id_list}?\n"
+            "The matching HTML report file(s) will also be deleted.\nThis cannot be undone.",
+        ):
+            return
+
+        try:
+            import mysql.connector  # type: ignore[import]
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM `{table}` WHERE id IN ({id_list})")
+            conn.commit()
+            # Check if the table is now empty; if so, TRUNCATE to reliably reset
+            # AUTO_INCREMENT to 1. ALTER TABLE AUTO_INCREMENT=1 is silently ignored
+            # by InnoDB 8.0+ when the engine's internal counter is higher.
+            cursor.execute(f"SELECT COUNT(*) FROM `{table}`")
+            remaining = cursor.fetchone()[0]
+            if remaining == 0:
+                cursor.execute(f"TRUNCATE TABLE `{table}`")
+                conn.commit()
+            conn.close()
+        except Exception as exc:
+            messagebox.showerror("DB Error", f"Could not delete records:\n{exc}")
+            return
+
+        reports_deleted = self._delete_reports_for_rows(row_data)
+
+        for item in selected:
+            tree.delete(item)
+
+        msg = f"Deleted {len(ids)} record(s) from the database."
+        if reports_deleted:
+            msg += f"\nAlso removed {reports_deleted} HTML report file(s)."
+        messagebox.showinfo("Done", msg)
+        self._refresh_db_tree(tree, table, db_config, popup)
+
+    def _delete_all_rows(self, tree: "ttk.Treeview", table: str, db_config: dict, popup=None) -> None:
+        """Delete ALL rows in the table and all HTML reports after double confirmation."""
+        from tkinter import messagebox
+        if not messagebox.askyesno(
+            "Confirm Delete All",
+            f"This will permanently delete ALL records in '{table}' "
+            "and ALL HTML report files.\n\nAre you sure?",
+            icon="warning",
+        ):
+            return
+        if not messagebox.askyesno(
+            "Final Confirmation",
+            "All records and report files will be lost and cannot be recovered.\n\nProceed?",
+            icon="warning",
+        ):
+            return
+
+        try:
+            import mysql.connector  # type: ignore[import]
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
+            # TRUNCATE removes all rows AND resets the AUTO_INCREMENT counter to 1
+            cursor.execute(f"TRUNCATE TABLE `{table}`")
+            conn.commit()
+            conn.close()
+        except Exception as exc:
+            messagebox.showerror("DB Error", f"Could not delete records:\n{exc}")
+            return
+
+        # Delete all HTML files in the reports folder
+        import glob as _glob
+        import os as _os
+        reports_deleted = 0
+        try:
+            from AutomationScripts.report_generator import REPORTS_DIR
+            for f in _glob.glob(_os.path.join(REPORTS_DIR, "*.html")):
+                try:
+                    _os.remove(f)
+                    reports_deleted += 1
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        tree.delete(*tree.get_children())
+        msg = "All records have been deleted from the database."
+        if reports_deleted:
+            msg += f"\nAlso removed {reports_deleted} HTML report file(s)."
+        messagebox.showinfo("Done", msg)
+        self._refresh_db_tree(tree, table, db_config, popup)
+
+    def _delete_reports_for_rows(self, row_data) -> int:
+        """Find and delete HTML report files matching the given DB row data tuples.
+
+        Each tuple is (id, Test_Date, Test_Time, Model, 2D_Data, Test_Result).
+        Matches reports by the YYYYMMDD_HHMMSS timestamp prefix in the filename.
+        Returns the number of files successfully deleted.
+        """
+        import glob as _glob
+        import os as _os
+        try:
+            from AutomationScripts.report_generator import REPORTS_DIR
+        except Exception:
+            return 0
+
+        deleted = 0
+        for vals in row_data:
+            try:
+                # Build timestamp prefix from Test_Date (YYYY-MM-DD) + Test_Time (HH:MM:SS)
+                date_prefix = str(vals[1]).replace("-", "")          # "20260427"
+                time_str = str(vals[2])                               # "14:30:45" or "4:30:45"
+                time_parts = time_str.split(":")
+                if len(time_parts) == 4:                              # "D:HH:MM:SS" edge case
+                    time_parts = time_parts[1:]
+                time_prefix = "".join(p.zfill(2) for p in time_parts[:3])  # "143045"
+                ts_prefix = f"{date_prefix}_{time_prefix}"
+
+                pattern = _os.path.join(REPORTS_DIR, f"{ts_prefix}_*.html")
+                for f in _glob.glob(pattern):
+                    try:
+                        _os.remove(f)
+                        deleted += 1
+                    except Exception:
+                        pass
+            except Exception:
+                continue
+        return deleted
 
     def _load_saved_psu_type(self) -> str:
         """Load persisted PSU type from local settings file."""

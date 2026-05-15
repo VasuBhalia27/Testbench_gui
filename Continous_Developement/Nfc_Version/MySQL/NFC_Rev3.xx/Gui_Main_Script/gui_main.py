@@ -17,6 +17,12 @@ from tkinter import messagebox
 
 # Automation framework imports
 from AutomationScripts.core import gui_automation, integrated_automation
+
+# Manual test report generator
+from ManualTest.manual_report import save_manual_report as _save_manual_report
+
+# Software revision — shown in window title and embedded in report filename/header
+_SW_REVISION = "NFC_Rev3.xx"
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
@@ -141,7 +147,7 @@ def relative_to_assets(path: str, tab: str) -> Path:
 
 # Create the main window
 window = tk.Tk()
-window.title("SmartBU Testbench GUI")
+window.title(f"SmartBU Testbench GUI  —  {_SW_REVISION}")
 
 
 window.geometry("973x670")
@@ -326,8 +332,15 @@ go_button.place(x=200, y=305, width=34, height=34)
 #Disconnect Trace32 Button
 canvas2.create_text(350, 270.0, anchor="nw", text="Disconnect Trace32", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
 images["tab2_disconnect_trace32"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab2"))
-disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"], 
-                            command=lambda: QuitTrace32(code_status_label), 
+def _on_disconnect_trace32():
+    _collect_and_save_all_manual_tests()
+    QuitTrace32(code_status_label)
+    manual_scan_entry.delete(0, tk.END)
+    manual_scan_entry.focus_set()
+    automation_gui.scan_code.set("")
+    automation_gui.root.after(100, automation_gui.scan_entry.focus_set)
+disconnect_trace32 = Button(tab2, image=images["tab2_disconnect_trace32"],
+                            command=_on_disconnect_trace32,
                             bd = 0)
 disconnect_trace32.place(x=500, y=260, width=34, height=34)
 
@@ -388,6 +401,46 @@ canoe_enable_cb = tk.Checkbutton(
                     SendDIDGetVal_multiple_entry(canoe_output_variables, canoe_entries, 0), update_canoe_entry_text()])
 canoe_enable_cb.place(x=440, y=420)
 
+# --- 2D Scan entry (top-right of Settings tab) ---
+canvas2.create_text(425.0, 24.0, anchor="nw", text="2D Scan:", fill="#FFFFFF", font=("Inter SemiBold", 15, "bold"))
+_scan_vcmd = (window.register(lambda s: len(s) <= 20), "%P")
+manual_scan_entry = tk.Entry(tab2, font=("Courier", 14, "bold"), bg="#DFDFDF", fg="#2C2C2C", insertbackground="#2C2C2C", relief="solid", bd=1, validate="key", validatecommand=_scan_vcmd)
+manual_scan_entry.place(x=525.0, y=20.0, width=225.0, height=30.0)
+window.after(300, manual_scan_entry.focus_set)
+
+# --- Manual PASS / FAIL counter widget (right of Variant Setting) ---
+_manual_pass_lbl = tk.Label(
+    tab2, text="PASS\n0",
+    font=("Arial", 18, "bold"),
+    fg="#FFFFFF", bg="#27AE60",
+    width=6, height=3, relief="flat",
+)
+_manual_pass_lbl.place(x=555, y=153)
+
+_manual_fail_lbl = tk.Label(
+    tab2, text="FAIL\n0",
+    font=("Arial", 18, "bold"),
+    fg="#FFFFFF", bg="#C62828",
+    width=6, height=3, relief="flat",
+)
+_manual_fail_lbl.place(x=655, y=153)
+
+def _reset_manual_counts():
+    global _manual_pass_count, _manual_fail_count
+    _manual_pass_count = 0
+    _manual_fail_count = 0
+    _manual_pass_lbl.config(text="PASS\n0")
+    _manual_fail_lbl.config(text="FAIL\n0")
+
+tk.Button(
+    tab2, text="Reset Count",
+    font=("Arial", 9, "bold"),
+    fg="#FFFFFF", bg="#555555",
+    activebackground="#333333", activeforeground="#FFFFFF",
+    relief="flat", cursor="hand2",
+    command=_reset_manual_counts,
+).place(x=555, y=253, width=195, height=26)
+
 window.after(1000, lambda: poll_target_state(running_status, window))
 
 canvas2.create_text(
@@ -424,6 +477,14 @@ def _parse_num(entry):
     except (ValueError, TypeError, IndexError):
         return None
 
+# Create ManualTest/reports/ once at application startup
+_REPORTS_DIR = _REPO_ROOT / "ManualTest" / "reports"
+_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Manual test PCB pass/fail counters — incremented in _collect_and_save_all_manual_tests()
+_manual_pass_count = 0
+_manual_fail_count = 0
+
 # ===================================================================================================================
 # ========== TAB 3 (LED Test) =======================================================================================
 
@@ -454,38 +515,58 @@ images["tile_tab3"] = PhotoImage(file=relative_to_assets("Tile.png", "tab3"))
 canvas3.create_image(tablet1_X, tablet1_Y, image=images["tile_tab3"])
 
 # Checkboxes
-led_input_condition = tk.IntVar (value=2)
+led_input_condition = tk.IntVar(value=2)
 
-led_on_cb = tk.Checkbutton(tab3, text="Led_On", variable=led_input_condition, onvalue=1, offvalue=0, command=lambda: led_on(led_input_condition))
+led_on_cb = tk.Checkbutton(tab3, text="Led_On", variable=led_input_condition, onvalue=1, offvalue=0,
+    command=lambda: [led_on(led_input_condition), led_entries.__setitem__(0, tab3_entry_led_on)])
 led_on_cb.place(x=73, y=150, width=85, height=32)
 
-led_off_cb = tk.Checkbutton(tab3, text="Led_Off", variable=led_input_condition, onvalue=2, offvalue=0, command=lambda: led_off(led_input_condition))
+led_off_cb = tk.Checkbutton(tab3, text="Led_Off", variable=led_input_condition, onvalue=2, offvalue=0,
+    command=lambda: [led_off(led_input_condition), led_entries.__setitem__(0, tab3_entry_led_off)])
 led_off_cb.place(x=300, y=150, width=85, height=32)
 
 # Entries
 canvas3.create_text(73.0, 113.0, anchor="nw", text="LED Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
 
-canvas3.create_text(73.0, 210.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab3_entry_1 = ttk.Entry(tab3_frame, style ='Background_grey.TEntry')
-tab3_entry_1.place(x=300.0, y=200.0, width=85.0, height=32.0)
+canvas3.create_text(73.0, 210.0, anchor="nw", text="Led_On Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab3_entry_led_on = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry_led_on.place(x=300.0, y=200.0, width=85.0, height=32.0)
+
+canvas3.create_text(73.0, 250.0, anchor="nw", text="Led_Off Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab3_entry_led_off = ttk.Entry(tab3_frame, style='Background_grey.TEntry')
+tab3_entry_led_off.place(x=300.0, y=240.0, width=85.0, height=32.0)
+
+tab3_entry_1 = tab3_entry_led_on  # backward-compat alias
 
 # Execution
 led_output_variables = ["TestFw_LedVoltage"]
-led_entries = [tab3_entry_1]
+led_entries = [tab3_entry_led_off]  # default: Led_Off selected (value=2)
 
-tab3_lbl_voltage = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab3_lbl_voltage.place(x=394, y=206, height=20)
+tab3_lbl_voltage_on = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab3_lbl_voltage_on.place(x=394, y=206, height=20)
+tab3_lbl_voltage_off = tk.Label(tab3_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab3_lbl_voltage_off.place(x=394, y=246, height=20)
 tab3_lbl_overall = tk.Label(tab3_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab3_lbl_overall.place(x=430, y=110, height=26)
 
 def _evaluate_led_results():
-    v = _parse_num(tab3_entry_1)
     if led_input_condition.get() == 2:  # Led_Off: 0–10 mV expected
+        v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
+        _set_pf(tab3_lbl_voltage_off, passed)
     else:  # Led_On: voltage should be > 0
+        v = _parse_num(tab3_entry_led_on)
         passed = v is not None and v > 0
-    _set_pf(tab3_lbl_voltage, passed)
-    _set_overall(tab3_lbl_overall, [passed])
+        _set_pf(tab3_lbl_voltage_on, passed)
+    results = []
+    if tab3_entry_led_on.get().strip():
+        vn = _parse_num(tab3_entry_led_on)
+        results.append(vn is not None and vn > 0)
+    if tab3_entry_led_off.get().strip():
+        vn = _parse_num(tab3_entry_led_off)
+        results.append(vn is not None and 0 <= vn <= 10)
+    if results:
+        _set_overall(tab3_lbl_overall, results)
 
 images["tab3_led_run"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab3"))
 tab3_run_btn = Button(tab3, image=images["tab3_led_run"],
@@ -493,7 +574,7 @@ tab3_run_btn = Button(tab3, image=images["tab3_led_run"],
                         bd = 0)
 tab3_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: [clear_entries(led_entries), _reset_pf_labels(tab3_lbl_overall, tab3_lbl_voltage)])
+reset_entries = ttk.Button(tab3, text="Reset Results", command=lambda: [clear_entries([tab3_entry_led_on, tab3_entry_led_off]), _reset_pf_labels(tab3_lbl_overall, tab3_lbl_voltage_on, tab3_lbl_voltage_off)])
 reset_entries.place(x=300, y=110, width=85, height=32)
 
 canvas3.create_text(
@@ -716,39 +797,57 @@ canvas6.create_image((tablet1_X + 0), (tablet1_Y + 10), image=images["tile_tab6"
 
 # Entries
 canvas6.create_text(73.0, 113.0, anchor="nw", text="EOS Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EosDiagVoltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
-tab6_entry1 = ttk.Entry(tab6_frame, style = 'Background_grey.TEntry')
-tab6_entry1.place(x=225, y=placement_y_coord+35*1, width=125, height=32)
+canvas6.create_text(73.0, placement_y_coord+35*1, anchor="nw", text="EOS Set Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab6_entry_eos_set = ttk.Entry(tab6_frame, style='Background_grey.TEntry')
+tab6_entry_eos_set.place(x=225, y=placement_y_coord+35*1, width=125, height=32)
+
+canvas6.create_text(73.0, placement_y_coord+35*2, anchor="nw", text="EOS Reset Voltage", fill="#FFFFFF", font=("Inter SemiBold", 15 * -1))
+tab6_entry_eos_reset = ttk.Entry(tab6_frame, style='Background_grey.TEntry')
+tab6_entry_eos_reset.place(x=225, y=placement_y_coord+35*2, width=125, height=32)
+
+tab6_entry1 = tab6_entry_eos_set  # backward-compat alias
 
 eos_value = tk.IntVar(value=2)
 
 # Execution
 eos_output_variables = ["TestFw_EosDiagVoltage"]
-eos_entries = [tab6_entry1]
+eos_entries = [tab6_entry_eos_reset]  # default: EOS Reset selected (value=2)
 
-tab6_lbl_voltage = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
-tab6_lbl_voltage.place(x=360, y=placement_y_coord+41, height=20)
+tab6_lbl_voltage_set = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab6_lbl_voltage_set.place(x=360, y=placement_y_coord+35*1+6, height=20)
+tab6_lbl_voltage_reset = tk.Label(tab6_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
+tab6_lbl_voltage_reset.place(x=360, y=placement_y_coord+35*2+6, height=20)
 tab6_lbl_overall = tk.Label(tab6_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab6_lbl_overall.place(x=430, y=110, height=26)
 
 def _evaluate_eos_results():
-    v = _parse_num(tab6_entry1)
-    # eos_value: 1 = EOS Set (1400–1600 mV), 2 = EOS Reset (2800–3000 mV)
-    if eos_value.get() == 1:
+    if eos_value.get() == 1:  # EOS Set: 1400–1600 mV
+        v = _parse_num(tab6_entry_eos_set)
         passed = v is not None and 1400 <= v <= 1600
-    else:
-        passed = v is not None and 2800 <= v <= 3000
-    _set_pf(tab6_lbl_voltage, passed)
-    _set_overall(tab6_lbl_overall, [passed])
+        _set_pf(tab6_lbl_voltage_set, passed)
+    else:  # EOS Reset: 1500–3000 mV
+        v = _parse_num(tab6_entry_eos_reset)
+        passed = v is not None and 1500 <= v <= 3000
+        _set_pf(tab6_lbl_voltage_reset, passed)
+    results = []
+    if tab6_entry_eos_set.get().strip():
+        vn = _parse_num(tab6_entry_eos_set)
+        results.append(vn is not None and 1400 <= vn <= 1600)
+    if tab6_entry_eos_reset.get().strip():
+        vn = _parse_num(tab6_entry_eos_reset)
+        results.append(vn is not None and 1500 <= vn <= 3000)
+    if results:
+        _set_overall(tab6_lbl_overall, results)
 
 eos_set_cb = tk.Checkbutton(
-    tab6, 
-    text="EOS Set", 
-    variable=eos_value, 
-    onvalue=1, 
-    offvalue=0, 
+    tab6,
+    text="EOS Set",
+    variable=eos_value,
+    onvalue=1,
+    offvalue=0,
     command=lambda: [
     eos_set(eos_value),
+    eos_entries.__setitem__(0, tab6_entry_eos_set),
     SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e),
     tab6_frame.after(200, _evaluate_eos_results)
     ]
@@ -756,17 +855,17 @@ eos_set_cb = tk.Checkbutton(
 eos_set_cb.place(x=73.0, y=150, width=125.0, height=32.0)
 
 eos_reset_cb = tk.Checkbutton(
-    tab6, 
-    text="EOS Reset", 
-    variable=eos_value, 
-    onvalue=2, 
-    offvalue=0, 
+    tab6,
+    text="EOS Reset",
+    variable=eos_value,
+    onvalue=2,
+    offvalue=0,
     command=lambda: [
         eos_reset(eos_value),
-        # Schedule the reading after 5000ms (5 seconds)
+        eos_entries.__setitem__(0, tab6_entry_eos_reset),
         window.after(0, lambda: [SendDIDGetVal_multiple_entry(
-            eos_output_variables, 
-            eos_entries, 
+            eos_output_variables,
+            eos_entries,
             TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e
         ), tab6_frame.after(200, _evaluate_eos_results)])
     ]
@@ -777,7 +876,7 @@ eos_reset_cb.place(x=225.0, y=150, width=125.0, height=32.0)
 #tab6_run_btn = Button(tab6, image=images["tab6_eos_run"], command=lambda: SendDIDGetVal_multiple_entry(eos_output_variables, eos_entries, TestFunctionCmd.TESTFW_GUI_CMD_EOS_TEST_e), bd = 0)
 #tab6_run_btn.place(x=225, y=106, width=34, height=34)
 
-reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: [clear_entries(eos_entries), _reset_pf_labels(tab6_lbl_overall, tab6_lbl_voltage)])
+reset_entries = ttk.Button(tab6, text="Reset Results", command=lambda: [clear_entries([tab6_entry_eos_set, tab6_entry_eos_reset]), _reset_pf_labels(tab6_lbl_overall, tab6_lbl_voltage_set, tab6_lbl_voltage_reset)])
 reset_entries.place(x=225, y=110, width=125, height=32)
 
 canvas6.create_text(
@@ -1626,7 +1725,6 @@ canvas11.create_text(266.0, 110.0, anchor="nw", text="Transmit", fill="#FFFFFF",
 reset_entries = ttk.Button(tab11, text="Reset Results", command=lambda: [clear_entries(lin_entry_list + lin_tx_entries), _reset_pf_labels(tab11_lbl_overall, *lin_pf_labels)])
 reset_entries.place(x=350, y=110, width=115, height=32)
 
-
 canvas11.create_text(
     260.0,
     20.0,
@@ -1638,6 +1736,133 @@ canvas11.create_text(
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 12 (AUTO) =======================================================================================
+
+# ─── Combined manual test report (all tabs → one HTML on Disconnect) ──────────
+def _collect_and_save_all_manual_tests():
+    """Collect current entry values from every manual-test tab and save one report."""
+    sections = []
+
+    # ── LED ───────────────────────────────────────────────────────────────────
+    led_fields = []
+    v_on = tab3_entry_led_on.get().strip()
+    if v_on:
+        vn = _parse_num(tab3_entry_led_on)
+        led_fields.append(("Led_On Voltage", v_on, vn is not None and vn > 0))
+    v_off = tab3_entry_led_off.get().strip()
+    if v_off:
+        vn = _parse_num(tab3_entry_led_off)
+        led_fields.append(("Led_Off Voltage", v_off, vn is not None and 0 <= vn <= 10))
+    if led_fields:
+        sections.append({"name": "LED Test", "fields": led_fields, "overall": all(f[2] for f in led_fields)})
+
+    # ── BAT ───────────────────────────────────────────────────────────────────
+    v_bat = tab4_entry_1.get().strip()
+    if v_bat:
+        vn = _parse_num(tab4_entry_1)
+        p = vn is not None and 8000 <= vn <= 16000
+        sections.append({"name": "BAT Test", "fields": [("AiBatRef", v_bat, p)], "overall": p})
+
+    # ── MOTOR ─────────────────────────────────────────────────────────────────
+    if tab5_entry1.get().strip():
+        vn = _parse_num(tab5_entry1); cn = _parse_num(tab5_entry2); en = _parse_num(tab5_entry3)
+        p_v = vn is not None and vn > 0
+        p_c = cn is not None and cn > 0
+        p_e = en is not None and en == 0
+        fields = [("MotorVoltage", tab5_entry1.get().strip(), p_v),
+                  ("MotorCurrentValue", tab5_entry2.get().strip(), p_c),
+                  ("MotorLoadError", tab5_entry3.get().strip(), p_e)]
+        sections.append({"name": "Motor Test", "fields": fields, "overall": all([p_v, p_c, p_e])})
+
+    # ── EOS ───────────────────────────────────────────────────────────────────
+    eos_fields = []
+    v_set = tab6_entry_eos_set.get().strip()
+    if v_set:
+        vn = _parse_num(tab6_entry_eos_set)
+        eos_fields.append(("EOS Set Voltage", v_set, vn is not None and 1400 <= vn <= 1600))
+    v_reset = tab6_entry_eos_reset.get().strip()
+    if v_reset:
+        vn = _parse_num(tab6_entry_eos_reset)
+        eos_fields.append(("EOS Reset Voltage", v_reset, vn is not None and 1500 <= vn <= 3000))
+    if eos_fields:
+        sections.append({"name": "EOS Test", "fields": eos_fields, "overall": all(f[2] for f in eos_fields)})
+
+    # ── SG ────────────────────────────────────────────────────────────────────
+    if tab7_entry_1.get().strip():
+        sg_names = ["DoPwrSg","Sg1PlusOpamp","Sg1MinusOpamp","Sg1Opamp","Sg2PlusOpamp","Sg2MinusOpamp","Sg2Opamp"]
+        fields = []
+        for nm, e in zip(sg_names, sg_entries):
+            vn = _parse_num(e)
+            fields.append((nm, e.get().strip(), vn is not None and vn != 0))
+        sections.append({"name": "SG Test", "fields": fields, "overall": all(f[2] for f in fields)})
+
+    # ── CAPA ──────────────────────────────────────────────────────────────────
+    if tab8_entry_1.get().strip():
+        capa_names   = ["CapaApproach","CapaLock","CapaUnlock","CapaApproachRawValue","CapaLockRawValue","CapaUnlockRawValue"]
+        capa_checks  = [lambda v: v==1, lambda v: v==1, lambda v: v==1,
+                        lambda v: v>8900, lambda v: v>8900, lambda v: v>8900]
+        fields = []
+        for nm, e, chk in zip(capa_names, capa_entries, capa_checks):
+            vn = _parse_num(e)
+            fields.append((nm, e.get().strip(), vn is not None and chk(vn)))
+        sections.append({"name": "CAPA Test", "fields": fields, "overall": all(f[2] for f in fields)})
+
+    # ── NFC ───────────────────────────────────────────────────────────────────
+    if tab9_spi_err.get().strip():
+        spi_v = tab9_spi_err.get().strip(); hw_v = tab9_hw_ver.get().strip()
+        rom_v = tab9_rom_ver.get().strip();  fw_v = tab9_fw_ver.get().strip()
+        card_v = tab9_entry_1.get().strip()
+        p_spi = spi_v in ("OK", "0")
+        p_hw  = hw_v  not in ("", "0", "0x0")
+        p_rom = rom_v not in ("", "0", "0x0")
+        p_fw  = fw_v  not in ("", "0", "0x0")
+        p_card = card_v == "Yes"
+        fields = [("SpiError", spi_v, p_spi), ("HwVersion", hw_v, p_hw),
+                  ("RomVersion", rom_v, p_rom), ("FwVersion", fw_v, p_fw),
+                  ("IsNfcDetectedCard", card_v, p_card)]
+        sections.append({"name": "NFC Test", "fields": fields, "overall": all([p_spi, p_hw, p_rom, p_fw])})
+
+    # ── CAN ───────────────────────────────────────────────────────────────────
+    if tab10_rx_valid.get().strip():
+        vn = _parse_num(tab10_rx_valid); an = _parse_num(tab10_com_active)
+        p_rx  = vn is not None and vn == 1
+        p_act = True if can_loopback_var.get() else (an is not None and an == 1)
+        rx_fields = [(f"RxByte{i}", e.get().strip(), True) for i, e in enumerate(can_rx_entries)]
+        fields = [("CanRxDataValid", tab10_rx_valid.get().strip(), p_rx),
+                  ("CanIsActiveState", tab10_com_active.get().strip(), p_act)] + rx_fields
+        sections.append({"name": "CAN Test", "fields": fields, "overall": all([p_rx, p_act])})
+
+    # ── LIN ───────────────────────────────────────────────────────────────────
+    if tab11_rx_valid.get().strip():
+        vn = _parse_num(tab11_rx_valid)
+        any_nz = any(_parse_num(e) not in (None, 0) for e in lin_rx_entries)
+        p_rx   = vn is not None and vn == 1 and any_nz
+        rx_fields = [(f"RxByte{i}", e.get().strip(), True) for i, e in enumerate(lin_rx_entries)]
+        fields = [("LinRxDataValid", tab11_rx_valid.get().strip(), p_rx),
+                  ("LinRxPid", tab11_rx_pid.get().strip(), True)] + rx_fields
+        sections.append({"name": "LIN Test", "fields": fields, "overall": p_rx})
+
+    if not sections:
+        code_status_label.config(text="No manual test results to save.")
+        return
+
+    overall_ok = all(s["overall"] for s in sections)
+    global _manual_pass_count, _manual_fail_count
+    if overall_ok:
+        _manual_pass_count += 1
+        _manual_pass_lbl.config(text=f"PASS\n{_manual_pass_count}")
+    else:
+        _manual_fail_count += 1
+        _manual_fail_lbl.config(text=f"FAIL\n{_manual_fail_count}")
+
+    scan_code = manual_scan_entry.get().strip()
+    pcb_count = _manual_pass_count + _manual_fail_count
+    try:
+        path = _save_manual_report(sections, _REPORTS_DIR, _SW_REVISION,
+                                   scan_code=scan_code, pcb_count=pcb_count)
+        code_status_label.config(text=f"Manual report saved: {Path(path).name}")
+    except Exception as exc:
+        code_status_label.config(text=f"Manual report save failed: {exc}")
+
 
 # Initialize visibility based on default selection (0)
 update_tab_visibility()

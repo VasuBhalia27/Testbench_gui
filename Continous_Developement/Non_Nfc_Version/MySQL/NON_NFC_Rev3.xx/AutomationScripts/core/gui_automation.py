@@ -77,7 +77,7 @@ class AutomationGUI:
         if parent_widget is None:
             # Standalone window mode (not used in integrated setup)
             self.root = tk.Tk()
-            self.root.title("NON_NFC_Rev2.09")
+            self.root.title("NON_NFC_Rev3.xx")
             self.root.geometry("1050x550")
             self.root.minsize(1000, 450)
         else:

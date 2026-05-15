@@ -9,7 +9,7 @@ The table schema expected::
         Test_Date   DATE         NOT NULL,
         Test_Time   TIME         NOT NULL,
         Model       VARCHAR(50)  NOT NULL,
-        `2D_Data`   VARCHAR(50)  NOT NULL,
+        2D_Data     VARCHAR(50)  NOT NULL,
         Test_Result VARCHAR(10)  NOT NULL
     );
 

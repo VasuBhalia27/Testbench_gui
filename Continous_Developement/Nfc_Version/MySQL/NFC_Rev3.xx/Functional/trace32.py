@@ -179,16 +179,26 @@ def format_value_with_unit(variable_name, value):
 
 def LaunchTrace32(repo_path_entry, selected_preset):
     # --- STEP 1: Aggressive Cleanup ---
+    # Kill ALL known T32 executable names so that a stale instance from a
+    # previous run (or a manually-opened debugger) cannot block the PODBUS
+    # USB driver before we launch the new T32 process.
+    _T32_PROCS = ['t32marm.exe', 't32mstart.exe', 't32mtc.exe']
     try:
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-        # Wait until t32marm.exe is fully gone (up to 15 seconds)
+        for _proc in _T32_PROCS:
+            subprocess.run(
+                ['taskkill', '/F', '/IM', _proc, '/T'],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+        # Wait until every T32 process is fully gone (up to 15 seconds)
         # so the USB/PODBUS driver has time to physically release the device
         for _ in range(30):
             result = subprocess.run(
-                ['tasklist', '/FI', 'IMAGENAME eq t32marm.exe'],
-                capture_output=True, text=True
+                ['tasklist'],
+                capture_output=True, text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
-            if 't32marm.exe' not in result.stdout:
+            if not any(p in result.stdout for p in _T32_PROCS):
                 break
             time.sleep(0.5)
     except:
@@ -236,8 +246,14 @@ def LaunchTrace32(repo_path_entry, selected_preset):
     
     command = [trace32_path, '-c', trace_configfile_path, '-s', autoexec_script_path]
     # Kill any stale T32 process before launching to avoid PODBUS "device already used" error
-    os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
-    time.sleep(2)  # Give the PODBUS driver time to release before new instance starts
+    for _proc in ['t32marm.exe', 't32mstart.exe', 't32mtc.exe']:
+        subprocess.run(
+            ['taskkill', '/F', '/IM', _proc, '/T'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+    time.sleep(5)  # Give the PODBUS driver time to release before new instance starts
+                   # 5 s is required on some benches; 2 s caused "device already used" PODBUS error on retry
     subprocess.Popen(command)
     # Wait for the new GUI to fully initialize before Python tries to talk to it via UDP
     time.sleep(8) 
@@ -430,7 +446,7 @@ def ConnectToTraceUDP():
     last_exc = None
     for attempt in range(3):
         try:
-            dbg = t32.connect(node='localhost', port=20006, protocol='UDP', packlen=1024, timeout=5.0)
+            dbg = t32.connect(node='localhost', port=20007, protocol='UDP', packlen=1024, timeout=5.0)
             dbg.print("Hello")
             return
         except Exception as e:
@@ -601,7 +617,11 @@ def QuitTrace32(status_label=None):
     except:
         pass
     finally:
-        os.system("taskkill /F /IM t32marm.exe /T >nul 2>&1")
+        subprocess.run(
+            ['taskkill', '/F', '/IM', 't32marm.exe', '/T'],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
         time.sleep(4)  # Wait for PODBUS USB driver to fully release the device
         dbg = ''
         if status_label:

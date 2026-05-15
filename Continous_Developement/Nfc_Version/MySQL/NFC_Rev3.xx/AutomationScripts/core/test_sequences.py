@@ -12,6 +12,7 @@ added later as the automation coverage expands.
 import time
 from typing import Any, Callable, Optional
 
+import Functional.trace32 as _t32_mod
 from AutomationScripts.core.trace32_adapter import Trace32Interface
 
 # individual sequence modules
@@ -227,22 +228,56 @@ class TestSequenceRunner:
         self.adapter.set_variable("TestFw_CanGuiLocalLoopbackEnable", 1)
         self.adapter.set_variable("TestFw_KeepEcuAwake", 1)
 
+        # Pre-clear the RX valid flag so a stale 1 from a previous run cannot
+        # cause a false PASS when the bus is actually dead.
+        try:
+            self.adapter.set_variable("TestFw_CanRxDataValid", 0)
+        except Exception:
+            pass
+
         for idx, value in enumerate(tx_bytes):
             self.adapter.set_variable(f"DummyBytes.dummy_byte{idx}_U8", value)
         self._log(f"CAN TX data: msg_id=0x796, bytes={tx_bytes}")
 
         self._log("CAN: sending test command")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_CAN_TEST_e)
-        time.sleep(2)
+        # Poll for RxDataValid instead of a fixed sleep — breaks out as soon
+        # as the firmware confirms reception, caps at can_response_timeout to
+        # avoid hanging if T32 or the firmware becomes unresponsive.
+        deadline = time.time() + TIMING.can_response_timeout
+        rx_valid = None
+        while time.time() < deadline:
+            try:
+                rx_valid = self._as_int(self.adapter.read_variable("TestFw_CanRxDataValid"))
+            except Exception:
+                rx_valid = None
+            if rx_valid == 1:
+                break
+            time.sleep(0.2)
 
-        rx_valid = self._as_int(self.adapter.read_variable("TestFw_CanRxDataValid"))
-        rx_msg_id = self._as_int(self.adapter.read_variable("TestFw_CanRxMessageId"))
-        rx_bytes = [
-            self._as_int(self.adapter.read_variable(f"TestFw_CanRxBytes.dummy_byte{i}_U8"))
-            for i in range(8)
-        ]
-        can_active = self._as_int(self.adapter.read_variable("TestFw_CanIsActiveState"))
-        fault_latch = self._as_int(self.adapter.read_variable("TestFw_CanFaultLatch"))
+        rx_msg_id = None
+        rx_bytes = [None] * 8
+        can_active = None
+        fault_latch = None
+        try:
+            rx_msg_id = self._as_int(self.adapter.read_variable("TestFw_CanRxMessageId"))
+        except Exception:
+            pass
+        for i in range(8):
+            try:
+                rx_bytes[i] = self._as_int(
+                    self.adapter.read_variable(f"TestFw_CanRxBytes.dummy_byte{i}_U8")
+                )
+            except Exception:
+                pass
+        try:
+            can_active = self._as_int(self.adapter.read_variable("TestFw_CanIsActiveState"))
+        except Exception:
+            pass
+        try:
+            fault_latch = self._as_int(self.adapter.read_variable("TestFw_CanFaultLatch"))
+        except Exception:
+            pass
 
         self._log(
             "CAN RX data: "
@@ -280,16 +315,42 @@ class TestSequenceRunner:
             self.adapter.set_variable(f"TestFw_LinTxByte{idx}", value)
         self._log(f"LIN TX data: msg_id=0x{tx_pid:X}, bytes={tx_bytes}")
 
+        # Pre-clear the RX valid flag so a stale 1 from a previous run cannot
+        # cause a false PASS when the bus is actually dead.
+        try:
+            self.adapter.set_variable("TestFw_LinRxDataValid", 0)
+        except Exception:
+            pass
+
         self._log("LIN: sending test command")
         self.adapter.send_did(TestFunctionCmd.TEST_GUI_CMD_LIN_e)
-        time.sleep(2)
+        # Poll for LinRxDataValid instead of a fixed sleep — breaks out as
+        # soon as the firmware confirms reception, caps at lin_response_timeout
+        # to avoid hanging if T32 or the firmware becomes unresponsive.
+        deadline = time.time() + TIMING.lin_response_timeout
+        rx_valid = None
+        while time.time() < deadline:
+            try:
+                rx_valid = self._as_int(self.adapter.read_variable("TestFw_LinRxDataValid"))
+            except Exception:
+                rx_valid = None
+            if rx_valid == 1:
+                break
+            time.sleep(0.2)
 
-        rx_valid = self._as_int(self.adapter.read_variable("TestFw_LinRxDataValid"))
-        rx_pid = self._as_int(self.adapter.read_variable("TestFw_LinRxPid"))
-        rx_bytes = [
-            self._as_int(self.adapter.read_variable(f"TestFw_LinRxData_aU8[{i}]"))
-            for i in range(8)
-        ]
+        rx_pid = None
+        rx_bytes = [None] * 8
+        try:
+            rx_pid = self._as_int(self.adapter.read_variable("TestFw_LinRxPid"))
+        except Exception:
+            pass
+        for i in range(8):
+            try:
+                rx_bytes[i] = self._as_int(
+                    self.adapter.read_variable(f"TestFw_LinRxData_aU8[{i}]")
+                )
+            except Exception:
+                pass
 
         self._log(
             "LIN RX data: "
@@ -338,10 +399,22 @@ class TestSequenceRunner:
 
         if bat_voltage == 0.0:
             self._log(
-                "BAT: 0.0 mV — ADC not ready yet, waiting "
-                f"{TIMING.bat_retry_wait:.1f} s and retrying..."
+                "BAT: 0.0 mV — performing MCU hardware reset (SYStem.Up) and retrying (attempt 2/2)"
             )
-            time.sleep(TIMING.bat_retry_wait)
+            # Perform a full target hardware reset via Trace32 instead of just
+            # waiting.  SYStem.Up drives the RESET pin on the MCU, clears any
+            # ADC/NFC initialisation fault that persisted across the first boot,
+            # and lets the firmware run a clean power-on sequence.
+            try:
+                if _t32_mod.dbg and hasattr(_t32_mod.dbg, 'cmd'):
+                    _t32_mod.dbg.cmd("Break")          # halt MCU
+                    time.sleep(0.5)
+                    _t32_mod.dbg.cmd("SYStem.Up")      # full hardware reset of target
+                    time.sleep(3.0)                     # wait for MCU power-on reset
+                    _t32_mod.dbg.cmd("Go")             # resume firmware execution
+                    time.sleep(TIMING.first_run_fw_init_wait)  # wait for TestFw to re-init
+            except Exception as exc:
+                self._log(f"BAT: MCU reset via SYStem.Up failed ({exc}), continuing anyway")
             bat_passed, bat_voltage = self.run_battery_test_with_voltage(timeout=10.0)
             results['battery'] = {'pass': bat_passed, 'voltage': bat_voltage}
 
@@ -405,11 +478,12 @@ class TestSequenceRunner:
                 self._log(f"CAN: test failed with exception: {exc}")
                 results['can'] = {'pass': False}
 
-            try:
-                results['lin'] = self._run_lin_test_with_logging()
-            except Exception as exc:
-                self._log(f"LIN: test failed with exception: {exc}")
-                results['lin'] = {'pass': False}
+        # LIN runs for all variants (Non-NFC hardware has CAN/LIN bus)
+        try:
+            results['lin'] = self._run_lin_test_with_logging()
+        except Exception as exc:
+            self._log(f"LIN: test failed with exception: {exc}")
+            results['lin'] = {'pass': False}
 
         # the remaining tests will eventually be added here
         return results
