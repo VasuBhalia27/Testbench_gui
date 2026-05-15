@@ -205,16 +205,7 @@ class AutomationGUI:
             command=self._reset_pcb_counts,
         ).pack(side="top", fill="x", padx=4, pady=(0, 2))
 
-        # View DB Records button
-        tk.Button(
-            counter_panel,
-            text="View DB",
-            font=("Arial", 9, "bold"),
-            fg="#FFFFFF", bg="#1565C0",
-            activebackground="#0D47A1", activeforeground="#FFFFFF",
-            relief="flat", cursor="hand2",
-            command=self._view_db_records,
-        ).pack(side="top", fill="x", padx=4, pady=(0, 4))
+        
 
         # --- RIGHT PANEL ---
         right_panel = tk.Frame(top_section, bg="#DFDFDF")
@@ -222,7 +213,7 @@ class AutomationGUI:
 
         # ── PCBA Model Selection ────────────────────────────────────────────
         model_outer = tk.Frame(right_panel, bg="#DFDFDF")
-        model_outer.pack(pady=(10, 4))
+        model_outer.pack(pady=(0, 8))
 
         model_lf = ttk.Labelframe(model_outer, text="PCBA Model Select")
         model_lf.pack(side="left", padx=(0, 6))
@@ -246,12 +237,23 @@ class AutomationGUI:
             activebackground="#4A148C", activeforeground="#FFFFFF",
             relief="flat", cursor="hand2",
             command=self._open_manage_models,
-        ).pack(side="left", ipady=4)
+        ).pack(side="left", pady=(4, 35))
+
+        # View DB Records button
+        tk.Button(
+            model_outer,
+            text="View DB",
+            font=("Arial", 9, "bold"),
+            fg="#FFFFFF", bg="#1565C0",
+            activebackground="#0D47A1", activeforeground="#FFFFFF",
+            relief="flat", cursor="hand2",
+            command=self._view_db_records,
+        ).pack(side="left", padx=8, pady=(4, 35))
         # ───────────────────────────────────────────────────────────────────
 
         # Button row: Start / Power Supply
         btn_frame = ttk.Frame(right_panel)
-        btn_frame.pack(pady=(0, 8))
+        btn_frame.pack(pady=(0, 35))
 
         self.start_button = ttk.Button(btn_frame, text="Start",
                                        command=self._on_start)
