@@ -13,6 +13,10 @@ if str(_REPO_ROOT) not in sys.path:
 #from Functional.power_supply import *
 from Functional.trace32 import *
 from Functional.usb_relay import USBRelayController, USBRelayError
+# NOTE: The on-board USB controller (purple highlight on PCB) is owned and
+# controlled by the PC GUI application. This USB device must NOT be
+# manipulated by the Trace32 debugger process; the GUI should claim and
+# manage the USB device (PODBUS/VID:PID) during CAPA/relay operations.
 from tkinter import filedialog
 from tkinter import messagebox
 

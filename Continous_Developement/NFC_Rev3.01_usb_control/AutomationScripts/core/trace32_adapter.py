@@ -6,6 +6,11 @@ for automation tests.  The adapter lives in the automation
 folder so that production code does not need to change when
 we extend tests or restructure the automation logic.
 
+This adapter does NOT control the PCB's on-board USB controller
+(highlighted purple in the design). The on-board USB controller
+is intentionally managed by the PC GUI (via `Functional.usb_relay`) and
+must not be manipulated by the Trace32 debugger process.
+
 It also provides simple helpers which can be monkeypatched in
 unit tests to simulate a connected or disconnected debugger.
 """
