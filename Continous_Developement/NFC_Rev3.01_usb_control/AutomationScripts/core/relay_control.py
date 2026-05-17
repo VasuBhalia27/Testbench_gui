@@ -1,4 +1,15 @@
-"""Automation-facing wrapper for external USB relay control."""
+"""Automation-facing wrapper for external USB relay control.
+
+RELAY MAPPING:
+  relay_short_capa (ID 1)     → Blue capacitors CAPA test path (pulse 1.0 sec)
+  relay_reset_switch (ID 2)   → Red switches logic control (pulse 0.2 sec)
+
+This wrapper exposes high-level methods for CAPA test automation:
+  • connect()         → Open serial port to relay board
+  • disconnect()      → Close serial port
+  • short_capa(dur)   → Pulse relay 1 to short blue capacitors
+  • reset_switch(dur) → Pulse relay 2 to reset red switches
+"""
 from typing import Optional
 
 from Functional.usb_relay import USBRelayController, USBRelayError

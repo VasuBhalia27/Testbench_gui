@@ -1,8 +1,24 @@
-"""USB relay board helper for controlling external CAPA/reset hardware.
+"""USB relay board helper for controlling PCB hardware via external relay.
 
-This module provides a small adapter around a serial-based USB relay board.
-It is intentionally generic: the command templates can be configured to match
-hardware that understands text-based relay commands.
+RELAY MAPPING (PCB Hardware Setup):
+  • Relay 1: CAPA Short → controls BLUE capacitors on PCB
+    Pulse duration: ~1.0 sec (closes relay for 1.0 second)
+  
+  • Relay 2: Switch Reset → controls RED switches on PCB
+    Pulse duration: ~0.2 sec (closes relay for 0.2 second)
+
+ARCHITECTURE:
+  PC GUI (owning purple USB chip on PCB)
+         ↓ via USB/COM port
+    External Relay Board (this module)
+         ↓ relay control signals
+  PCB red switches + blue capacitors
+
+The relay board accepts text commands (configurable templates):
+  • "RELAY 1 ON"  / "RELAY 1 OFF"  → activate/deactivate relay 1 (CAPA)
+  • "RELAY 2 ON"  / "RELAY 2 OFF"  → activate/deactivate relay 2 (Switch)
+
+This module provides a configurable adapter to match your board's wiring.
 """
 
 import time
