@@ -25,8 +25,6 @@ from AutomationScripts.core.capa_test import CapaTest
 from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
-from digital_switch import DigitalSwitchController
-
 
 class TestSequenceError(Exception):
     """Raised when a sequence cannot complete successfully."""
@@ -55,12 +53,6 @@ class TestSequenceRunner:
         self.adapter = adapter
         self._log = status_callback or (lambda msg: None)
         self._power_cycle = power_cycle_callback or (lambda: None)
-        self._digital_switch = None
-
-    def _open_digital_switch(self):
-        if self._digital_switch is None:
-            self._digital_switch = DigitalSwitchController()
-            self._log("Digital switch controller initialised and forced OFF")
 
     # ---- LED ----------------------------------------------------------------
 
@@ -410,11 +402,6 @@ class TestSequenceRunner:
         """
         results = {}
 
-        # Ensure the digital switch is OFF before any automation begins.
-        self._open_digital_switch()
-        self._digital_switch.turn_off()
-        self._log("Digital switch: OFF before battery test")
-
         # --- Battery voltage check (runs first) ----------------------------
         # A reading of 0.0 mV means the supply has not yet stabilised.
         # In that case there is no point running further tests; all hardware
@@ -450,19 +437,11 @@ class TestSequenceRunner:
             )
             return results
 
-        # Turn ON the digital switch before CAPA begins.
-        self._log("Digital switch: turning ON before CAPA tests")
-        self._digital_switch.turn_on()
-
-        try:
-            # CAPA tests run immediately after battery (before other tests so that
-            # the capacitive sensors are measured while nothing else is active).
-            capa_results = self.run_capa_test()
-            results['capa1'] = capa_results['capa1']
-            results['capa2'] = capa_results['capa2']
-        finally:
-            self._log("Digital switch: turning OFF after CAPA tests")
-            self._digital_switch.turn_off()
+        # CAPA tests run immediately after battery (before other tests so that
+        # the capacitive sensors are measured while nothing else is active).
+        capa_results = self.run_capa_test()
+        results['capa1'] = capa_results['capa1']
+        results['capa2'] = capa_results['capa2']
 
         # the LED tests run in both variants
         led_on_passed, led_on_v   = self.run_led_test_with_voltage(on=True)

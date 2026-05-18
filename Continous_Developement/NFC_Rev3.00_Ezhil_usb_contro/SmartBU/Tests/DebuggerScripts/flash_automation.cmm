@@ -17,7 +17,7 @@ DO ~~~~/psoc4 PREPAREONLY
 ; ReProgram Flash
 FLASH.ReProgram ALL
 &ExeFile=OS.ENV("TARGET_EXECUTABLE")
-Data.LOAD.Elf C:\Users\Ezhil.M\Desktop\NFC_Rev3.00\SmartBU\Nfc_Test\XNF-Handle_Driver_C2_App.elf
+Data.LOAD.Elf C:\Users\Ezhil.M\Downloads\Sample_LED\NFC_Rev3.00\SmartBU\Nfc_Test\XNF-Handle_Driver_C2_App.elf
 FLASH.ReProgram OFF
 
 

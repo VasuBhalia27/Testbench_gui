@@ -10,6 +10,13 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+digital_switch_import_error = None
+DigitalSwitchController = None
+try:
+    from digital_switch_cycle import DigitalSwitchController
+except Exception as exc:
+    digital_switch_import_error = exc
+
 #from Functional.power_supply import *
 from Functional.trace32 import *
 from tkinter import filedialog
@@ -410,23 +417,6 @@ reset_target_btn = Button(tab2, image=images["tab2_reset_target"],
                           bd=0)
 reset_target_btn.place(x=500, y=305, width=34, height=34)
 
-def _on_reset_switch():
-    try:
-        code_status_label.config(text="Status: Reset switch...", fg="blue")
-        if 'reset_switch_result_lbl' in globals():
-            reset_switch_result_lbl.config(text="Running...", fg="#000000", bg="#FFFFFF")
-        window.update_idletasks()
-        from digital_switch import run_digital_switch
-        run_digital_switch()
-        code_status_label.config(text="Status: Switch reset PASS", fg="#27AE60")
-        if 'reset_switch_result_lbl' in globals():
-            reset_switch_result_lbl.config(text="PASS", fg="#27AE60", bg="#FFFFFF")
-    except Exception as exc:
-        code_status_label.config(text="Status: Switch reset ERROR", fg="#C0392B")
-        if 'reset_switch_result_lbl' in globals():
-            reset_switch_result_lbl.config(text="FAIL", fg="#C0392B", bg="#FFFFFF")
-        messagebox.showerror("Reset Switch Failed", str(exc))
-
 # Label to show status
 code_status_label = tk.Label(tab2, text="Status: none", bg="#DFDFDF", font=("Inter", 10))
 code_status_label.place(x=250, y=350)
@@ -559,6 +549,33 @@ def _reset_pf_labels(overall_lbl, *field_labels):
     overall_lbl.config(text="", bg="#DFDFDF", fg="#000000")
     for lbl in field_labels:
         lbl.config(text="", bg="#DFDFDF", fg="#000000")
+
+# Digital switch support for CAPA tab only.
+digital_switch_controller = None
+
+def _cap_get_switch_controller():
+    global digital_switch_controller
+    if digital_switch_controller is None:
+        if digital_switch_import_error is not None:
+            raise RuntimeError(f"Cannot load digital switch controller: {digital_switch_import_error}")
+        digital_switch_controller = DigitalSwitchController()
+    return digital_switch_controller
+
+
+def _cap_turn_on_switch():
+    controller = _cap_get_switch_controller()
+    controller.turn_on()
+
+
+def _cap_turn_off_switch():
+    global digital_switch_controller
+    if digital_switch_controller is None:
+        return
+    try:
+        digital_switch_controller.turn_off()
+    except Exception as exc:
+        messagebox.showerror("CAP Test", f"Failed to turn off digital switch: {exc}")
+
 
 def _parse_num(entry):
     """Return int from entry text (handles '1234 mV', '0x52', '1 bool', etc.)"""
@@ -1246,13 +1263,10 @@ window.after(2000, auto_refresh_capa_values)
 
 # Continuous Read checkbox
 continuous_read_capa_cb = tk.Checkbutton(
-    tab8,
-    text="Continuous Read",
+    tab8, 
+    text="Continuous Read", 
     variable=continuous_read_capa,
-    command=lambda: toggle_continuous_read_capa(continuous_read_capa.get()),
-    bg="#DFDFDF",
-    activebackground="#DFDFDF",
-    selectcolor="#DFDFDF",
+    command=lambda: toggle_continuous_read_capa(continuous_read_capa.get())
 )
 continuous_read_capa_cb.place(x=350, y=110, width=115, height=32)
 
@@ -1286,7 +1300,7 @@ tab8_lbl_lock_raw.place(x=475, y=358, height=20)
 tab8_lbl_unlock_raw = tk.Label(tab8_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat")
 tab8_lbl_unlock_raw.place(x=475, y=404, height=20)
 tab8_lbl_overall    = tk.Label(tab8_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
-tab8_lbl_overall.place(x=485, y=105, width=115, height=32)
+tab8_lbl_overall.place(x=480, y=65, height=26)
 
 capa_pf_labels = [tab8_lbl_approach, tab8_lbl_lock, tab8_lbl_unlock, tab8_lbl_app_raw, tab8_lbl_lock_raw, tab8_lbl_unlock_raw]
 
@@ -1308,25 +1322,38 @@ def _evaluate_capa_results():
         results.append(passed)
     _set_overall(tab8_lbl_overall, results)
 
+
+def _cap_run_test_after_switch_on():
+    read_capa_values_with_delay(capa_output_variables, capa_entries)
+    tab8_frame.after(200, _evaluate_capa_results)
+
+
+def _cap_run_test_with_switch():
+    try:
+        _cap_turn_on_switch()
+    except Exception as exc:
+        messagebox.showerror("CAP Test", f"Digital switch error: {exc}")
+        return
+    tab8_lbl_overall.config(text="WAITING...", bg="#F39C12", fg="#FFFFFF")
+    window.after(5000, _cap_run_test_after_switch_on)
+
 # Run button
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 run_test_btn = Button(
     tab8, 
     image=images["tile1_run_capa"], 
-    command=lambda: [read_capa_values_with_delay(capa_output_variables, capa_entries), tab8_frame.after(200, _evaluate_capa_results)],
+    command=_cap_run_test_with_switch,
     bd=0
 )
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
 # Reset button
-reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
+reset_entries = ttk.Button(
+    tab8, 
+    text="Reset Results", 
+    command=lambda: [_cap_turn_off_switch(), clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)]
+)
 reset_entries.place(x=350, y=65, width=115, height=32)
-
-reset_switch_btn = ttk.Button(tab8, text="Reset Switch", command=_on_reset_switch)
-reset_switch_btn.place(x=485, y=65, width=115, height=32)
-
-reset_switch_result_lbl = tk.Label(tab8_frame, text="", bg="#FFFFFF", fg="#000000", relief="ridge", font=("Inter SemiBold", 10), anchor="center")
-reset_switch_result_lbl.place(x=620, y=65, width=115, height=32)
 
 canvas8.create_text(
     260.0,
