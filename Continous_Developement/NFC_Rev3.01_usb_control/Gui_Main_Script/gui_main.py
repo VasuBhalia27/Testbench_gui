@@ -1181,7 +1181,17 @@ capa_relay_port = tk.StringVar(value="COM3")
 capa_relay_baud = tk.IntVar(value=9600)
 capa_relay_short_relay = tk.IntVar(value=1)
 capa_relay_reset_relay = tk.IntVar(value=2)
+capa_relay_duration_ms = tk.IntVar(value=200)
+
+# Aliases used by relay GUI widgets and functions
+usb_relay_port = capa_relay_port
+usb_relay_baud = capa_relay_baud
+usb_relay_short_relay = capa_relay_short_relay
+usb_relay_reset_relay = capa_relay_reset_relay
+usb_relay_duration_ms = capa_relay_duration_ms
+
 capa_relay_status = tk.StringVar(value="Relay: disconnected")
+relay_status_text = tk.StringVar(value="Relay: disconnected")
 capa_relay_controller = None
 
 # Entries
@@ -1273,9 +1283,9 @@ relay_connect_btn = ttk.Button(tab8, text="Connect Relay", command=lambda: conne
 relay_connect_btn.place(x=225, y=145, width=115, height=32)
 relay_disconnect_btn = ttk.Button(tab8, text="Disconnect Relay", command=lambda: disconnect_capa_relay())
 relay_disconnect_btn.place(x=350, y=145, width=115, height=32)
-relay_short_btn = ttk.Button(tab8, text="Short CAPA", command=short_capa_via_relay)
+relay_short_btn = ttk.Button(tab8, text="Short CAPA", command=lambda: short_capa_via_relay())
 relay_short_btn.place(x=225, y=185, width=115, height=32)
-relay_reset_btn = ttk.Button(tab8, text="Reset Switch", command=reset_capa_switch_via_relay)
+relay_reset_btn = ttk.Button(tab8, text="Reset Switch", command=lambda: reset_capa_switch_via_relay())
 relay_reset_btn.place(x=350, y=185, width=115, height=32)
 
 def _update_relay_status(message: str) -> None:
