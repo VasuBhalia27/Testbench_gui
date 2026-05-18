@@ -14,17 +14,25 @@ import time
 # Ensure Blinka MCP2221 support is enabled before importing the driver.
 os.environ["BLINKA_MCP2221"] = "1"
 
-import board
-import digitalio
-
 
 class DigitalSwitchController:
     """Controls a generic digital switch via MCP2221A GPIO pin G0."""
 
     def __init__(self):
         try:
-            self.pin = digitalio.DigitalInOut(board.G0)
-            self.pin.direction = digitalio.Direction.OUTPUT
+            import board
+            import digitalio
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "Failed to initialize MCP2221A GPIO controller: Blinka or MCP2221 support is not installed. "
+                "Ensure the MCP2221A is plugged in and Blinka is installed."
+            ) from exc
+
+        try:
+            self.board = board
+            self.digitalio = digitalio
+            self.pin = self.digitalio.DigitalInOut(self.board.G0)
+            self.pin.direction = self.digitalio.Direction.OUTPUT
             self.pin.value = False
             self._state = False
         except Exception as exc:
@@ -52,7 +60,7 @@ class DigitalSwitchController:
     def get_state(self):
         return self._state
 
-    def restart_sequence(self, delay_s: float = 5.0):
+    def restart_sequence(self, delay_s: float = 2.0):
         self.turn_off()
         time.sleep(delay_s)
         self.turn_on()
@@ -63,7 +71,7 @@ def main() -> int:
 
     controller.turn_off()
     controller.turn_on()
-    time.sleep(5.0)
+    time.sleep(2.0)
     controller.turn_off()
 
     print("Switch cycle complete")
