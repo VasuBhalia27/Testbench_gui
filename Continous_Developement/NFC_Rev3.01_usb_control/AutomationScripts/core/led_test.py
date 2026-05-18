@@ -9,11 +9,17 @@ lates both the on/off procedures and the voltage-stability polling logic.
 """
 
 import time
+from pathlib import Path
 from typing import Any, Callable, Optional
+import os
+from datetime import datetime
 
 from AutomationScripts.core.trace32_adapter import Trace32Interface
 from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
+
+LOG_DIR = Path(__file__).resolve().parents[2]
+LED_LOG_PATH = LOG_DIR / "led_debug.log"
 
 
 class LedTest:
@@ -22,7 +28,15 @@ class LedTest:
     @staticmethod
     def _read_once(adapter: Trace32Interface) -> Optional[float]:
         try:
-            return float(adapter.read_variable("TestFw_LedVoltage"))
+            raw = adapter.read_variable("TestFw_LedVoltage")
+            if os.getenv("LED_DEBUG", "0") == "1":
+                try:
+                    LED_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                    with open(LED_LOG_PATH, "a", encoding="utf-8") as f:
+                        f.write(f"{datetime.utcnow().isoformat()}Z raw_led_voltage: {raw}\n")
+                except Exception:
+                    pass
+            return float(raw)
         except Exception:
             return None
 
@@ -141,6 +155,13 @@ class LedTest:
         while time.time() - start < timeout:
             try:
                 raw = adapter.read_variable("TestFw_LedVoltage")
+                if os.getenv("LED_DEBUG", "0") == "1":
+                    try:
+                        LED_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                        with open(LED_LOG_PATH, "a", encoding="utf-8") as f:
+                            f.write(f"{datetime.utcnow().isoformat()}Z poll_raw_led_voltage: {raw}\n")
+                    except Exception:
+                        pass
                 val = float(raw)
             except Exception:
                 val = None

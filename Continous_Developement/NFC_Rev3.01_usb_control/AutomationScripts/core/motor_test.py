@@ -10,11 +10,17 @@ Pass criteria: voltage > 0 mV, current > 0 mA and != 65535 mA (saturation sentin
 """
 
 import time
+from pathlib import Path
 from typing import Any, Callable, Optional, Tuple
+import os
+from datetime import datetime
 
 from AutomationScripts.core.trace32_adapter import Trace32Interface
 from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
+
+LOG_DIR = Path(__file__).resolve().parents[2]
+MOTOR_LOG_PATH = LOG_DIR / "motor_debug.log"
 
 
 class MotorOCPError(Exception):
@@ -78,16 +84,31 @@ class MotorTest:
 
     @staticmethod
     def _read_once(adapter: Trace32Interface):
+        def _maybe_log(raw_name: str, raw_val: str) -> None:
+            if os.getenv("MOTOR_DEBUG", "0") == "1":
+                try:
+                    MOTOR_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                    with open(MOTOR_LOG_PATH, "a", encoding="utf-8") as f:
+                        f.write(f"{datetime.utcnow().isoformat()}Z {raw_name}: {raw_val}\n")
+                except Exception:
+                    pass
+
         try:
-            voltage = float(adapter.read_variable("TestFw_MotorVoltage"))
+            raw_voltage = adapter.read_variable("TestFw_MotorVoltage")
+            _maybe_log("raw_voltage", str(raw_voltage))
+            voltage = float(raw_voltage)
         except Exception:
             voltage = None
         try:
-            current = float(adapter.read_variable("TestFw_MotorCurrentValue"))
+            raw_current = adapter.read_variable("TestFw_MotorCurrentValue")
+            _maybe_log("raw_current", str(raw_current))
+            current = float(raw_current)
         except Exception:
             current = None
         try:
-            load_error = float(adapter.read_variable("TestFw_MotorLoadError"))
+            raw_load_error = adapter.read_variable("TestFw_MotorLoadError")
+            _maybe_log("raw_load_error", str(raw_load_error))
+            load_error = float(raw_load_error)
         except Exception:
             load_error = None
         return voltage, current, load_error
@@ -243,18 +264,39 @@ class MotorTest:
             iteration += 1
             try:
                 raw_voltage = adapter.read_variable("TestFw_MotorVoltage")
+                if os.getenv("MOTOR_DEBUG", "0") == "1":
+                    try:
+                        MOTOR_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                        with open(MOTOR_LOG_PATH, "a", encoding="utf-8") as f:
+                            f.write(f"{datetime.utcnow().isoformat()}Z poll_raw_voltage: {raw_voltage}\n")
+                    except Exception:
+                        pass
                 voltage = float(raw_voltage)
             except Exception:
                 voltage = None
 
             try:
                 raw_current = adapter.read_variable("TestFw_MotorCurrentValue")
+                if os.getenv("MOTOR_DEBUG", "0") == "1":
+                    try:
+                        MOTOR_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                        with open(MOTOR_LOG_PATH, "a", encoding="utf-8") as f:
+                            f.write(f"{datetime.utcnow().isoformat()}Z poll_raw_current: {raw_current}\n")
+                    except Exception:
+                        pass
                 current = float(raw_current)
             except Exception:
                 current = None
 
             try:
                 raw_load_error = adapter.read_variable("TestFw_MotorLoadError")
+                if os.getenv("MOTOR_DEBUG", "0") == "1":
+                    try:
+                        MOTOR_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+                        with open(MOTOR_LOG_PATH, "a", encoding="utf-8") as f:
+                            f.write(f"{datetime.utcnow().isoformat()}Z poll_raw_load_error: {raw_load_error}\n")
+                    except Exception:
+                        pass
                 load_error = float(raw_load_error)
             except Exception:
                 load_error = None
