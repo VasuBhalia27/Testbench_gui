@@ -10,25 +10,38 @@ Usage:
 
 import os
 import time
+import warnings
 
 # Ensure Blinka MCP2221 support is enabled before importing the driver.
 os.environ["BLINKA_MCP2221"] = "1"
 
 
 class DigitalSwitchController:
-    """Controls a generic digital switch via MCP2221A GPIO pin G0."""
+    """Controls a generic digital switch via MCP2221A GPIO pin G0.
+
+    If Adafruit Blinka or the MCP2221 driver is not available, this class
+    will fall back to a software-emulated controller that logs actions but
+    allows the GUI/automation to keep running on developer machines.
+    """
 
     def __init__(self):
+        # Attempt to import hardware libraries; fall back to an emulated
+        # controller if the environment is missing required packages or
+        # the device cannot be initialised.
         try:
             import board
             import digitalio
-        except ModuleNotFoundError as exc:
-            raise RuntimeError(
-                "Failed to initialize MCP2221A GPIO controller: Blinka or MCP2221 support is not installed. "
-                "Ensure the MCP2221A is plugged in and Blinka is installed."
-            ) from exc
+        except ModuleNotFoundError:
+            warnings.warn(
+                "Adafruit Blinka or MCP2221 support not installed; using emulated digital switch",
+                RuntimeWarning,
+            )
+            self._emulate = True
+            self._state = False
+            return
 
         try:
+            self._emulate = False
             self.board = board
             self.digitalio = digitalio
             self.pin = self.digitalio.DigitalInOut(self.board.G0)
@@ -36,12 +49,19 @@ class DigitalSwitchController:
             self.pin.value = False
             self._state = False
         except Exception as exc:
-            raise RuntimeError(
-                f"Failed to initialize MCP2221A GPIO controller: {exc}. "
-                "Ensure the MCP2221A is plugged in and Blinka is installed."
-            ) from exc
+            warnings.warn(
+                f"MCP2221A GPIO initialisation failed ({exc}); falling back to emulated controller",
+                RuntimeWarning,
+            )
+            self._emulate = True
+            self._state = False
 
     def turn_on(self):
+        if getattr(self, "_emulate", False):
+            # Emulate switch on
+            self._state = True
+            warnings.warn("Emulated digital switch: turned ON", RuntimeWarning)
+            return
         try:
             if not self._state:
                 self.pin.value = True
@@ -50,6 +70,11 @@ class DigitalSwitchController:
             raise RuntimeError(f"Failed to turn ON digital switch: {exc}") from exc
 
     def turn_off(self):
+        if getattr(self, "_emulate", False):
+            # Emulate switch off
+            self._state = False
+            warnings.warn("Emulated digital switch: turned OFF", RuntimeWarning)
+            return
         try:
             if self._state:
                 self.pin.value = False

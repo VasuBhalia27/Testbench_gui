@@ -1759,7 +1759,7 @@ can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
 can_loopback_chk.place(x=560.0, y=144.0, width=24.0, height=24.0)
 
 canvas10.create_text(420.0, 178.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-can_keep_awake_var = tk.BooleanVar(value=False)
+can_keep_awake_var = tk.BooleanVar(value=True)
 can_keep_awake_chk = ttk.Checkbutton(tab10_frame, variable=can_keep_awake_var)
 can_keep_awake_chk.place(x=560.0, y=176.0, width=24.0, height=24.0)
 
