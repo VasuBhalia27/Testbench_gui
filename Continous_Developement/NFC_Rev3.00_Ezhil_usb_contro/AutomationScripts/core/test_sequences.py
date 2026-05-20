@@ -179,7 +179,6 @@ class TestSequenceRunner:
         try:
             self._log("CAPA: turning digital switch OFF and ON")
             switch_state = _automation_turn_off_switch()
-            self._log(f"CAPA: digital switch state = {'ON' if switch_state else 'OFF'}")
             switch_on_success = True
         except Exception as exc:
             self._log("Continuing test sequence...")
@@ -190,7 +189,8 @@ class TestSequenceRunner:
             if switch_on_success:
                 try:
                     switch_state = _automation_turn_on_switch()
-                    self._log("CAPA: turning digital switch ON")
+                    #self._log("CAPA: turning digital switch ON")
+                    self._log(f"CAPA: digital switch state = {'ON' if switch_state else 'OFF'}")
                 except Exception as exc:
                     self._log(f"CAPA: failed to turn digital switch off: {exc}")
 
