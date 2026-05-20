@@ -169,28 +169,30 @@ class TestSequenceRunner:
     def run_capa_test(self) -> dict:
         """Run the capacitive sensor sequence (TC_CAPA_01 and TC_CAPA_02).
 
-        Before CAPA executes, the digital switch is turned on and allowed to
-        settle for 2 seconds. After the CAPA sequence completes, the switch is
-        turned off again.
-
         Returns a dict with keys ``'capa1'`` and ``'capa2'``
         mirroring the return value of :class:`CapaTest.run`.
         capa1 requires physical sensor touch; it will fail in fully
         automated runs.
         """
         capa = CapaTest(self.adapter, status_callback=self._log)
+        switch_on_success = False
         try:
-            self._log("CAPA: turning digital switch ON...")
-            switch_state = _automation_turn_on_switch()
-            self._log(f"CAPA: digital switch state = {'ON' if switch_state else 'OFF'}")
-            time.sleep(2.0)
+            self._log("CAPA: turning digital switch OFF and ON")
+            switch_state = _automation_turn_off_switch()
+            switch_on_success = True
+        except Exception as exc:
+            self._log("Continuing test sequence...")
+
+        try:
             return capa.run()
         finally:
-            try:
-                switch_state = _automation_turn_off_switch()
-                self._log(f"CAPA: digital switch state after completion = {'ON' if switch_state else 'OFF'}")
-            except Exception as exc:
-                self._log(f"CAPA: failed to turn digital switch off: {exc}")
+            if switch_on_success:
+                try:
+                    switch_state = _automation_turn_on_switch()
+                    #self._log("CAPA: turning digital switch ON")
+                    self._log(f"CAPA: digital switch state = {'ON' if switch_state else 'OFF'}")
+                except Exception as exc:
+                    self._log(f"CAPA: failed to turn digital switch off: {exc}")
 
     @staticmethod
     def _as_number(value: Any) -> Optional[float]:
