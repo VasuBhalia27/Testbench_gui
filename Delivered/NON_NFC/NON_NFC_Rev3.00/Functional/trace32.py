@@ -651,9 +651,238 @@ def QuitTrace32(status_label=None):
             status_label.config(text="Status: Disconnected", fg="red")
 
 
+# ─────────────────────────────────────────────────────────────────
+# PSoC 4 SROM EraseAll syscall
+# ─────────────────────────────────────────────────────────────────
+# CY8C4149AZI-S575 mass-erase via on-chip SROM API (opcode 0x0A).
+# Replaces the per-row FLASH.Erase loop (1536 sectors × ~20ms ≈ 30s)
+# with a single SROM call (~25ms erase + SWD overhead ≈ <2s total).
+PSOC4_CPUSS_SYSREQ = 0x40100004
+PSOC4_CPUSS_SYSARG = 0x40100008
+PSOC4_SROM_OP_ERASE_ALL = 0x0A
+PSOC4_SROM_KEY1 = 0xB6
+
+_DEFLASH_DEBUG_LOG = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "deflash_debug.log"
+)
+
+
+def _deflash_dbg_log(msg: str) -> None:
+    """Append one line to deflash_debug.log with a timestamp."""
+    try:
+        from datetime import datetime
+        line = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}  {msg}\n"
+        with open(_DEFLASH_DEBUG_LOG, "a", encoding="utf-8") as fh:
+            fh.write(line)
+    except Exception:
+        pass
+    try:
+        print("[deflash]", msg)
+    except Exception:
+        pass
+
+
+def _dbg_step(dbg_inst, label: str, kind: str, payload: str):
+    """Run one TRACE32 RCL call, logging every step + any exception.
+
+    kind = 'cmd' | 'fnc'.  Returns (ok, value_or_exc).
+    """
+    _deflash_dbg_log(f"  step {label}: {kind} '{payload}'")
+    try:
+        if kind == 'cmd':
+            dbg_inst.cmd(payload)
+            return True, None
+        else:
+            val = dbg_inst.fnc(payload)
+            _deflash_dbg_log(f"    -> {val!r}")
+            return True, val
+    except Exception as exc:
+        _deflash_dbg_log(f"    !! EXC: {type(exc).__name__}: {exc!r}")
+        return False, exc
+
+
+def _psoc4_srom_erase_all(dbg_inst, timeout_s: float = 3.0, log_fn=None):
+    """Mass-erase PSoC 4 flash via SROM EraseAll syscall.
+
+    Strategy (openocd-style):
+        - Place a 6-byte thumb stub in SRAM:
+              str r1, [r0]   ; *SYSARG = sysarg_val
+              str r3, [r2]   ; *SYSREQ = sysreq_val  -> SROM NMI fires here
+              bkpt #0        ; halt when SROM returns
+        - Preload R0..R3 with addresses/values.
+        - Run CPU; SROM completes ~25 ms; BKPT halts.
+        - Read SYSARG for status (0xA0000000 = OK).
+
+    Required because PSoC 4 SROM SYSREQ trigger ignores debugger AHB-AP
+    writes — the request must come from the CPU bus.
+
+    Parameter layout in SYSARG (Cypress AN89610 / openocd psoc4.c):
+        byte0 = opcode (0x0A), byte1 = KEY1 (0xB6), byte2 = KEY2+op (0xDD)
+        -> 0x00DDB60A
+    SYSREQ = bit31 (SYSCALL_REQ) | bit30 (HMASTER) | opcode = 0xC000000A.
+
+    Returns (success: bool, detail: str).
+    """
+    def _say(msg):
+        _deflash_dbg_log(msg)
+        if log_fn is not None:
+            try:
+                log_fn(msg)
+            except Exception:
+                pass
+
+    op   = PSOC4_SROM_OP_ERASE_ALL
+    key2 = (0xD3 + op) & 0xFF
+    sysarg_val = op | (PSOC4_SROM_KEY1 << 8) | (key2 << 16)   # 0x00DDB60A
+    sysreq_val = 0xC0000000 | op                              # REQ|HMASTER|op
+
+    # Thumb stub @ 0x20000000:
+    #   0x20000000: 0x6001  str r1,[r0]      ; *SYSARG = sysarg_val
+    #   0x20000002: 0x6013  str r3,[r2]      ; *SYSREQ = sysreq_val
+    #   0x20000004: 0xE7FE  b .              ; loop here while SROM runs
+    #   0x20000006: 0xBE00  bkpt #0          ; (unreachable safety)
+    #
+    # CPU keeps running the `b .` loop while the SROM NMI handler executes
+    # in the background. We poll SYSREQ.SYSCALL_REQ from the debugger and
+    # explicitly Break the loop once SROM has cleared bit31.
+    # Earlier BKPT-based stub failed because the CPU halt at BKPT had
+    # higher priority than the pending NMI — SROM never dispatched.
+    STUB_BASE       = 0x20000000
+    STUB_WORD0      = 0x60136001    # str r1,[r0] ; str r3,[r2]
+    STUB_WORD1      = 0xBE00E7FE    # b . ; bkpt #0
+    STUB_SP         = 0x20002000
+    LOOP_PC         = 0x20000004    # `b .` instruction address
+
+    _say(f"=== SROM EraseAll begin "
+         f"(SYSARG=0x{sysarg_val:08X} SYSREQ=0x{sysreq_val:08X}) ===")
+
+    # 1. Halt CPU.
+    _dbg_step(dbg_inst, "1.break", 'cmd', 'Break')
+
+    # 2. Write SRAM stub. Try a couple of access-class flavours.
+    for label, payload in [
+        ("2a.stub_w0", f'Data.Set SD:0x{STUB_BASE:08X} %Long 0x{STUB_WORD0:08X}'),
+        ("2b.stub_w1", f'Data.Set SD:0x{STUB_BASE+4:08X} %Long 0x{STUB_WORD1:08X}'),
+    ]:
+        ok, exc = _dbg_step(dbg_inst, label, 'cmd', payload)
+        if not ok:
+            # retry without SD: access class
+            payload2 = payload.replace("SD:", "")
+            ok, exc = _dbg_step(dbg_inst, label + ".retry", 'cmd', payload2)
+            if not ok:
+                return False, f"stub write failed: {exc}"
+
+    # 3. Preload registers for the stub.
+    # CONTROL=0: privileged thread mode, MSP. Required so the CPU-side
+    # str to CPUSS_SYSREQ asserts HMASTER privilege (bit30) — PSoC 4 SROM
+    # rejects EraseAll if the request came from unprivileged context.
+    reg_writes = [
+        ("3a.r0",       f'Register.Set R0 0x{PSOC4_CPUSS_SYSARG:08X}'),
+        ("3b.r1",       f'Register.Set R1 0x{sysarg_val:08X}'),
+        ("3c.r2",       f'Register.Set R2 0x{PSOC4_CPUSS_SYSREQ:08X}'),
+        ("3d.r3",       f'Register.Set R3 0x{sysreq_val:08X}'),
+        ("3e.sp",       f'Register.Set SP 0x{STUB_SP:08X}'),
+        ("3f.lr",       f'Register.Set LR 0xFFFFFFFE'),
+        ("3g.control",  f'Register.Set CONTROL 0x00000000'),
+        ("3h.primask",  f'Register.Set PRIMASK 0x00000001'),  # mask IRQs (NMI unmaskable)
+        ("3i.pc",       f'Register.Set PC 0x{STUB_BASE | 1:08X}'),
+    ]
+    for label, payload in reg_writes:
+        ok, exc = _dbg_step(dbg_inst, label, 'cmd', payload)
+        if not ok:
+            _say(f"{label} skipped: {exc}")
+            # CONTROL / PRIMASK may not be writable by name on every
+            # TRACE32 build — non-fatal, continue.
+            if label.startswith(("3g", "3h")):
+                continue
+            return False, f"{label} failed: {exc}"
+
+    # 4. Read back to sanity-check the writes hit silicon.
+    for label, expr in [
+        ("4a.read.stub0", f'Data.Long(SD:0x{STUB_BASE:08X})'),
+        ("4b.read.stub1", f'Data.Long(SD:0x{STUB_BASE+4:08X})'),
+        ("4c.read.r1",    'Register(R1)'),
+        ("4d.read.r3",    'Register(R3)'),
+    ]:
+        _dbg_step(dbg_inst, label, 'fnc', expr)
+
+    # 5. Pre-Go state snapshot.
+    _dbg_step(dbg_inst, "5a.pc_before",      'fnc', 'Register(PC)')
+    _dbg_step(dbg_inst, "5b.state_before",   'fnc', 'STATE.RUN()')
+    _dbg_step(dbg_inst, "5c.sysmode",        'fnc', 'STATE.TARGET()')
+    _dbg_step(dbg_inst, "5d.control_before", 'fnc', 'Register(CONTROL)')
+    _dbg_step(dbg_inst, "5e.primask_before", 'fnc', 'Register(PRIMASK)')
+
+    # 6. Run. CPU executes 2 strs, then loops in `b .`. NMI dispatches
+    #    to SROM. SROM erases all flash (~25-50 ms typical, but can
+    #    cause transient SWD drop on PSoC 4 if HFCLK is re-tuned).
+    ok, exc = _dbg_step(dbg_inst, "6.go", 'cmd', 'Go')
+    if not ok:
+        return False, f"Go failed: {exc}"
+
+    # 7. Fixed wait. SROM EraseAll is bounded by Cypress datasheet
+    #    at ~50 ms; we wait 1.5 s to cover the worst case plus any
+    #    SWD/PLL settling.
+    time.sleep(1.5)
+
+    # 8. Diagnose target state but DO NOT reconnect — TRACE32's
+    #    SYStem.Up / Mode Attach can trigger the configured PRACTICE
+    #    autoload, which re-flashes the BMW firmware and silently
+    #    undoes the erase. SD: memory access works over DAP and is
+    #    independent of CPU/SYStem state, so we read flash directly
+    #    even if STATE.TARGET() == 'system down'.
+    ok_st, st_v = _dbg_step(dbg_inst, "8a.state", 'fnc', 'STATE.TARGET()')
+    _say(f"post-go target state: {st_v!r}")
+
+    # 9. Ground truth: blank-check flash via debug-bus read. Erased
+    #    PSoC 4 flash reads 0x00000000. Try several addresses; retry
+    #    on transient SWD errors.
+    flash_addrs = [0x00000000, 0x00000004, 0x00000010, 0x00030000, 0x0005FFFC]
+    flash_reads = {}
+    for addr in flash_addrs:
+        for attempt in range(4):
+            ok_r, val_r = _dbg_step(
+                dbg_inst, f"9.read_0x{addr:08X}.t{attempt}", 'fnc',
+                f'Data.Long(SD:0x{addr:08X})'
+            )
+            if ok_r:
+                try:
+                    flash_reads[addr] = int(val_r)
+                    break
+                except Exception:
+                    pass
+            time.sleep(0.1)
+        else:
+            flash_reads[addr] = None
+
+    # Diagnostics: SYSREQ/SYSARG (SROM status) — independent corroboration.
+    ok_sa, sa_v = _dbg_step(dbg_inst, "9b.sysarg_after", 'fnc',
+                            f'Data.Long(SD:0x{PSOC4_CPUSS_SYSARG:08X})')
+    ok_sr, sr_v = _dbg_step(dbg_inst, "9c.sysreq_after", 'fnc',
+                            f'Data.Long(SD:0x{PSOC4_CPUSS_SYSREQ:08X})')
+
+    bc_i = flash_reads.get(0x00000000)
+    _say(f"flash sample: {{ {', '.join(f'0x{a:08X}=' + ('READ_ERR' if v is None else f'0x{v:08X}') for a, v in flash_reads.items())} }}")
+    _say(f"SROM regs: SYSARG={sa_v!r} SYSREQ={sr_v!r}")
+    if bc_i is None:
+        return False, f"post-erase flash read failed (SD: returned error)"
+
+    # Also read post-state for diagnostics.
+    _dbg_step(dbg_inst, "9b.sysarg_after", 'fnc',
+              f'Data.Long(SD:0x{PSOC4_CPUSS_SYSARG:08X})')
+    _dbg_step(dbg_inst, "9c.sysreq_after", 'fnc',
+              f'Data.Long(SD:0x{PSOC4_CPUSS_SYSREQ:08X})')
+
+    _say(f"post-erase flash[0] = 0x{bc_i:08X}")
+    if bc_i == 0x00000000:
+        return True, "SROM EraseAll OK (flash blank-verified)"
+
+    return False, f"SROM EraseAll: flash[0]=0x{bc_i:08X} (not erased)"
+
+
 def DeflashPcb(status_label=None, progress_callback=None):
     """Erase the PSoC4 flash via TRACE32 and verify it is blank.
-    
+
     Args:
         status_label: optional label widget to update with status messages
         progress_callback: optional callable(percent) to update progress (0-100)
@@ -675,34 +904,67 @@ def DeflashPcb(status_label=None, progress_callback=None):
     start_time = time.monotonic()
     try:
         if progress_callback: progress_callback(0)
+
+        # Boost SWD clock so the per-row FLASH.Erase loop runs as fast
+        # as the chip allows. Default JTAG clock is often 1 MHz; PSoC 4
+        # supports SWD up to ~25 MHz. 10 MHz gives ~10x speedup on the
+        # SWD transactions that dominate the erase loop.
+        for _spd in ('SYStem.JtagClock 10MHz',
+                     'SYStem.BdmClock 10MHz',
+                     'SYStem.JtagClock 5MHz'):
+            try:
+                dbg.cmd(_spd)
+                _deflash_dbg_log(f"SWD speed set via: {_spd}")
+                break
+            except Exception as _e:
+                _deflash_dbg_log(f"  speed cmd '{_spd}' failed: {_e!r}")
+
+        def _ts(label):
+            _deflash_dbg_log(f"  +{time.monotonic()-start_time:6.2f}s  {label}")
+
+        _ts("Break")
         dbg.cmd('Break')
         if progress_callback: progress_callback(10)
-        
+
+        _ts("FLASH.RESet")
         dbg.cmd('FLASH.RESet')
         if progress_callback: progress_callback(20)
-        
+
+        _ts("FLASH.Create")
         dbg.cmd('FLASH.Create 1. 0x00000000++0x5FFFF 0x100 TARGET Byte')
         if progress_callback: progress_callback(30)
-        
+
+        _ts("FLASH.TARGET (load algo)")
         dbg.cmd('FLASH.TARGET 0x20000000 0x20000800 0x300'
                 ' ~~/demo/arm/flash/long/psoc41x9s.bin /STACKSIZE 0x4D0')
         if progress_callback: progress_callback(40)
-        
+
+        _ts("FLASH.Erase ALL (start)")
         dbg.cmd('FLASH.Erase ALL')
+        _ts("FLASH.Erase ALL (done)")
         if progress_callback: progress_callback(60)
-        
+
         dbg.cmd('FLASH.ReProgram OFF')
+        _ts("FLASH.ReProgram OFF")
         if progress_callback: progress_callback(70)
 
         blank_check_addrs = [0x00000000, 0x00030000, 0x0005FFFC]
         blank_fail = []
         for i, addr in enumerate(blank_check_addrs):
-            try:
-                val = int(dbg.fnc(f"Data.Long(A:0x{addr:08X})"))
-                if val != 0x00000000:
-                    blank_fail.append(f"0x{addr:08X}=0x{val:08X}")
-            except Exception:
+            # SD: = System Debug bus. Survives CPU-fault states left by
+            # the SROM EraseAll (CPU may HardFault when flash is blank).
+            val = None
+            for expr in (f"Data.Long(SD:0x{addr:08X})",
+                         f"Data.Long(A:0x{addr:08X})"):
+                try:
+                    val = int(dbg.fnc(expr))
+                    break
+                except Exception:
+                    val = None
+            if val is None:
                 blank_fail.append(f"0x{addr:08X}=READ_ERROR")
+            elif val != 0x00000000:
+                blank_fail.append(f"0x{addr:08X}=0x{val:08X}")
             if progress_callback: progress_callback(70 + (i + 1) * 10)
 
         dbg.cmd('SYStem.Down')

@@ -3,49 +3,38 @@ param(
     [switch]$Quiet
 )
 
-$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$script:PythonLauncher = 'python'
+$script:PythonLauncherArgs = @()
+$script:LastPythonExitCode = 0
 
 function Write-Section {
     param([string]$Title)
     if (-not $Quiet) {
-        Write-Host ""
-        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ''
+        Write-Host '========================================' -ForegroundColor Cyan
         Write-Host " $Title" -ForegroundColor Cyan
-        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host '========================================' -ForegroundColor Cyan
     }
 }
 
-function Write-Info {
-    param([string]$Message)
-    if (-not $Quiet) { Write-Host "[INFO] $Message" -ForegroundColor Gray }
-}
-
-function Write-Ok {
-    param([string]$Message)
-    Write-Host "[OK]   $Message" -ForegroundColor Green
-}
-
-function Write-Warn {
-    param([string]$Message)
-    Write-Host "[WARN] $Message" -ForegroundColor Yellow
-}
-
-function Write-Fail {
-    param([string]$Message)
-    Write-Host "[FAIL] $Message" -ForegroundColor Red
-}
-
-$script:UsePyLauncher = $false
-$script:LastPythonExitCode = 0
+function Write-Info { param([string]$Message) if (-not $Quiet) { Write-Host "[INFO]  $Message" -ForegroundColor Gray } }
+function Write-Ok { param([string]$Message) Write-Host "[OK]    $Message" -ForegroundColor Green }
+function Write-Warn { param([string]$Message) Write-Host "[WARN]  $Message" -ForegroundColor Yellow }
+function Write-ErrorLine { param([string]$Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
 
 function Invoke-Python {
     param([string[]]$PythonArgs)
-    if ($script:UsePyLauncher) {
-        & py -3 @PythonArgs
-    } else {
-        & python @PythonArgs
+
+    try {
+        $output = & $script:PythonLauncher @($script:PythonLauncherArgs + $PythonArgs) 2>&1
+        $script:LastPythonExitCode = $LASTEXITCODE
+        return $output
+    } catch {
+        $script:LastPythonExitCode = -1
+        return @($_.Exception.Message)
     }
-    $script:LastPythonExitCode = [int]$LASTEXITCODE
 }
 
 function Test-Command {
@@ -53,74 +42,150 @@ function Test-Command {
     return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
-$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\.." )).Path
-$ConfigReq = Join-Path $RepoRoot "Config\requirements.txt"
-$AutoReq = Join-Path $RepoRoot "AutomationScripts\requirements.txt"
+function New-PythonTempFile {
+    param([string[]]$Lines)
+    $tmp = Join-Path $env:TEMP ("smartebu_py_{0}.py" -f ([guid]::NewGuid()))
+    $Lines | Out-File -FilePath $tmp -Encoding utf8
+    return $tmp
+}
 
-Write-Section "SmartBU Prerequisite Installer"
+function Get-PythonVersion {
+    $tmpFile = New-PythonTempFile -Lines @(
+        'import sys',
+        'print(f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}")'
+    )
+    $output = Invoke-Python -PythonArgs @($tmpFile)
+    Remove-Item -Path $tmpFile -ErrorAction SilentlyContinue
+    if ($script:LastPythonExitCode -ne 0) { return $null }
+    return ($output | Select-Object -First 1).Trim()
+}
+
+function Compare-PythonVersion {
+    param(
+        [string]$VersionString,
+        [int]$Major,
+        [int]$Minor
+    )
+    if (-not $VersionString) { return $false }
+    try {
+        $parts = $VersionString.Split('.') | ForEach-Object {[int]$_}
+        return ($parts[0] -gt $Major) -or ($parts[0] -eq $Major -and $parts[1] -ge $Minor)
+    } catch {
+        return $false
+    }
+}
+
+function Run-PythonCheck {
+    param(
+        [string[]]$PythonLines,
+        [string]$TempFileName
+    )
+
+    $tmpFile = Join-Path $env:TEMP $TempFileName
+    $PythonLines | Out-File -FilePath $tmpFile -Encoding utf8
+    $output = Invoke-Python -PythonArgs @($tmpFile)
+    Remove-Item -Path $tmpFile -ErrorAction SilentlyContinue
+    return $output
+}
+
+$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$ConfigReq = Join-Path $RepoRoot 'Config\requirements.txt'
+$AutoReq = Join-Path $RepoRoot 'AutomationScripts\requirements.txt'
+
+Write-Section 'SmartBU Prerequisite Installer'
 Write-Info "Repository root: $RepoRoot"
 
-Write-Section "Python Detection"
-if (Test-Command "python") {
-    Write-Ok "python found"
-    $script:UsePyLauncher = $false
-} elseif (Test-Command "py") {
-    Write-Ok "py launcher found (using py -3)"
-    $script:UsePyLauncher = $true
-} else {
-    Write-Fail "Python not found in PATH. Install Python 3.10+ and re-run."
-    exit 1
-}
+Write-Section 'Python Detection'
+$pythonFound = $false
+$pythonVersion = $null
 
-$null = Invoke-Python -PythonArgs @("--version")
-$pyVersionCode = $script:LastPythonExitCode
-if ($pyVersionCode -ne 0) {
-    Write-Fail "Unable to execute Python."
-    exit 1
-}
-
-Write-Section "Python Package Installation"
-if ($SkipPip) {
-    Write-Warn "Skipping pip install because -SkipPip was provided."
-} else {
-    $null = Invoke-Python -PythonArgs @("-m", "pip", "install", "--upgrade", "pip")
-    $pipUpgrade = $script:LastPythonExitCode
-    if ($pipUpgrade -eq 0) {
-        Write-Ok "pip upgraded"
-    } else {
-        Write-Warn "pip upgrade failed (continuing with requirements install)"
+if (Test-Command 'python') {
+    $script:PythonLauncher = 'python'
+    $script:PythonLauncherArgs = @()
+    $pythonVersion = Get-PythonVersion
+    if (Compare-PythonVersion -VersionString $pythonVersion -Major 3 -Minor 10) {
+        Write-Ok "python found: $pythonVersion"
+        $pythonFound = $true
     }
+}
+
+if (-not $pythonFound -and (Test-Command 'py')) {
+    $script:PythonLauncher = 'py'
+    $script:PythonLauncherArgs = @('-3')
+    $pythonVersion = Get-PythonVersion
+    if (Compare-PythonVersion -VersionString $pythonVersion -Major 3 -Minor 10) {
+        Write-Ok "py launcher found: $pythonVersion"
+        $pythonFound = $true
+    }
+}
+
+if (-not $pythonFound) {
+    Write-ErrorLine 'Python 3.10+ not found. Install Python 3.10+ and re-run.'
+    exit 1
+}
+
+Write-Info "Using Python runtime: $script:PythonLauncher $($script:PythonLauncherArgs -join ' ')"
+Invoke-Python -PythonArgs @('--version')
+if ($script:LastPythonExitCode -ne 0) {
+    Write-ErrorLine 'Unable to execute selected Python runtime.'
+    exit 1
+}
+
+function Try-PipInstall {
+    param([string[]]$CommandArgs)
+
+    $output = Invoke-Python -PythonArgs $CommandArgs
+    if ($script:LastPythonExitCode -eq 0) { return 0 }
+
+    $userArgs = @()
+    $inserted = $false
+    foreach ($a in $CommandArgs) {
+        $userArgs += $a
+        if (-not $inserted -and $a -eq 'install') {
+            $userArgs += '--user'
+            $inserted = $true
+        }
+    }
+    if (-not $inserted) { $userArgs += '--user' }
+
+    $output = Invoke-Python -PythonArgs $userArgs
+    if ($output) { foreach ($line in $output) { Write-Host $line } }
+    return $script:LastPythonExitCode
+}
+
+Write-Section 'Python Package Installation'
+if ($SkipPip) {
+    Write-Warn 'Skipping pip install because -SkipPip was provided.'
+} else {
+    Write-Info 'Upgrading pip'
+    Try-PipInstall -CommandArgs @('-m','pip','install','--upgrade','pip') | Out-Null
 
     if (Test-Path $ConfigReq) {
-        Write-Info "Installing Config requirements"
-        $null = Invoke-Python -PythonArgs @("-m", "pip", "install", "-r", $ConfigReq)
-        $rc1 = $script:LastPythonExitCode
-        if ($rc1 -eq 0) {
-            Write-Ok "Installed Config requirements"
-        } else {
-            Write-Fail "Failed to install Config requirements"
-            exit 1
-        }
+        Write-Info 'Installing Config requirements'
+        $rc = Try-PipInstall -CommandArgs @('-m','pip','install','-r',$ConfigReq)
+        if ($rc -eq 0) { Write-Ok 'Config requirements installed' } else { Write-Warn 'Config requirements install failed' }
     } else {
-        Write-Warn "Missing file: $ConfigReq"
+        Write-Warn 'Config requirements file missing'
     }
 
     if (Test-Path $AutoReq) {
-        Write-Info "Installing AutomationScripts requirements"
-        $null = Invoke-Python -PythonArgs @("-m", "pip", "install", "-r", $AutoReq)
-        $rc2 = $script:LastPythonExitCode
-        if ($rc2 -eq 0) {
-            Write-Ok "Installed AutomationScripts requirements"
-        } else {
-            Write-Fail "Failed to install AutomationScripts requirements"
-            exit 1
-        }
+        Write-Info 'Installing AutomationScripts requirements'
+        $rc = Try-PipInstall -CommandArgs @('-m','pip','install','-r',$AutoReq)
+        if ($rc -eq 0) { Write-Ok 'AutomationScripts requirements installed' } else { Write-Warn 'AutomationScripts requirements install failed' }
     } else {
-        Write-Warn "Missing file: $AutoReq"
+        Write-Warn 'AutomationScripts requirements file missing'
     }
+
+    Write-Info 'Installing MCP2221 support package'
+    $rc = Try-PipInstall -CommandArgs @('-m','pip','install','mcp2221')
+    if ($rc -eq 0) { Write-Ok 'mcp2221 installed' } else { Write-Warn 'mcp2221 install failed' }
+
+    Write-Info 'Installing PyVISA support packages'
+    $rc = Try-PipInstall -CommandArgs @('-m','pip','install','pyvisa','pyvisa-py')
+    if ($rc -eq 0) { Write-Ok 'PyVISA support packages installed' } else { Write-Warn 'PyVISA support install failed' }
 }
 
-Write-Section "VISA Runtime / Driver Checks"
+Write-Section 'VISA Runtime / Driver Checks'
 $visaCandidates = @(
     "$env:WINDIR\System32\visa64.dll",
     "$env:WINDIR\System32\visa32.dll",
@@ -134,55 +199,77 @@ foreach ($candidate in $visaCandidates) {
         break
     }
 }
-if (-not $visaFound) {
-    Write-Warn "NI-VISA runtime not detected. Install NI-VISA Runtime:"
-    Write-Warn "https://www.ni.com/en/support/downloads/drivers/download.ni-visa.html"
+if (-not $visaFound) { Write-Warn 'NI-VISA runtime not detected' }
+
+Write-Section 'PyVISA Package / Backend Check'
+$pyvisaLines = @(
+    'import importlib.util',
+    'print("PYVISA_IMPORT_OK" if importlib.util.find_spec("pyvisa") else "PYVISA_IMPORT_MISSING")',
+    'try:',
+    '    import pyvisa',
+    '    print("PYVISA_VERSION", pyvisa.__version__)',
+    '    try:',
+    '        rm = pyvisa.ResourceManager()',
+    '        print("PYVISA_BACKEND_DEFAULT_OK")',
+    '        resources = rm.list_resources()',
+    '        print(f"PyVISA resources found: {len(resources)}")',
+    '    except Exception as exc_default:',
+    '        print("PYVISA_BACKEND_DEFAULT_FAIL", exc_default)',
+    '        try:',
+    '            rm = pyvisa.ResourceManager("@py")',
+    '            print("PYVISA_BACKEND_PY_OK")',
+    '            resources = rm.list_resources()',
+    '            print(f"PyVISA resources found: {len(resources)}")',
+    '        except Exception as exc_py:',
+    '            print("PYVISA_BACKEND_PY_FAIL", exc_py)',
+    'except Exception as exc:',
+    '    print("PYVISA_IMPORT_FAIL", exc)'
+)
+$pyvisaOut = Run-PythonCheck -PythonLines $pyvisaLines -TempFileName ('smartebu_pyvisa_check_{0}.py' -f ([guid]::NewGuid()))
+foreach ($line in $pyvisaOut) { Write-Host $line }
+
+$hasImportOk = $pyvisaOut | Where-Object { $_ -match 'PYVISA_IMPORT_OK' }
+$hasBackendDefaultOk = $pyvisaOut | Where-Object { $_ -match 'PYVISA_BACKEND_DEFAULT_OK' }
+$hasBackendPyOk = $pyvisaOut | Where-Object { $_ -match 'PYVISA_BACKEND_PY_OK' }
+
+if ($hasImportOk) {
+    Write-Ok 'PyVISA package available'
+    if ($hasBackendDefaultOk) {
+        Write-Ok 'PyVISA default backend available'
+    } elseif ($hasBackendPyOk) {
+        Write-Warn 'PyVISA default backend unavailable; pyvisa-py backend is available'
+    } else {
+        Write-Warn 'PyVISA package installed, but no backend is available'
+    }
+} else {
+    Write-Warn 'PyVISA package missing or import failed'
 }
 
-Write-Section "PyVISA Resource Check"
-$pyvisaCheckCode = @"
-import pyvisa
-try:
-    rm = pyvisa.ResourceManager()
-    resources = rm.list_resources()
-    print('RESOURCES:', resources)
-except Exception as exc:
-    print('PYVISA_ERROR:', exc)
-"@
-$null = Invoke-Python -PythonArgs @("-c", $pyvisaCheckCode)
-$rcPyvisa = $script:LastPythonExitCode
-if ($rcPyvisa -eq 0) {
-    Write-Ok "PyVISA check executed"
-} else {
-    Write-Warn "PyVISA check failed"
-}
+Write-Section 'Adafruit Blinka / MCP2221 Support'
+$blinkaLines = @(
+    'import importlib.util',
+    'print("BLINKA_OK" if importlib.util.find_spec("adafruit_blinka") else "BLINKA_MISSING")',
+    'print("MCP2221_OK" if importlib.util.find_spec("MCP2221") else "MCP2221_MISSING")'
+)
+$blinkaOut = Run-PythonCheck -PythonLines $blinkaLines -TempFileName ('smartebu_blinka_check_{0}.py' -f ([guid]::NewGuid()))
+foreach ($line in $blinkaOut) { Write-Host $line }
 
-Write-Section "Lauterbach / Trace32 Checks"
-$trace32Exe = "C:\T32\bin\windows64\t32marm.exe"
-if (Test-Path $trace32Exe) {
-    Write-Ok "Trace32 executable found: $trace32Exe"
-} else {
-    Write-Warn "Trace32 executable not found at $trace32Exe"
-}
+$hasCoreOk = $blinkaOut | Where-Object { $_ -match 'BLINKA_OK' }
+$hasMcpOk = $blinkaOut | Where-Object { $_ -match 'MCP2221_OK' }
+
+if ($hasCoreOk) { Write-Ok 'Adafruit Blinka package available' } else { Write-Warn 'Adafruit Blinka package missing' }
+if ($hasMcpOk) { Write-Ok 'MCP2221 package available' } else { Write-Warn 'MCP2221 package missing' }
+
+Write-Section 'Lauterbach / Trace32 Checks'
+$trace32Exe = 'C:\T32\bin\windows64\t32marm.exe'
+if (Test-Path $trace32Exe) { Write-Ok "Trace32 executable found: $trace32Exe" } else { Write-Warn 'Trace32 executable not found' }
 
 try {
-    $devices = Get-PnpDevice -PresentOnly -ErrorAction Stop |
-        Where-Object { $_.FriendlyName -match "Lauterbach|PODBUS" }
-    if ($devices) {
-        Write-Ok "Lauterbach debugger device detected"
-    } else {
-        Write-Warn "No Lauterbach device detected (plug debugger if required)"
-    }
+    $devices = Get-PnpDevice -PresentOnly -ErrorAction Stop | Where-Object { $_.FriendlyName -match 'Lauterbach|PODBUS' }
+    if ($devices) { Write-Ok 'Lauterbach debugger device detected' } else { Write-Warn 'No Lauterbach debugger device detected' }
 } catch {
-    Write-Warn "Could not query PnP devices. Run PowerShell as Administrator if needed."
+    Write-Warn 'Unable to query PnP devices'
 }
 
-Write-Section "Manual Next Steps"
-Write-Host "1. If NI-VISA was missing, install it and reconnect PSU." -ForegroundColor White
-Write-Host "2. For OWON runs: set PSU_TYPE=owon (optional if already default)." -ForegroundColor White
-Write-Host "3. For KIKUSUI runs: set PSU_TYPE=kikusui before launch." -ForegroundColor White
-Write-Host "4. Launch manual GUI: ManualTest\\SmartBuApp.bat" -ForegroundColor White
-Write-Host "5. Launch automation GUI via your normal workflow." -ForegroundColor White
-
-Write-Host "" 
-Write-Host "Completed prerequisite setup/checks." -ForegroundColor Green
+Write-Section 'Summary'
+Write-Host 'Completed prerequisite checks.' -ForegroundColor Green

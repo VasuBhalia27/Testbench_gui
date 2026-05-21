@@ -25,6 +25,40 @@ from AutomationScripts.core.capa_test import CapaTest
 from AutomationScripts.core.timing_profile import TIMING
 from Functional.trace32 import TestFunctionCmd
 
+# Digital switch integration for CAPA automation.
+digital_switch_import_error = None
+DigitalSwitchController = None
+try:
+    from digital_switch_cycle import DigitalSwitchController
+except Exception as exc:
+    digital_switch_import_error = exc
+
+_digital_switch_controller = None
+
+def _get_digital_switch_controller():
+    global _digital_switch_controller
+    if _digital_switch_controller is None:
+        if DigitalSwitchController is None:
+            raise RuntimeError(
+                f"Cannot import DigitalSwitchController: {digital_switch_import_error}"
+            )
+        _digital_switch_controller = DigitalSwitchController()
+    return _digital_switch_controller
+
+
+def _automation_turn_on_switch():
+    controller = _get_digital_switch_controller()
+    controller.turn_on()
+    return controller.get_state()
+
+
+def _automation_turn_off_switch():
+    global _digital_switch_controller
+    if _digital_switch_controller is None:
+        return False
+    _digital_switch_controller.turn_off()
+    return _digital_switch_controller.get_state()
+
 
 class TestSequenceError(Exception):
     """Raised when a sequence cannot complete successfully."""
@@ -141,7 +175,24 @@ class TestSequenceRunner:
         automated runs.
         """
         capa = CapaTest(self.adapter, status_callback=self._log)
-        return capa.run()
+        switch_on_success = False
+        try:
+            self._log("CAPA: turning digital switch OFF and ON")
+            switch_state = _automation_turn_off_switch()
+            switch_on_success = True
+        except Exception as exc:
+            self._log("Continuing test sequence...")
+
+        try:
+            return capa.run()
+        finally:
+            if switch_on_success:
+                try:
+                    switch_state = _automation_turn_on_switch()
+                    #self._log("CAPA: turning digital switch ON")
+                    self._log(f"CAPA: digital switch state = {'ON' if switch_state else 'OFF'}")
+                except Exception as exc:
+                    self._log(f"CAPA: failed to turn digital switch off: {exc}")
 
     @staticmethod
     def _as_number(value: Any) -> Optional[float]:
