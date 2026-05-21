@@ -382,7 +382,12 @@ def _on_disconnect_trace32():
         if df_result and df_result.get("pass"):
             deflash_warning_lbl.config(text="Status: De-flash PASS")
         else:
-            deflash_warning_lbl.config(text="Status: De-flash FAILED")
+            _detail = (df_result or {}).get("detail", "") if df_result else ""
+            _detail_short = (_detail[:120] + "...") if len(_detail) > 120 else _detail
+            deflash_warning_lbl.config(
+                text=f"Status: De-flash FAILED\n{_detail_short}"
+            )
+            print(f"[deflash] FAILED: {_detail}")
     except Exception as exc:
         df_result = {
             "pass": False,
