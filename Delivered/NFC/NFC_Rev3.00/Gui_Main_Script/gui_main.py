@@ -681,14 +681,14 @@ def _evaluate_led_results():
         v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
         _set_pf(tab3_lbl_voltage_off, passed)
-    else:  # Led_On: voltage should be > 0
+    else:  # Led_On: voltage should be > 2400
         v = _parse_num(tab3_entry_led_on)
-        passed = v is not None and v > 0
+        passed = v is not None and v > 2400
         _set_pf(tab3_lbl_voltage_on, passed)
     results = []
     if tab3_entry_led_on.get().strip():
         vn = _parse_num(tab3_entry_led_on)
-        results.append(vn is not None and vn > 0)
+        results.append(vn is not None and vn > 2400)
     if tab3_entry_led_off.get().strip():
         vn = _parse_num(tab3_entry_led_off)
         results.append(vn is not None and 0 <= vn <= 10)

@@ -676,14 +676,14 @@ def _evaluate_led_results():
         v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
         _set_pf(tab3_lbl_voltage_off, passed)
-    else:  # Led_On: voltage should be > 0
+    else:  # Led_On: voltage should be > 2400
         v = _parse_num(tab3_entry_led_on)
-        passed = v is not None and v > 0
+        passed = v is not None and v > 2400
         _set_pf(tab3_lbl_voltage_on, passed)
     results = []
     if tab3_entry_led_on.get().strip():
         vn = _parse_num(tab3_entry_led_on)
-        results.append(vn is not None and vn > 0)
+        results.append(vn is not None and vn > 2400)
     if tab3_entry_led_off.get().strip():
         vn = _parse_num(tab3_entry_led_off)
         results.append(vn is not None and 0 <= vn <= 10)
@@ -1572,142 +1572,6 @@ canvas9.create_text(
     fill="#FFFFFF",
     font=("Inter BoldItalic", 24 * -1)
 )
-# ===================================================================================================================
-# ===================================================================================================================
-# ========== TAB NFC SELF (NFC SPI Self-Test + LED Output Check) =====================================================
-
-tab_nfc_self = ttk.Frame(notebook)
-notebook.add(tab_nfc_self, text="NFC SELF")
-
-tab_nfc_self_frame = tk.Frame(tab_nfc_self, bg="#DFDFDF")
-tab_nfc_self_frame.pack(fill="both", expand=True)
-
-canvas_nfc_self = tk.Canvas(
-    tab_nfc_self_frame,
-    bg="#DFDFDF",
-    height=651,
-    width=973,
-    bd=0,
-    highlightthickness=0,
-    relief="ridge"
-)
-canvas_nfc_self.place(x=0, y=0)
-
-images["nfc_self_logo"] = PhotoImage(file=relative_to_assets("minebea_logo_9.png", "tab_nfc_self"))
-canvas_nfc_self.create_image(145.0, 37.0, image=images["nfc_self_logo"])
-
-images["nfc_self_tile"] = PhotoImage(file=relative_to_assets("Tile.png", "tab_nfc_self"))
-canvas_nfc_self.create_image(tablet1_X, tablet1_Y + 10, image=images["nfc_self_tile"])
-
-canvas_nfc_self.create_text(
-    260.0, 20.0, anchor="nw",
-    text="U-Shin India", fill="#FFFFFF",
-    font=("Inter BoldItalic", 24 * -1)
-)
-canvas_nfc_self.create_text(73.0, 113.0, anchor="nw", text="NFC Self-Test", fill="#FFFFFF", font=("Inter SemiBold", 20 * -1))
-
-# --- Section A: NFC SPI Self-Test (no antenna or card required) ---
-# PASS = SpiError is 0 AND TargetID (HwVersion) is non-zero (device responded)
-canvas_nfc_self.create_text(73.0, 148.0, anchor="nw", text="NFC SPI Self-Test  (no antenna / card required)", fill="#F39C12", font=("Inter SemiBold", 13 * -1))
-
-canvas_nfc_self.create_text(73.0, 174.0, anchor="nw", text="SpiError", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-tab9_st_spi_err = ttk.Entry(tab_nfc_self_frame, style='Background_grey.TEntry')
-tab9_st_spi_err.place(x=200.0, y=172.0, width=95.0, height=20.0)
-tab9_lbl_st_spi_err = tk.Label(tab_nfc_self_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat", bg="#DFDFDF")
-tab9_lbl_st_spi_err.place(x=305, y=172, height=20)
-
-canvas_nfc_self.create_text(73.0, 204.0, anchor="nw", text="Target ID", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-tab9_st_hw_ver = ttk.Entry(tab_nfc_self_frame, style='Background_grey.TEntry')
-tab9_st_hw_ver.place(x=200.0, y=202.0, width=95.0, height=20.0)
-tab9_lbl_st_hw_ver = tk.Label(tab_nfc_self_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat", bg="#DFDFDF")
-tab9_lbl_st_hw_ver.place(x=305, y=202, height=20)
-
-tab9_lbl_st_overall = tk.Label(tab_nfc_self_frame, text="", width=16, font=("Inter SemiBold", 12), relief="ridge", bg="#DFDFDF")
-tab9_lbl_st_overall.place(x=480, y=172, height=26)
-
-# --- Section B: Output Check — LED ON ---
-canvas_nfc_self.create_text(73.0, 248.0, anchor="nw", text="Output Check — LED ON (mV)", fill="#F39C12", font=("Inter SemiBold", 13 * -1))
-canvas_nfc_self.create_text(73.0, 274.0, anchor="nw", text="LedVoltage", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-tab9_st_led_v = ttk.Entry(tab_nfc_self_frame, style='Background_grey.TEntry')
-tab9_st_led_v.place(x=200.0, y=272.0, width=95.0, height=20.0)
-tab9_lbl_st_led = tk.Label(tab_nfc_self_frame, text="", width=6, font=("Inter SemiBold", 10), relief="flat", bg="#DFDFDF")
-tab9_lbl_st_led.place(x=305, y=272, height=20)
-
-# Only SpiError + Target ID (HwVersion) are read — sufficient to prove SPI link
-nfc_spi_st_variables = [
-    "TestFw_NfcSpiError",
-    "TestFw_NfcHwVersion",
-]
-nfc_spi_st_entries = [tab9_st_spi_err, tab9_st_hw_ver]
-
-def run_nfc_spi_self_test():
-    SendCmdToDbg("Var.set TestFw_KeepEcuAwake = 1")
-    SendDIDGetVal_multiple_entry(nfc_spi_st_variables, nfc_spi_st_entries, TestFunctionCmd.TEST_GUI_CMD_NFC_SPI_DIAG_e)
-    tab_nfc_self_frame.after(200, _evaluate_nfc_spi_self_test_results)
-
-def _evaluate_nfc_spi_self_test_results():
-    # SpiError: PASS if value starts with "0"
-    spi_val = tab9_st_spi_err.get().strip()
-    spi_pass = spi_val.startswith("0")
-    tab9_st_spi_err.delete(0, tk.END)
-    tab9_st_spi_err.insert(0, "OK" if spi_pass else "Error")
-    _set_result_label(tab9_lbl_st_spi_err, spi_pass)
-
-    # Target ID (HwVersion): PASS if non-zero — device responded over SPI
-    hw_val = tab9_st_hw_ver.get().strip()
-    try:
-        hw_pass = int(hw_val, 0) != 0
-    except (ValueError, TypeError):
-        hw_pass = False
-    _set_result_label(tab9_lbl_st_hw_ver, hw_pass)
-
-    spi_all_pass = spi_pass and hw_pass
-
-    if spi_all_pass:
-        _run_nfc_led_output_check()
-    else:
-        tab9_st_led_v.delete(0, tk.END)
-        tab9_st_led_v.insert(0, "N/A")
-        tab9_lbl_st_led.config(text="SKIP", bg="#F39C12", fg="#FFFFFF")
-        tab9_lbl_st_overall.config(text="OVERALL: FAIL", bg="#C0392B", fg="#FFFFFF")
-
-def _run_nfc_led_output_check():
-    SendCmdToDbg("Var.set LedTest_LedCanLinRequest = 1")
-    tab_nfc_self_frame.after(1500, _read_led_for_nfc_output_check)
-
-def _read_led_for_nfc_output_check():
-    SendDIDGetVal_multiple_entry(["TestFw_LedVoltage"], [tab9_st_led_v], TestFunctionCmd.TESTFW_GUI_CMD_LED_TEST_e)
-    tab_nfc_self_frame.after(300, _evaluate_nfc_led_output_check)
-
-def _evaluate_nfc_led_output_check():
-    led_val = tab9_st_led_v.get().strip()
-    try:
-        voltage = float(led_val.split()[0])
-        led_pass = voltage > 0
-    except (ValueError, TypeError, IndexError):
-        led_pass = False
-    _set_result_label(tab9_lbl_st_led, led_pass)
-    SendCmdToDbg("Var.set LedTest_LedCanLinRequest = 0")
-    if led_pass:
-        tab9_lbl_st_overall.config(text="OVERALL: PASS", bg="#27AE60", fg="#FFFFFF")
-    else:
-        tab9_lbl_st_overall.config(text="OVERALL: FAIL", bg="#C0392B", fg="#FFFFFF")
-
-def _reset_nfc_spi_self_test_results():
-    for e in nfc_spi_st_entries:
-        e.delete(0, tk.END)
-    tab9_st_led_v.delete(0, tk.END)
-    for lbl in [tab9_lbl_st_spi_err, tab9_lbl_st_hw_ver, tab9_lbl_st_led]:
-        lbl.config(text="", bg="#DFDFDF", fg="#000000")
-    tab9_lbl_st_overall.config(text="", bg="#DFDFDF", fg="#000000")
-
-images["nfc_self_run_btn"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab_nfc_self"))
-spi_self_test_btn = Button(tab_nfc_self, image=images["nfc_self_run_btn"], command=run_nfc_spi_self_test, bd=0)
-spi_self_test_btn.place(x=325, y=106, width=34, height=34)
-
-reset_spi_st_btn = ttk.Button(tab_nfc_self, text="Reset Results", command=_reset_nfc_spi_self_test_results)
-reset_spi_st_btn.place(x=500, y=110, width=85, height=32)
-
 # ===================================================================================================================
 # ===================================================================================================================
 # ========== TAB 10 (CAN) =======================================================================================
