@@ -1322,17 +1322,6 @@ tab8_lbl_unlock_raw.place(x=475, y=404, height=20)
 tab8_lbl_overall    = tk.Label(tab8_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab8_lbl_overall.place(x=480, y=65, height=26)
 
-tab8_lbl_switch_state = tk.Label(
-    tab8_frame,
-    text="Switch: OFF",
-    width=16,
-    font=("Inter SemiBold", 10),
-    relief="ridge",
-    bg="#C0392B",
-    fg="#FFFFFF",
-)
-tab8_lbl_switch_state.place(x=350, y=65, height=26)
-
 capa_pf_labels = [tab8_lbl_approach, tab8_lbl_lock, tab8_lbl_unlock, tab8_lbl_app_raw, tab8_lbl_lock_raw, tab8_lbl_unlock_raw]
 
 def _evaluate_capa_results():
