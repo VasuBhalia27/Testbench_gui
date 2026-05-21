@@ -1365,16 +1365,26 @@ def _cap_run_test_with_switch():
     except Exception as exc:
         messagebox.showerror("CAP Test", f"Digital switch error: {exc}")
         return
-    tab8_lbl_switch_state.config(text="Switch: ON (waiting 2s)", bg="#F39C12", fg="#FFFFFF")
-    tab8_lbl_overall.config(text="WAITING...", bg="#F39C12", fg="#FFFFFF")
-    window.after(2000, _cap_run_test_after_switch_on)
+    window.after(20, _cap_run_test_after_switch_on)
+
+# Checkboxes
+digital_switch_condition = tk.IntVar(value=1)
+
+digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_condition, onvalue=1, offvalue=0,
+    command=lambda: [_cap_run_test_with_switch])
+digital_switch_on_cb.place(x=73, y=65, width=120, height=32)
+
+digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_condition, onvalue=2, offvalue=0,
+    command=lambda: [_cap_turn_off_switch()])
+digital_switch_off_cb.place(x=200, y=65, width=120, height=32)
+
 
 # Run button
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 run_test_btn = Button(
     tab8, 
     image=images["tile1_run_capa"], 
-    command=_cap_run_test_with_switch,
+    command=lambda: [read_capa_values_with_delay(capa_output_variables, capa_entries), tab8_frame.after(200, _evaluate_capa_results)],
     bd=0
 )
 run_test_btn.place(x=225, y=106, width=34, height=34)
@@ -1383,8 +1393,7 @@ run_test_btn.place(x=225, y=106, width=34, height=34)
 reset_entries = ttk.Button(
     tab8, 
     text="Reset Results", 
-    command=lambda: [_cap_turn_off_switch(), clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels), _cap_update_switch_label(False)]
-)
+    command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
 reset_entries.place(x=350, y=65, width=115, height=32)
 
 canvas8.create_text(
