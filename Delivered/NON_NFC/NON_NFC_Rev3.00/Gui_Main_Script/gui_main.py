@@ -1352,15 +1352,51 @@ def _cap_run_test_with_switch():
     window.after(20, _cap_run_test_after_switch_on)
 
 # Checkboxes
-digital_switch_condition = tk.IntVar(value=1)
+# ON checkbox is always the primary state; OFF temporarily disables it
+digital_switch_on_var = tk.BooleanVar(value=True)  # Always initialize to ON
+digital_switch_off_var = tk.BooleanVar(value=False)
 
-digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_condition, onvalue=1, offvalue=0,
-    command=lambda: [_cap_run_test_with_switch])
+def _digital_switch_on_toggled():
+    # When ON checkbox is checked, ensure switch is ON and OFF is unchecked
+    if digital_switch_on_var.get():
+        digital_switch_off_var.set(False)
+        try:
+            _cap_turn_on_switch()
+        except Exception as exc:
+            messagebox.showerror("CAP Test", f"Digital switch ON error: {exc}")
+    # If user unchecks ON, we don't auto-turn off; it stays OFF until they explicitly handle it
+
+def _digital_switch_off_toggled():
+    # When OFF checkbox is checked, turn the switch OFF and uncheck ON
+    if digital_switch_off_var.get():
+        digital_switch_on_var.set(False)
+        try:
+            _cap_turn_off_switch()
+        except Exception as exc:
+            messagebox.showerror("CAP Test", f"Digital switch OFF error: {exc}")
+    # If user unchecks OFF, nothing happens automatically; user must check ON to turn it back ON
+
+digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_on_var,
+    command=_digital_switch_on_toggled)
 digital_switch_on_cb.place(x=73, y=65, width=120, height=32)
 
-digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_condition, onvalue=2, offvalue=0,
-    command=lambda: [_cap_turn_off_switch()])
+digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_off_var,
+    command=_digital_switch_off_toggled)
 digital_switch_off_cb.place(x=200, y=65, width=120, height=32)
+
+# Automatically initialize digital switch to ON when CAPA tab is set up
+def _initialize_digital_switch():
+    """Auto-initialize the digital switch to ON state at startup"""
+    try:
+        _cap_turn_on_switch()
+        digital_switch_on_var.set(True)  # Ensure checkbox reflects ON state
+        digital_switch_off_var.set(False)
+    except Exception as exc:
+        # If initialization fails, still keep checkbox ticked so user knows intent
+        digital_switch_on_var.set(True)
+
+# Schedule initialization after GUI is fully loaded
+window.after(500, _initialize_digital_switch)
 
 
 # Run button
