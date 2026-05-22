@@ -1357,14 +1357,34 @@ def _cap_run_test_with_switch():
     window.after(20, _cap_run_test_after_switch_on)
 
 # Checkboxes
-digital_switch_condition = tk.IntVar(value=1)
+# Use separate BooleanVars for ON and OFF so each box acts independently
+digital_switch_on_var = tk.BooleanVar(value=False)
+digital_switch_off_var = tk.BooleanVar(value=False)
 
-digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_condition, onvalue=1, offvalue=0,
-    command=lambda: [_cap_run_test_with_switch])
+def _digital_switch_on_toggled():
+    # If ON checked, ensure OFF is unchecked and turn the switch on
+    if digital_switch_on_var.get():
+        digital_switch_off_var.set(False)
+        try:
+            _cap_run_test_with_switch()
+        except Exception as exc:
+            messagebox.showerror("CAP Test", f"Digital switch ON error: {exc}")
+
+def _digital_switch_off_toggled():
+    # If OFF checked, ensure ON is unchecked and turn the switch off
+    if digital_switch_off_var.get():
+        digital_switch_on_var.set(False)
+        try:
+            _cap_turn_off_switch()
+        except Exception as exc:
+            messagebox.showerror("CAP Test", f"Digital switch OFF error: {exc}")
+
+digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_on_var,
+    command=_digital_switch_on_toggled)
 digital_switch_on_cb.place(x=73, y=65, width=120, height=32)
 
-digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_condition, onvalue=2, offvalue=0,
-    command=lambda: [_cap_turn_off_switch()])
+digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_off_var,
+    command=_digital_switch_off_toggled)
 digital_switch_off_cb.place(x=200, y=65, width=120, height=32)
 
 
