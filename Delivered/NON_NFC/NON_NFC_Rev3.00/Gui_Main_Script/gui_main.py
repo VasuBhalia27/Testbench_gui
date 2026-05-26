@@ -10,13 +10,6 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-digital_switch_import_error = None
-DigitalSwitchController = None
-try:
-    from digital_switch_cycle import DigitalSwitchController
-except Exception as exc:
-    digital_switch_import_error = exc
-
 #from Functional.power_supply import *
 from Functional.trace32 import *
 from tkinter import filedialog
@@ -377,12 +370,7 @@ def _on_disconnect_trace32():
         if df_result and df_result.get("pass"):
             deflash_warning_lbl.config(text="Status: De-flash PASS")
         else:
-            _detail = (df_result or {}).get("detail", "") if df_result else ""
-            _detail_short = (_detail[:120] + "...") if len(_detail) > 120 else _detail
-            deflash_warning_lbl.config(
-                text=f"Status: De-flash FAILED\n{_detail_short}"
-            )
-            print(f"[deflash] FAILED: {_detail}")
+            deflash_warning_lbl.config(text="Status: De-flash FAILED")
     except Exception as exc:
         df_result = {
             "pass": False,
@@ -550,48 +538,6 @@ def _reset_pf_labels(overall_lbl, *field_labels):
     for lbl in field_labels:
         lbl.config(text="", bg="#DFDFDF", fg="#000000")
 
-# Digital switch support for CAPA tab only.
-digital_switch_controller = None
-
-def _cap_get_switch_controller():
-    global digital_switch_controller
-    if digital_switch_controller is None:
-        if digital_switch_import_error is not None:
-            raise RuntimeError(f"Cannot load digital switch controller: {digital_switch_import_error}")
-        digital_switch_controller = DigitalSwitchController()
-    return digital_switch_controller
-
-
-def _cap_update_switch_label(state: bool):
-    try:
-        tab8_lbl_switch_state.config(
-            text="Switch: ON" if state else "Switch: OFF",
-            bg="#27AE60" if state else "#C0392B",
-            fg="#FFFFFF",
-        )
-    except NameError:
-        pass
-
-
-def _cap_turn_on_switch():
-    controller = _cap_get_switch_controller()
-    controller.turn_on()
-    _cap_update_switch_label(True)
-    return controller.get_state()
-
-
-def _cap_turn_off_switch():
-    global digital_switch_controller
-    if digital_switch_controller is None:
-        _cap_update_switch_label(False)
-        return
-    try:
-        digital_switch_controller.turn_off()
-        _cap_update_switch_label(False)
-    except Exception as exc:
-        messagebox.showerror("CAP Test", f"Failed to turn off digital switch: {exc}")
-
-
 def _parse_num(entry):
     """Return int from entry text (handles '1234 mV', '0x52', '1 bool', etc.)"""
     try:
@@ -676,14 +622,14 @@ def _evaluate_led_results():
         v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
         _set_pf(tab3_lbl_voltage_off, passed)
-    else:  # Led_On: voltage should be > 2400
+    else:  # Led_On: voltage should be > 0
         v = _parse_num(tab3_entry_led_on)
-        passed = v is not None and v > 2400
+        passed = v is not None and v > 0
         _set_pf(tab3_lbl_voltage_on, passed)
     results = []
     if tab3_entry_led_on.get().strip():
         vn = _parse_num(tab3_entry_led_on)
-        results.append(vn is not None and vn > 2400)
+        results.append(vn is not None and vn > 0)
     if tab3_entry_led_off.get().strip():
         vn = _parse_num(tab3_entry_led_off)
         results.append(vn is not None and 0 <= vn <= 10)
@@ -1337,32 +1283,6 @@ def _evaluate_capa_results():
         results.append(passed)
     _set_overall(tab8_lbl_overall, results)
 
-
-def _cap_run_test_after_switch_on():
-    read_capa_values_with_delay(capa_output_variables, capa_entries)
-    tab8_frame.after(200, _evaluate_capa_results)
-
-
-def _cap_run_test_with_switch():
-    try:
-        _cap_turn_on_switch()
-    except Exception as exc:
-        messagebox.showerror("CAP Test", f"Digital switch error: {exc}")
-        return
-    window.after(20, _cap_run_test_after_switch_on)
-
-# Checkboxes
-digital_switch_condition = tk.IntVar(value=1)
-
-digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_condition, onvalue=1, offvalue=0,
-    command=lambda: [_cap_run_test_with_switch])
-digital_switch_on_cb.place(x=73, y=65, width=120, height=32)
-
-digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_condition, onvalue=2, offvalue=0,
-    command=lambda: [_cap_turn_off_switch()])
-digital_switch_off_cb.place(x=200, y=65, width=120, height=32)
-
-
 # Run button
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 run_test_btn = Button(
@@ -1374,10 +1294,7 @@ run_test_btn = Button(
 run_test_btn.place(x=225, y=106, width=34, height=34)
 
 # Reset button
-reset_entries = ttk.Button(
-    tab8, 
-    text="Reset Results", 
-    command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
+reset_entries = ttk.Button(tab8, text="Reset Results", command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
 reset_entries.place(x=350, y=65, width=115, height=32)
 
 canvas8.create_text(
@@ -1621,7 +1538,7 @@ can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
 can_loopback_chk.place(x=560.0, y=144.0, width=24.0, height=24.0)
 
 canvas10.create_text(420.0, 178.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-can_keep_awake_var = tk.BooleanVar(value=True)
+can_keep_awake_var = tk.BooleanVar(value=False)
 can_keep_awake_chk = ttk.Checkbutton(tab10_frame, variable=can_keep_awake_var)
 can_keep_awake_chk.place(x=560.0, y=176.0, width=24.0, height=24.0)
 

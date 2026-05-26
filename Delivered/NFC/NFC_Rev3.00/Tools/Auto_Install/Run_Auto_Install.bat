@@ -8,9 +8,8 @@ echo   SmartBU Auto Install / Checks
 echo ========================================
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install_prerequisites.ps1" %*
-set "RC=%ERRORLEVEL%"
-if %RC% neq 0 (
+powershell -ExecutionPolicy Bypass -File "%~dp0install_prerequisites.ps1"
+if errorlevel 1 (
   echo.
   echo Auto install finished with errors.
 ) else (
@@ -20,4 +19,3 @@ if %RC% neq 0 (
 
 echo.
 pause
-exit /b %RC%

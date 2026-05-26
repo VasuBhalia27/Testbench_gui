@@ -227,18 +227,6 @@ class IntegratedAutomationRunner:
                     self._log("De-flash in progress...")
                     self.gui.set_status_label("De-flash in progress...")
                     self._update_progress(100)  # Start at 100%
-
-                    # Boost SWD speed; per-row FLASH.Erase dominated by SWD.
-                    for _spd in ('SYStem.JtagClock 10MHz',
-                                 'SYStem.BdmClock 10MHz',
-                                 'SYStem.JtagClock 5MHz'):
-                        try:
-                            t32.dbg.cmd(_spd)
-                            self._log(f"De-flash: SWD speed set ({_spd})")
-                            break
-                        except Exception:
-                            pass
-
                     t32.dbg.cmd('Break')
                     self._update_progress(90)
                     t32.dbg.cmd('FLASH.RESet')
@@ -254,24 +242,16 @@ class IntegratedAutomationRunner:
                     self._update_progress(40)
                     t32.dbg.cmd('FLASH.ReProgram OFF')
                     self._update_progress(30)
-                    # Blank-check: PSoC 4 erased flash reads 0x00000000.
-                    # Use SD: (debug bus) primary; fall back to A: (CPU bus).
-                    # CPU may be in fault after SROM erase wiped flash.
+                    # Blank-check: PSoC 4 erased flash reads 0x00000000
                     _CHECK_ADDRS = [0x00000000, 0x00030000, 0x0005FFFC]
                     _blank_fail  = []
                     for _addr in _CHECK_ADDRS:
-                        _val = None
-                        for _expr in (f"Data.Long(SD:0x{_addr:08X})",
-                                      f"Data.Long(A:0x{_addr:08X})"):
-                            try:
-                                _val = int(t32.dbg.fnc(_expr))
-                                break
-                            except Exception:
-                                _val = None
-                        if _val is None:
+                        try:
+                            _val = int(t32.dbg.fnc(f"Data.Long(A:0x{_addr:08X})"))
+                            if _val != 0x00000000:
+                                _blank_fail.append(f"0x{_addr:08X}=0x{_val:08X}")
+                        except Exception:
                             _blank_fail.append(f"0x{_addr:08X}=READ_ERROR")
-                        elif _val != 0x00000000:
-                            _blank_fail.append(f"0x{_addr:08X}=0x{_val:08X}")
                     t32.dbg.cmd('SYStem.Down')   # release SWD probe cleanly
                     self._update_progress(10)
                     _df_dur = time.monotonic() - _df_start

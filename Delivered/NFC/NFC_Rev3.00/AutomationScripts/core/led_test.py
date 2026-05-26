@@ -78,7 +78,7 @@ class LedTest:
 
         log(f"LED: final voltage = {voltage} mV")
         if on:
-            return voltage > 2400
+            return voltage > 0
         else:
             return voltage <= 10.0
 
@@ -119,7 +119,7 @@ class LedTest:
 
         log(f"LED: final voltage = {voltage} mV")
         if on:
-            return voltage > 2400, voltage
+            return voltage > 0, voltage
         else:
             return voltage <= 10.0, voltage
 

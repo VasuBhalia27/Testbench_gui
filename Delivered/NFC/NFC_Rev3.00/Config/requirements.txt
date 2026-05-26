@@ -4,5 +4,3 @@ pyvisa-py
 pyserial
 pandas
 openpyxl
-adafruit-blinka
-hidapi
