@@ -33,7 +33,7 @@ TEMPLATE_PATH = os.path.join(_ROOT, "AutomationTest", "Smart_BU_Test Specificati
 REPORTS_DIR   = os.path.join(_ROOT, "AutomationTest", "reports")
 
 # Software revision — shown in the report filename and HTML header
-_SW_REVISION = "NFC_Rev3.00"
+_SW_REVISION = "NFC_Rev3.01"
 
 # ── Cell fill colours ─────────────────────────────────────────────────────────
 _PASS_FILL = PatternFill("solid", fgColor="92D050")   # green

@@ -29,7 +29,7 @@ from AutomationScripts.core import gui_automation, integrated_automation
 from ManualTest.manual_report import save_manual_report as _save_manual_report
 
 # Software revision — shown in window title and embedded in report filename/header
-_SW_REVISION = "NFC_Rev3.00"
+_SW_REVISION = "NFC_Rev3.01"
      
 class  ToolBar:
     def __init__(self, parent, tab, tab_frame, canvas, images, relative_to_assets, run_code_callback, pause_code_callback):
