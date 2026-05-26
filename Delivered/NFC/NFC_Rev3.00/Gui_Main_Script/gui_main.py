@@ -375,7 +375,12 @@ def _on_disconnect_trace32():
         if df_result and df_result.get("pass"):
             deflash_warning_lbl.config(text="Status: De-flash PASS")
         else:
-            deflash_warning_lbl.config(text="Status: De-flash FAILED")
+            _detail = (df_result or {}).get("detail", "") if df_result else ""
+            _detail_short = (_detail[:120] + "...") if len(_detail) > 120 else _detail
+            deflash_warning_lbl.config(
+                text=f"Status: De-flash FAILED\n{_detail_short}"
+            )
+            print(f"[deflash] FAILED: {_detail}")
     except Exception as exc:
         df_result = {
             "pass": False,
@@ -627,14 +632,14 @@ def _evaluate_led_results():
         v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
         _set_pf(tab3_lbl_voltage_off, passed)
-    else:  # Led_On: voltage should be > 0
+    else:  # Led_On: voltage should be > 2400
         v = _parse_num(tab3_entry_led_on)
-        passed = v is not None and v > 0
+        passed = v is not None and v > 2400
         _set_pf(tab3_lbl_voltage_on, passed)
     results = []
     if tab3_entry_led_on.get().strip():
         vn = _parse_num(tab3_entry_led_on)
-        results.append(vn is not None and vn > 0)
+        results.append(vn is not None and vn > 2400)
     if tab3_entry_led_off.get().strip():
         vn = _parse_num(tab3_entry_led_off)
         results.append(vn is not None and 0 <= vn <= 10)
@@ -1679,7 +1684,7 @@ can_loopback_chk = ttk.Checkbutton(tab10_frame, variable=can_loopback_var)
 can_loopback_chk.place(x=560.0, y=144.0, width=24.0, height=24.0)
 
 canvas10.create_text(420.0, 178.0, anchor="nw", text="Keep ECU Awake", fill="#FFFFFF", font=("Inter SemiBold", 12 * -1))
-can_keep_awake_var = tk.BooleanVar(value=False)
+can_keep_awake_var = tk.BooleanVar(value=True)
 can_keep_awake_chk = ttk.Checkbutton(tab10_frame, variable=can_keep_awake_var)
 can_keep_awake_chk.place(x=560.0, y=176.0, width=24.0, height=24.0)
 
