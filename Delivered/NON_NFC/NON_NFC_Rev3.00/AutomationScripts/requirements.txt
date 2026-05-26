@@ -1,0 +1,6 @@
+pytest
+pytest-mock
+pyvisa
+pyvisa-py
+adafruit-blinka
+hidapi
