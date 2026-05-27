@@ -1,0 +1,28 @@
+NFC-RH
+8876721012612500014 (Not Tested in Thailand)
+8876721012612500020 (Not Tested in Thailand)
+8876721012612500013 (Not Tested in Thailand)
+8876721012612500019 (Not Tested in Thailand)
+887672101261080034 (Tested in Thailand)
+
+
+NON-NFC-RH
+887872101261080105 (Tested in Thailand)
+887872101261080107 (Tested in Thailand)
+887872101261080126 (Tested in Thailand)
+887872101261080130 (Tested in Thailand)
+
+NFC-LH
+887572101261110001 (Not Tested in Thailand)
+887572101261110004 (Not Tested in Thailand) EOS Set failed, tested two times
+887572101261110008 (Not Tested in Thailand)
+887572101261110067 (Not Tested in Thailand)
+887572101261110009 (Tested in Thailand)
+
+NON-NFC-LH
+887772101261110005 (Not Tested in Thailand)
+887772101261110034 (Not Tested in Thailand)
+887772101261110025 (Not Tested in Thailand)
+887772101261110095 (Not Tested in Thailand)
+887772101261110033 (Tested in Thailand)
+

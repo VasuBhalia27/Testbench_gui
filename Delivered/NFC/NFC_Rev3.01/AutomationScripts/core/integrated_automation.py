@@ -310,7 +310,7 @@ class IntegratedAutomationRunner:
             # pcb_count is the sequential number for this PCB (1-based).
             # gui.pass_count + gui.fail_count = total runs BEFORE this one
             # (set_result_indicator hasn't fired yet on the main thread).
-            pcb_count = self.gui.pass_count + self.gui.fail_count + 1
+            pcb_count = self.gui.pass_count + self.gui.fail_count
             try:
                 from AutomationScripts.report_generator import generate_report, results_from_run
                 report_path = generate_report(
