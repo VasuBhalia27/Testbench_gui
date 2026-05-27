@@ -567,32 +567,32 @@ def _cap_get_switch_controller():
     return digital_switch_controller
 
 
-def _cap_update_switch_label(state: bool):
-    try:
-        tab8_lbl_switch_state.config(
-            text="Switch: ON" if state else "Switch: OFF",
-            bg="#27AE60" if state else "#C0392B",
-            fg="#FFFFFF",
-        )
-    except NameError:
-        pass
+#def _cap_update_switch_label(state: bool):
+    #try:
+        #tab8_lbl_switch_state.config(
+            #text="Switch: ON" if state else "Switch: OFF",
+            #bg="#27AE60" if state else "#C0392B",
+            #fg="#FFFFFF",
+        #)
+    #except NameError:
+        #pass
 
 
 def _cap_turn_on_switch():
     controller = _cap_get_switch_controller()
     controller.turn_on()
-    _cap_update_switch_label(True)
+    #_cap_update_switch_label(True)
     return controller.get_state()
 
 
 def _cap_turn_off_switch():
     global digital_switch_controller
     if digital_switch_controller is None:
-        _cap_update_switch_label(False)
+        #_cap_update_switch_label(False)
         return
     try:
         digital_switch_controller.turn_off()
-        _cap_update_switch_label(False)
+        #_cap_update_switch_label(False)
     except Exception as exc:
         messagebox.showerror("CAP Test", f"Failed to turn off digital switch: {exc}")
 
@@ -681,14 +681,14 @@ def _evaluate_led_results():
         v = _parse_num(tab3_entry_led_off)
         passed = v is not None and 0 <= v <= 10
         _set_pf(tab3_lbl_voltage_off, passed)
-    else:  # Led_On: voltage should be > 0
+    else:  # Led_On: voltage should be > 2400
         v = _parse_num(tab3_entry_led_on)
-        passed = v is not None and v > 0
+        passed = v is not None and v > 2400
         _set_pf(tab3_lbl_voltage_on, passed)
     results = []
     if tab3_entry_led_on.get().strip():
         vn = _parse_num(tab3_entry_led_on)
-        results.append(vn is not None and vn > 0)
+        results.append(vn is not None and vn > 2400)
     if tab3_entry_led_off.get().strip():
         vn = _parse_num(tab3_entry_led_off)
         results.append(vn is not None and 0 <= vn <= 10)
@@ -1322,16 +1322,16 @@ tab8_lbl_unlock_raw.place(x=475, y=404, height=20)
 tab8_lbl_overall    = tk.Label(tab8_frame, text="", width=14, font=("Inter SemiBold", 12), relief="ridge")
 tab8_lbl_overall.place(x=480, y=65, height=26)
 
-tab8_lbl_switch_state = tk.Label(
-    tab8_frame,
-    text="Switch: OFF",
-    width=16,
-    font=("Inter SemiBold", 10),
-    relief="ridge",
-    bg="#C0392B",
-    fg="#FFFFFF",
-)
-tab8_lbl_switch_state.place(x=350, y=65, height=26)
+#tab8_lbl_switch_state = tk.Label(
+    #tab8_frame,
+    #text="Switch: OFF",
+    #width=16,
+    #font=("Inter SemiBold", 10),
+    #relief="ridge",
+    #bg="#C0392B",
+    #fg="#FFFFFF",
+#)
+#tab8_lbl_switch_state.place(x=350, y=65, height=26)
 
 capa_pf_labels = [tab8_lbl_approach, tab8_lbl_lock, tab8_lbl_unlock, tab8_lbl_app_raw, tab8_lbl_lock_raw, tab8_lbl_unlock_raw]
 
@@ -1365,16 +1365,62 @@ def _cap_run_test_with_switch():
     except Exception as exc:
         messagebox.showerror("CAP Test", f"Digital switch error: {exc}")
         return
-    tab8_lbl_switch_state.config(text="Switch: ON (waiting 2s)", bg="#F39C12", fg="#FFFFFF")
-    tab8_lbl_overall.config(text="WAITING...", bg="#F39C12", fg="#FFFFFF")
-    window.after(2000, _cap_run_test_after_switch_on)
+    window.after(20, _cap_run_test_after_switch_on)
+
+# Checkboxes
+# ON checkbox is always the primary state; OFF temporarily disables it
+digital_switch_on_var = tk.BooleanVar(value=True)  # Always initialize to ON
+digital_switch_off_var = tk.BooleanVar(value=False)
+
+def _digital_switch_on_toggled():
+    # When ON checkbox is checked, ensure switch is ON and OFF is unchecked
+    if digital_switch_on_var.get():
+        digital_switch_off_var.set(False)
+        try:
+            _cap_turn_on_switch()
+        except Exception as exc:
+            messagebox.showerror("CAP Test", f"Digital switch ON error: {exc}")
+    # If user unchecks ON, we don't auto-turn off; it stays OFF until they explicitly handle it
+
+def _digital_switch_off_toggled():
+    # When OFF checkbox is checked, turn the switch OFF and uncheck ON
+    if digital_switch_off_var.get():
+        digital_switch_on_var.set(False)
+        try:
+            _cap_turn_off_switch()
+        except Exception as exc:
+            messagebox.showerror("CAP Test", f"Digital switch OFF error: {exc}")
+    # If user unchecks OFF, nothing happens automatically; user must check ON to turn it back ON
+
+digital_switch_on_cb = tk.Checkbutton(tab8, text="Digital_Switch_On", variable=digital_switch_on_var,
+    command=_digital_switch_on_toggled)
+digital_switch_on_cb.place(x=73, y=65, width=120, height=32)
+
+digital_switch_off_cb = tk.Checkbutton(tab8, text="Digital_Switch_Off", variable=digital_switch_off_var,
+    command=_digital_switch_off_toggled)
+digital_switch_off_cb.place(x=200, y=65, width=120, height=32)
+
+# Automatically initialize digital switch to ON when CAPA tab is set up
+def _initialize_digital_switch():
+    """Auto-initialize the digital switch to ON state at startup"""
+    try:
+        _cap_turn_on_switch()
+        digital_switch_on_var.set(True)  # Ensure checkbox reflects ON state
+        digital_switch_off_var.set(False)
+    except Exception as exc:
+        # If initialization fails, still keep checkbox ticked so user knows intent
+        digital_switch_on_var.set(True)
+
+# Schedule initialization after GUI is fully loaded
+window.after(500, _initialize_digital_switch)
+
 
 # Run button
 images["tile1_run_capa"] = PhotoImage(file=relative_to_assets("tab_testrun_button.png", "tab8"))
 run_test_btn = Button(
     tab8, 
     image=images["tile1_run_capa"], 
-    command=_cap_run_test_with_switch,
+    command=lambda: [read_capa_values_with_delay(capa_output_variables, capa_entries), tab8_frame.after(200, _evaluate_capa_results)],
     bd=0
 )
 run_test_btn.place(x=225, y=106, width=34, height=34)
@@ -1383,8 +1429,7 @@ run_test_btn.place(x=225, y=106, width=34, height=34)
 reset_entries = ttk.Button(
     tab8, 
     text="Reset Results", 
-    command=lambda: [_cap_turn_off_switch(), clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels), _cap_update_switch_label(False)]
-)
+    command=lambda: [clear_entries(capa_entries), _reset_pf_labels(tab8_lbl_overall, *capa_pf_labels)])
 reset_entries.place(x=350, y=65, width=115, height=32)
 
 canvas8.create_text(
