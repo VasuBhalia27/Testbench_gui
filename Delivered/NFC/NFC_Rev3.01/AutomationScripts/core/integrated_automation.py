@@ -209,7 +209,6 @@ class IntegratedAutomationRunner:
 
             if all_passed:
                 self._log("\n✓✓ ALL TESTS PASSED ✓✓")
-                self._log("Remove PCB and insert the next PCB to test.")
             else:
                 self._log("\n✗ Some tests failed - review results above")
 
@@ -353,6 +352,7 @@ class IntegratedAutomationRunner:
                 self.power_off_supply()
             else:
                 self._log("PSU automation disabled — skipping automated power OFF")
+            self._log("Remove PCB and insert the next PCB to test.")
             self._log("\nAutomation complete. Click 'Start' to run again.")
             self.is_running = False
             self.unlock_tabs()
