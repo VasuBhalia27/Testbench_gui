@@ -1,0 +1,38 @@
+{
+    "mtrack_url": "http://172.16.101.50:3000/",
+    "google_sheet_id": "1fUInHYqdoqyHsdjR4EHSr06sx_ECZgcJgjL7T43nY5k",
+    "sheet_gid": "0",
+    "use_service_account": false,
+    "credentials_file": "credentials/service_account.json",
+    "headless": false,
+    "submit_delay_seconds": 1,
+    "field_mapping": {
+        "_comment": "Map Google Sheet column headers to m-track form field selectors.",
+        "_comment2": "Selector format: 'css:your-css-selector' or 'name:field-name' or 'id:field-id' or 'label:Label Text'",
+        "_comment3": "Run mtrack_automation.py --discover to auto-detect form fields first.",
+        "_example": {
+            "Sheet Column": "label:Form Label Text"
+        }
+    },
+    "button_selectors": {
+        "request_form_button": [
+            "//button[contains(text(), 'Request Form')]",
+            "//a[contains(text(), 'Request Form')]",
+            "//*[contains(@class, 'request-form')]",
+            "//*[contains(text(), 'Request Form')]"
+        ],
+        "new_request_button": [
+            "//button[contains(text(), '+New Request')]",
+            "//button[contains(text(), 'New Request')]",
+            "//a[contains(text(), 'New Request')]",
+            "//*[contains(@class, 'new-request')]",
+            "//*[contains(text(), 'New Request')]"
+        ],
+        "submit_button": [
+            "//button[contains(text(), 'Submit')]",
+            "//button[@type='submit']",
+            "//input[@type='submit']",
+            "//*[contains(@class, 'submit')]"
+        ]
+    }
+}
