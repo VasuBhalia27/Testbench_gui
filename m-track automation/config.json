@@ -1,18 +1,21 @@
 {
     "mtrack_url": "http://172.16.101.50:3000/",
-    "google_sheet_id": "1fUInHYqdoqyHsdjR4EHSr06sx_ECZgcJgjL7T43nY5k",
-    "sheet_gid": "0",
-    "use_service_account": false,
-    "credentials_file": "credentials/service_account.json",
+    "google_sheet_id": "https://docs.google.com/spreadsheets/d/1tV5zOxLg533U9YU3dYYcGJKxA7b7xTn2/edit?gid=1102329858#gid=1102329858",
+    "sheet_gid": "",
+    "_comment_auth": "Sheet is fetched via the automation browser. Set local_csv_path to a CSV to skip Google login entirely.",
+    "local_csv_path": "",
     "headless": false,
     "submit_delay_seconds": 1,
+    "skip_columns": [
+        "_comment: list sheet column headers that have no matching field in the m-track form",
+        "REQUEST NO.",
+        "REVIEW & CLOSED"
+    ],
     "field_mapping": {
-        "_comment": "Map Google Sheet column headers to m-track form field selectors.",
-        "_comment2": "Selector format: 'css:your-css-selector' or 'name:field-name' or 'id:field-id' or 'label:Label Text'",
-        "_comment3": "Run mtrack_automation.py --discover to auto-detect form fields first.",
-        "_example": {
-            "Sheet Column": "label:Form Label Text"
-        }
+        "_comment": "Overrides only — add an entry when the sheet column header differs from the m-track form label.",
+        "_comment2": "All other columns are auto-mapped to  label:<column header>  at runtime.",
+        "_comment3": "Selector formats: 'label:Label Text'  |  'id:field-id'  |  'name:field-name'  |  'css:.selector'",
+        "_example": "\"REQUESTED ACTIVITY\": \"label:Activity Type\""
     },
     "button_selectors": {
         "request_form_button": [

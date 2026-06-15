@@ -5,8 +5,9 @@ Reads rows from a Google Sheet and submits them as new requests in m-track.
 
 import argparse
 import json
-import sys
+import re
 import time
+from io import StringIO
 from pathlib import Path
 
 import pandas as pd
@@ -32,61 +33,94 @@ def load_config():
 
 # ── Google Sheets ─────────────────────────────────────────────────────────────
 
-def fetch_sheet_public(sheet_id: str, gid: str) -> pd.DataFrame:
-    """Fetch sheet via public CSV export (works for publicly shared sheets)."""
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
-    print(f"Fetching Google Sheet: {url}")
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
-    from io import StringIO
-    df = pd.read_csv(StringIO(response.text))
-    return df
-
-
-def fetch_sheet_service_account(sheet_id: str, credentials_file: str) -> pd.DataFrame:
-    """Fetch sheet using a Google service account JSON key."""
-    try:
-        import gspread
-        from google.oauth2.service_account import Credentials
-    except ImportError:
-        print("Install gspread and google-auth: pip install gspread google-auth")
-        sys.exit(1)
-
-    scopes = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
-    creds = Credentials.from_service_account_file(credentials_file, scopes=scopes)
-    client = gspread.authorize(creds)
-    sheet = client.open_by_key(sheet_id).sheet1
-    data = sheet.get_all_records()
-    return pd.DataFrame(data)
-
-
-def load_sheet_data(config: dict) -> pd.DataFrame:
-    sheet_id = config["google_sheet_id"]
-    gid = config.get("sheet_gid", "0")
-
-    if config.get("use_service_account"):
-        creds = config.get("credentials_file", "credentials/service_account.json")
-        creds_path = Path(__file__).parent / creds
-        df = fetch_sheet_service_account(sheet_id, str(creds_path))
+def _parse_sheet_url(value: str) -> tuple[str, str]:
+    """Accept a full Google Sheets URL or a bare sheet ID. Returns (sheet_id, gid)."""
+    if "spreadsheets/d/" in value:
+        m = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", value)
+        sheet_id = m.group(1) if m else value
+        g = re.search(r"[?&#]gid=(\d+)", value)
+        gid = g.group(1) if g else "0"
     else:
-        df = fetch_sheet_public(sheet_id, gid)
+        sheet_id = value
+        gid = "0"
+    return sheet_id, gid
 
-    # Drop completely empty rows
+
+def fetch_sheet_via_driver(driver: webdriver.Chrome, sheet_id: str, gid: str) -> pd.DataFrame:
+    """Fetch Google Sheet CSV by reusing the browser's Google session cookies.
+    No file download, no admin rights, no extra packages.
+    Shows a Google login prompt in the browser window if not already signed in."""
+    export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}"
+
+    # Navigate to docs.google.com — triggers Google login redirect if not signed in
+    driver.get("https://docs.google.com")
+    time.sleep(3)
+
+    if "accounts.google.com" in driver.current_url:
+        print("\n" + "=" * 60)
+        print("ACTION REQUIRED: Sign into Google in the browser window.")
+        print("The script will continue automatically after you log in.")
+        print("=" * 60)
+        try:
+            WebDriverWait(driver, 300).until(
+                lambda d: "accounts.google.com" not in d.current_url
+            )
+        except Exception:
+            raise RuntimeError("Google login timed out (5 min).")
+        # Return to docs.google.com so all relevant cookies are set
+        driver.get("https://docs.google.com")
+        time.sleep(2)
+
+    # Copy auth cookies from the Selenium session into a requests session
+    session = requests.Session()
+    for ck in driver.get_cookies():
+        session.cookies.set(ck["name"], ck["value"])
+
+    print(f"Fetching Google Sheet: {export_url}")
+    response = session.get(export_url, timeout=30)
+    response.raise_for_status()
+
+    return pd.read_csv(StringIO(response.text))
+
+
+def load_sheet_data(config: dict, driver: webdriver.Chrome) -> pd.DataFrame:
+    local_csv = config.get("local_csv_path", "")
+    if local_csv:
+        csv_path = Path(__file__).parent / local_csv
+        print(f"Reading local CSV: {csv_path}")
+        df = pd.read_csv(csv_path)
+    else:
+        raw = config["google_sheet_id"]
+        sheet_id, auto_gid = _parse_sheet_url(raw)
+        gid = config.get("sheet_gid") or auto_gid
+        df = fetch_sheet_via_driver(driver, sheet_id, gid)
+
     df = df.dropna(how="all")
-    print(f"Loaded {len(df)} rows from Google Sheet")
+    print(f"Loaded {len(df)} rows")
     print(f"Columns: {list(df.columns)}")
     return df
 
 
 # ── Selenium helpers ──────────────────────────────────────────────────────────
 
+# Persistent Chrome profile stored per-user — survives between runs so Google
+# login is only needed once. Lives in the user's home folder, never in the repo.
+_CHROME_PROFILE = Path.home() / ".mtrack_automation" / "chrome_profile"
+
+
 def create_driver(headless: bool = False) -> webdriver.Chrome:
+    _CHROME_PROFILE.mkdir(parents=True, exist_ok=True)
     options = Options()
     if headless:
         options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--start-maximized")
+    options.add_argument("--no-first-run")
+    options.add_argument("--no-default-browser-check")
+    # Reuse the same Chrome profile every run → Google session is preserved
+    options.add_argument(f"--user-data-dir={_CHROME_PROFILE}")
+    options.add_argument("--profile-directory=Default")
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=options)
 
@@ -108,30 +142,82 @@ def wait_and_click(driver: webdriver.Chrome, xpaths: list, description: str) -> 
     return False
 
 
+_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+_LOWER = "abcdefghijklmnopqrstuvwxyz"
+
+
+def _ci(attr: str) -> str:
+    """XPath 1.0 expression to lower-case an attribute or string for case-insensitive compare."""
+    return f"translate(normalize-space({attr}),'{_UPPER}','{_LOWER}')"
+
+
 def resolve_element(driver: webdriver.Chrome, selector_str: str):
     """
     Find a form element using a selector string:
-      label:Text   -> find input associated with <label> containing Text
+      label:Text   -> find input/select/textarea linked to a matching label (case-insensitive)
       id:value     -> By.ID
       name:value   -> By.NAME
       css:value    -> By.CSS_SELECTOR
       xpath:value  -> By.XPATH
     """
-    wait = WebDriverWait(driver, 10)
     prefix, _, value = selector_str.partition(":")
+    val_lower = value.lower()
 
     if prefix == "label":
-        # Find input/select/textarea linked to a label
-        xpath = (
-            f"//label[normalize-space()='{value}']/following::input[1] | "
-            f"//label[normalize-space()='{value}']/following::select[1] | "
-            f"//label[normalize-space()='{value}']/following::textarea[1] | "
-            f"//label[contains(.,'{value}')]/..//input | "
-            f"//label[contains(.,'{value}')]/..//select | "
-            f"//label[contains(.,'{value}')]/..//textarea"
-        )
-        return wait.until(EC.presence_of_element_located((By.XPATH, xpath)))
-    elif prefix == "id":
+        # Build a case-insensitive comparison expression for XPath 1.0
+        ci_eq = f"{_ci('.')}='{val_lower}'"
+        ci_contains = f"contains({_ci('.')},'{val_lower}')"
+
+        # Try each strategy in order, return the first element found
+        xpaths = [
+            # 1. <label for="id"> exact match (case-insensitive) -> linked input
+            f"//label[{ci_eq}]",
+            # 2. label wraps or is adjacent to the input (case-insensitive contains)
+            f"//label[{ci_contains}]",
+            # 3. aria-label on the input itself
+            f"//*[self::input or self::select or self::textarea]"
+            f"[{_ci('@aria-label')}='{val_lower}']",
+            # 4. placeholder on input
+            f"//input[{_ci('@placeholder')}='{val_lower}']",
+            # 5. Any element whose direct text matches (e.g. <th>, <span> acting as label)
+            f"//*[{ci_eq}]/following::input[1]",
+            f"//*[{ci_eq}]/following::select[1]",
+            f"//*[{ci_eq}]/following::textarea[1]",
+        ]
+
+        for xpath in xpaths:
+            try:
+                els = driver.find_elements(By.XPATH, xpath)
+                if not els:
+                    continue
+                el = els[0]
+                tag = el.tag_name.lower()
+                # If we landed on a <label>, resolve to its associated input
+                if tag == "label":
+                    for_id = el.get_attribute("for")
+                    if for_id:
+                        linked = driver.find_elements(By.ID, for_id)
+                        if linked:
+                            return linked[0]
+                    # label wraps the input
+                    child = el.find_elements(By.XPATH, ".//input | .//select | .//textarea")
+                    if child:
+                        return child[0]
+                    # input immediately follows the label
+                    sibling = driver.find_elements(
+                        By.XPATH, f"({xpath})/following::input[1] | ({xpath})/following::select[1]"
+                    )
+                    if sibling:
+                        return sibling[0]
+                else:
+                    return el
+            except Exception:
+                continue
+
+        raise Exception(f"Could not find form element for label: '{value}'")
+
+    wait = WebDriverWait(driver, 10)
+    if prefix == "id":
         return wait.until(EC.presence_of_element_located((By.ID, value)))
     elif prefix == "name":
         return wait.until(EC.presence_of_element_located((By.NAME, value)))
@@ -231,26 +317,24 @@ def submit_row(driver: webdriver.Chrome, config: dict, row: pd.Series, row_index
 
     time.sleep(1.5)
 
-    # Step 4: Fill form fields from field_mapping
+    # Step 4: Fill form fields
+    # Auto-map each sheet column to label:<column> by default.
+    # field_mapping in config provides overrides for columns whose header differs from the form label.
+    # skip_columns lists columns that exist in the sheet but have no matching form field.
     field_mapping = {
         k: v for k, v in config.get("field_mapping", {}).items()
         if not k.startswith("_")
     }
+    skip_columns = {c for c in config.get("skip_columns", []) if not str(c).startswith("_")}
 
-    if not field_mapping:
-        print("  WARNING: field_mapping in config.json is empty.")
-        print("  Run with --discover to detect available form fields, then update config.json.")
-        discover_form_fields(driver)
-        return False
-
-    for sheet_col, selector in field_mapping.items():
-        if sheet_col not in row.index:
-            print(f"  SKIP: Sheet has no column '{sheet_col}'")
+    for sheet_col in row.index:
+        if sheet_col in skip_columns:
+            print(f"  SKIP (configured): '{sheet_col}'")
             continue
         value = row[sheet_col]
         if pd.isna(value) or str(value).strip() == "":
-            print(f"  SKIP: Empty value for '{sheet_col}'")
             continue
+        selector = field_mapping.get(sheet_col, f"label:{sheet_col}")
         try:
             element = resolve_element(driver, selector)
             driver.execute_script("arguments[0].scrollIntoView({block:'center'});", element)
@@ -291,26 +375,75 @@ def run_discover(config: dict):
         driver.quit()
 
 
-def run_automation(config: dict, dry_run: bool = False, row_limit: int = None):
-    df = load_sheet_data(config)
+def run_probe(config: dict):
+    """Open the new-request form and test which sheet columns can be matched to form fields."""
+    field_mapping = {
+        k: v for k, v in config.get("field_mapping", {}).items()
+        if not k.startswith("_")
+    }
+    skip_columns = {c for c in config.get("skip_columns", []) if not str(c).startswith("_")}
 
-    if df.empty:
-        print("No data found in the Google Sheet.")
-        return
-
-    if row_limit:
-        df = df.head(row_limit)
-        print(f"Processing first {row_limit} row(s).")
-
-    if dry_run:
-        print("\n-- DRY RUN: showing sheet data only --")
-        print(df.to_string())
-        return
-
-    driver = create_driver(headless=config.get("headless", False))
-    success = 0
-    failed = 0
+    driver = create_driver(headless=False)
     try:
+        df = load_sheet_data(config, driver)
+        if df.empty:
+            print("No data in sheet.")
+            return
+        driver.get(config["mtrack_url"])
+        time.sleep(2)
+        wait_and_click(driver, config["button_selectors"]["request_form_button"], "Request Form")
+        time.sleep(1)
+        wait_and_click(driver, config["button_selectors"]["new_request_button"], "+New Request")
+        time.sleep(1.5)
+
+        print("\n=== Field Probe Results ===")
+        found, missing = [], []
+        for col in df.columns:
+            if col in skip_columns:
+                print(f"  [SKIP]  {col}")
+                continue
+            selector = field_mapping.get(col, f"label:{col}")
+            try:
+                el = resolve_element(driver, selector)
+                tag = el.tag_name
+                el_id = el.get_attribute("id") or ""
+                print(f"  [OK]    {col!r:45s}  -> <{tag}> id={el_id!r}  selector={selector!r}")
+                found.append(col)
+            except Exception:
+                print(f"  [MISS]  {col!r:45s}  -> no element found for selector={selector!r}")
+                missing.append(col)
+
+        print(f"\nMatched: {len(found)}   Missing: {len(missing)}")
+        if missing:
+            print("\nFor missing columns, either:")
+            print("  1. Add the column to 'skip_columns' in config.json if it has no form field.")
+            print("  2. Add an override in 'field_mapping' pointing to the correct selector.")
+            print("     Run --discover to see all available form fields.")
+        input("\nPress Enter to close the browser...")
+    finally:
+        driver.quit()
+
+
+def run_automation(config: dict, dry_run: bool = False, row_limit: int = None):
+    driver = create_driver(headless=config.get("headless", False))
+    try:
+        df = load_sheet_data(config, driver)
+
+        if df.empty:
+            print("No data found in the Google Sheet.")
+            return
+
+        if row_limit:
+            df = df.head(row_limit)
+            print(f"Processing first {row_limit} row(s).")
+
+        if dry_run:
+            print("\n-- DRY RUN: showing sheet data only --")
+            print(df.to_string())
+            return
+
+        success = 0
+        failed = 0
         for idx, (_, row) in enumerate(df.iterrows(), start=1):
             print(f"\nProcessing row {idx}/{len(df)}...")
             ok = submit_row(driver, config, row, idx)
@@ -329,6 +462,10 @@ def main():
     parser.add_argument(
         "--discover", action="store_true",
         help="Open m-track new request form and print all detectable fields"
+    )
+    parser.add_argument(
+        "--probe", action="store_true",
+        help="Test which sheet columns can be matched to form fields (no data submitted)"
     )
     parser.add_argument(
         "--dry-run", action="store_true",
@@ -352,6 +489,8 @@ def main():
 
     if args.discover:
         run_discover(config)
+    elif args.probe:
+        run_probe(config)
     else:
         run_automation(config, dry_run=args.dry_run, row_limit=args.rows)
 
