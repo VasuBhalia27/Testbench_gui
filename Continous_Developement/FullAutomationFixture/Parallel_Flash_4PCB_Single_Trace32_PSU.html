@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parallel Flash: 4 PCBs — Single Trace32 + Single PSU</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1a2e;color:#e0e6f0;line-height:1.6}
+  .page{max-width:1400px;margin:0 auto;padding:24px}
+
+  /* TITLE */
+  .doc-title{background:linear-gradient(135deg,#1F3864,#2E75B6);border-radius:12px;padding:28px 36px;margin-bottom:28px;border-left:6px solid #F57F17}
+  .doc-title h1{font-size:22px;color:#fff;letter-spacing:1px}
+  .doc-title .meta{color:#B0C4DE;font-size:13px;margin-top:6px}
+  .doc-title .badge{display:inline-block;background:#F57F17;color:#fff;font-size:11px;font-weight:700;border-radius:4px;padding:2px 10px;margin-top:10px}
+
+  /* SECTION */
+  .section{background:#162033;border-radius:10px;padding:22px 26px;margin-bottom:22px;border:1px solid #243352}
+  .section-title{font-size:16px;font-weight:700;color:#F57F17;border-bottom:2px solid #F57F17;padding-bottom:6px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .section-title .num{background:#F57F17;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+
+  /* BLOCKING TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#1F3864;color:#B0C4DE;padding:9px 12px;text-align:left;font-weight:600;border:1px solid #243352}
+  td{padding:9px 12px;border:1px solid #243352;vertical-align:top}
+  tr:nth-child(even) td{background:#1a2640}
+  tr:nth-child(odd) td{background:#162033}
+  .sev-high{color:#ff5252;font-weight:700}
+  .sev-med{color:#ffab40;font-weight:700}
+  .sev-low{color:#69f0ae;font-weight:700}
+
+  /* DIAGRAM CONTAINERS */
+  .diagram-wrap{background:#fff;border-radius:10px;overflow:auto;margin:12px 0;box-shadow:0 4px 20px #0006}
+  .diagram-wrap svg{display:block}
+
+  /* APPROACH CARDS */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:12px}
+  .card{background:#1a2640;border:1px solid #2E75B6;border-radius:8px;padding:16px}
+  .card h3{color:#4FC3F7;font-size:14px;margin-bottom:8px}
+  .card p,.card li{font-size:13px;color:#c8d6e8}
+  .card ul{padding-left:18px}
+  .card .tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;margin-bottom:6px}
+  .tag-rec{background:#2E7D32;color:#fff}
+  .tag-alt{background:#1565C0;color:#fff}
+  .tag-not{background:#B71C1C;color:#fff}
+
+  /* STEP LIST */
+  .steps{counter-reset:step}
+  .step{counter-increment:step;display:flex;gap:14px;margin-bottom:12px;align-items:flex-start}
+  .step::before{content:counter(step);background:#2E75B6;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;margin-top:2px}
+  .step-body{font-size:13px;color:#c8d6e8}
+  .step-body strong{color:#F57F17}
+
+  /* PRINT */
+  @media print{body{background:#fff;color:#000}.doc-title,.section{background:#fff;border:1px solid #aaa}.section-title{color:#000}}
+
+  .controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  button{background:#2E75B6;color:white;border:none;padding:7px 18px;border-radius:6px;cursor:pointer;font-size:13px}
+  button:hover{background:#1F3864}
+
+  .note-box{background:#1a3a1a;border-left:4px solid #4CAF50;border-radius:6px;padding:12px 16px;font-size:13px;color:#b8f5b8;margin-top:10px}
+  .warn-box{background:#3a2400;border-left:4px solid #FF9800;border-radius:6px;padding:12px 16px;font-size:13px;color:#ffd180;margin-top:10px}
+  .risk-box{background:#3a0000;border-left:4px solid #f44336;border-radius:6px;padding:12px 16px;font-size:13px;color:#ffcdd2;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- TITLE -->
+<div class="doc-title">
+  <h1>Parallel Flash: 4 PCBs with Single Lauterbach Trace32 + Single Power Supply</h1>
+  <div class="meta">Project: RH_i460 Full Automation Fixture &nbsp;|&nbsp; Author: csingh &nbsp;|&nbsp; Date: 2026-06-17 &nbsp;|&nbsp; Rev: 1.0</div>
+  <div class="badge">CHALLENGE ANALYSIS &amp; IMPLEMENTATION GUIDE</div>
+</div>
+
+<div class="controls">
+  <button onclick="window.print()">Print / Save PDF</button>
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=true)">Expand All</button>
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=false)">Collapse All</button>
+</div>
+
+<!-- SECTION 1: EXECUTIVE SUMMARY -->
+<div class="section">
+  <div class="section-title"><span class="num">1</span> Executive Summary</div>
+  <p style="font-size:14px;color:#c8d6e8;margin-bottom:12px">
+    The challenge is to flash firmware into <strong style="color:#F57F17">4 PCBs simultaneously</strong> placed in the 4-slot automation fixture,
+    using only <strong style="color:#4FC3F7">one Lauterbach Trace32 PowerDebug E40</strong> and <strong style="color:#4FC3F7">one KIKUSUI PWR401L power supply</strong>,
+    without investing in 4× instrument sets at this stage.
+  </p>
+  <p style="font-size:14px;color:#c8d6e8;margin-bottom:12px">
+    True simultaneous JTAG/SWD flashing of 4 boards from a single probe is <strong style="color:#ff5252">not possible</strong> —
+    JTAG is a single-master bus. The recommended solution is <strong style="color:#69f0ae">sequential flashing via a 4-channel JTAG/SWD hardware multiplexer</strong>,
+    with all 4 PCBs powered from the single PSU through per-slot relay isolation. This keeps all 4 PCBs mechanically loaded in the fixture
+    (no robot intervention during flash) while the software cycles through each slot.
+  </p>
+  <div class="note-box">
+    Key insight: "Parallel" at the <em>fixture level</em> means all 4 boards are physically loaded and powered at once.
+    Flash is sequential per slot (via MUX), but FCT functional tests run in parallel after all boards are flashed.
+    Cycle-time impact of sequential flash is offset by eliminating 4 individual load/unload robot cycles.
+  </div>
+</div>
+
+<!-- SECTION 2: BLOCK DIAGRAM -->
+<div class="section">
+  <div class="section-title"><span class="num">2</span> System Block Diagram</div>
+  <div class="diagram-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="640" viewBox="0 0 1300 640">
+  <defs>
+    <marker id="arr_blk" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#555"/>
+    </marker>
+    <marker id="arr_blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#2E75B6"/>
+    </marker>
+    <marker id="arr_grn" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#2E7D32"/>
+    </marker>
+    <marker id="arr_org" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#E65100"/>
+    </marker>
+    <marker id="arr_red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#C62828"/>
+    </marker>
+    <marker id="arr_pur" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#6A1B9A"/>
+    </marker>
+    <filter id="sh"><feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#00000050"/></filter>
+  </defs>
+
+  <!-- background -->
+  <rect width="1300" height="640" fill="#0f1a2e"/>
+
+  <!-- TITLE -->
+  <rect x="0" y="0" width="1300" height="38" fill="#1F3864"/>
+  <text x="650" y="24" font-size="15" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">SYSTEM BLOCK DIAGRAM — Single Trace32 + Single PSU → 4-Slot Fixture Flash</text>
+
+  <!-- ═══ FCT PC ═══ -->
+  <rect x="20" y="55" width="180" height="200" rx="8" fill="#1a2640" stroke="#2E75B6" stroke-width="2" filter="url(#sh)"/>
+  <rect x="20" y="55" width="180" height="26" rx="8" fill="#2E75B6"/>
+  <rect x="20" y="69" width="180" height="12" rx="0" fill="#2E75B6"/>
+  <text x="110" y="73" font-size="12" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FCT TEST PC</text>
+  <text x="110" y="95" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">integrated_automation.py</text>
+  <text x="110" y="110" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">trace32_mux_flasher.py</text>
+  <text x="110" y="125" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">psu_slot_controller.py</text>
+  <text x="110" y="140" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">pc_io_interface.py</text>
+  <text x="110" y="160" font-size="10" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">T32 API (PRACTICE)</text>
+  <text x="110" y="175" font-size="10" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">VISA/SCPI (PSU ctrl)</text>
+  <text x="110" y="190" font-size="10" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">USB GPIO (MUX ctrl)</text>
+  <text x="110" y="210" font-size="10" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">USB / Ethernet</text>
+  <text x="110" y="225" font-size="10" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">to Trace32</text>
+  <text x="110" y="242" font-size="10" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">USB-GPIB / RS-232 to PSU</text>
+
+  <!-- ═══ TRACE32 ═══ -->
+  <rect x="250" y="55" width="160" height="100" rx="8" fill="#1a2640" stroke="#4527A0" stroke-width="2" filter="url(#sh)"/>
+  <rect x="250" y="55" width="160" height="26" rx="8" fill="#4527A0"/>
+  <rect x="250" y="69" width="160" height="12" rx="0" fill="#4527A0"/>
+  <text x="330" y="73" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">LAUTERBACH TRACE32</text>
+  <text x="330" y="95" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">PowerDebug E40</text>
+  <text x="330" y="110" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">1× DC20A probe</text>
+  <text x="330" y="125" font-size="9" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">Port 4711 (single instance)</text>
+  <text x="330" y="140" font-size="9" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">USB / ETH to PC</text>
+
+  <!-- ═══ PSU ═══ -->
+  <rect x="250" y="180" width="160" height="90" rx="8" fill="#1a2640" stroke="#E65100" stroke-width="2" filter="url(#sh)"/>
+  <rect x="250" y="180" width="160" height="26" rx="8" fill="#E65100"/>
+  <rect x="250" y="194" width="160" height="12" rx="0" fill="#E65100"/>
+  <text x="330" y="198" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">KIKUSUI PWR401L</text>
+  <text x="330" y="220" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">40V / 1A single channel</text>
+  <text x="330" y="235" font-size="9" fill="#ff5252" text-anchor="middle" font-family="Segoe UI,Arial">CAUTION: 1A for 4 boards</text>
+  <text x="330" y="250" font-size="9" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">USB-GPIB / RS-232 to PC</text>
+
+  <!-- PC → Trace32 -->
+  <line x1="200" y1="100" x2="250" y2="100" stroke="#6A1B9A" stroke-width="2" marker-end="url(#arr_pur)"/>
+  <text x="225" y="93" font-size="9" fill="#ce93d8" text-anchor="middle" font-family="Segoe UI,Arial">USB/ETH</text>
+
+  <!-- PC → PSU -->
+  <line x1="200" y1="225" x2="250" y2="225" stroke="#E65100" stroke-width="2" marker-end="url(#arr_org)"/>
+  <text x="225" y="218" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">VISA/SCPI</text>
+
+  <!-- ═══ JTAG MUX ═══ -->
+  <rect x="470" y="40" width="160" height="140" rx="8" fill="#1a2640" stroke="#C62828" stroke-width="2.5" filter="url(#sh)"/>
+  <rect x="470" y="40" width="160" height="26" rx="8" fill="#C62828"/>
+  <rect x="470" y="54" width="160" height="12" rx="0" fill="#C62828"/>
+  <text x="550" y="58" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">JTAG/SWD MUX</text>
+  <text x="550" y="58" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">JTAG/SWD MUX</text>
+  <text x="550" y="80" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">4-Channel 1:4 Switch</text>
+  <text x="550" y="95" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">e.g. FTDI FT2232H-based</text>
+  <text x="550" y="110" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">or custom relay MUX board</text>
+  <text x="550" y="128" font-size="9" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">SEL[0:1] ← PC GPIO</text>
+  <text x="550" y="143" font-size="9" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">TDI,TDO,TCK,TMS</text>
+  <text x="550" y="158" font-size="9" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">routed to selected slot</text>
+
+  <!-- Trace32 → JTAG MUX -->
+  <line x1="410" y1="100" x2="470" y2="100" stroke="#C62828" stroke-width="2.5" marker-end="url(#arr_red)"/>
+  <text x="440" y="93" font-size="9" fill="#ef9a9a" text-anchor="middle" font-family="Segoe UI,Arial">SWD/JTAG</text>
+
+  <!-- ═══ RELAY BOARD ═══ -->
+  <rect x="470" y="195" width="160" height="140" rx="8" fill="#1a2640" stroke="#E65100" stroke-width="2" filter="url(#sh)"/>
+  <rect x="470" y="195" width="160" height="26" rx="8" fill="#E65100"/>
+  <rect x="470" y="209" width="160" height="12" rx="0" fill="#E65100"/>
+  <text x="550" y="213" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">4-CH RELAY BOARD</text>
+  <text x="550" y="235" font-size="10" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">Per-slot power switch</text>
+  <text x="550" y="250" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Relay 1 → Slot 1 VCC</text>
+  <text x="550" y="263" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Relay 2 → Slot 2 VCC</text>
+  <text x="550" y="276" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Relay 3 → Slot 3 VCC</text>
+  <text x="550" y="289" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Relay 4 → Slot 4 VCC</text>
+  <text x="550" y="310" font-size="9" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">+ polyfuse per slot</text>
+  <text x="550" y="323" font-size="9" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial" font-weight="bold">(short-circuit protect)</text>
+
+  <!-- PSU → Relay Board -->
+  <line x1="410" y1="225" x2="470" y2="250" stroke="#E65100" stroke-width="2" marker-end="url(#arr_org)"/>
+  <text x="435" y="230" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">V+/GND</text>
+
+  <!-- PC GPIO → MUX (SEL lines) -->
+  <line x1="110" y1="255" x2="110" y2="430" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="110" y1="430" x2="550" y2="430" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="550" y1="430" x2="550" y2="180" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr_blk)"/>
+  <text x="330" y="445" font-size="9" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">PC USB-GPIO → MUX SEL[0:1] control</text>
+
+  <!-- PC GPIO → Relay Board (enable) -->
+  <line x1="550" y1="430" x2="550" y2="335" stroke="#E65100" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr_org)"/>
+  <text x="570" y="400" font-size="9" fill="#ffcc80" text-anchor="start" font-family="Segoe UI,Arial">USB-Relay ctrl</text>
+
+  <!-- ═══ 4-SLOT FIXTURE ═══ -->
+  <rect x="700" y="30" width="560" height="480" rx="10" fill="#0d1e35" stroke="#2E7D32" stroke-width="2.5" filter="url(#sh)"/>
+  <rect x="700" y="30" width="560" height="28" rx="10" fill="#2E7D32"/>
+  <rect x="700" y="46" width="560" height="14" rx="0" fill="#2E7D32"/>
+  <text x="980" y="50" font-size="13" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">4-SLOT AUTOMATION FIXTURE (Pneumatic Press + Pogo Pins)</text>
+
+  <!-- 4 slot boxes -->
+  <!-- Slot 1 -->
+  <rect x="718" y="72" width="120" height="170" rx="6" fill="#1a2640" stroke="#1565C0" stroke-width="2"/>
+  <rect x="718" y="72" width="120" height="22" rx="6" fill="#1565C0"/>
+  <rect x="718" y="84" width="120" height="10" rx="0" fill="#1565C0"/>
+  <text x="778" y="87" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">SLOT 1</text>
+  <rect x="730" y="102" width="96" height="70" rx="4" fill="#1F3864" stroke="#4FC3F7" stroke-width="1.5"/>
+  <text x="778" y="120" font-size="9" fill="#4FC3F7" text-anchor="middle" font-family="Segoe UI,Arial">PCB #1</text>
+  <text x="778" y="133" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">RH_i460</text>
+  <text x="778" y="147" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">SWD pogo</text>
+  <text x="778" y="160" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">VCC pogo</text>
+  <text x="778" y="195" font-size="8" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">SWD → MUX out-1</text>
+  <text x="778" y="208" font-size="8" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">VCC ← Relay 1</text>
+  <text x="778" y="222" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Polyfuse: 500mA</text>
+  <text x="778" y="235" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Reset GPIO ← PC</text>
+
+  <!-- Slot 2 -->
+  <rect x="852" y="72" width="120" height="170" rx="6" fill="#1a2640" stroke="#1565C0" stroke-width="2"/>
+  <rect x="852" y="72" width="120" height="22" rx="6" fill="#1565C0"/>
+  <rect x="852" y="84" width="120" height="10" rx="0" fill="#1565C0"/>
+  <text x="912" y="87" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">SLOT 2</text>
+  <rect x="864" y="102" width="96" height="70" rx="4" fill="#1F3864" stroke="#4FC3F7" stroke-width="1.5"/>
+  <text x="912" y="120" font-size="9" fill="#4FC3F7" text-anchor="middle" font-family="Segoe UI,Arial">PCB #2</text>
+  <text x="912" y="133" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">RH_i460</text>
+  <text x="912" y="147" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">SWD pogo</text>
+  <text x="912" y="160" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">VCC pogo</text>
+  <text x="912" y="195" font-size="8" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">SWD → MUX out-2</text>
+  <text x="912" y="208" font-size="8" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">VCC ← Relay 2</text>
+  <text x="912" y="222" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Polyfuse: 500mA</text>
+  <text x="912" y="235" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Reset GPIO ← PC</text>
+
+  <!-- Slot 3 -->
+  <rect x="986" y="72" width="120" height="170" rx="6" fill="#1a2640" stroke="#1565C0" stroke-width="2"/>
+  <rect x="986" y="72" width="120" height="22" rx="6" fill="#1565C0"/>
+  <rect x="986" y="84" width="120" height="10" rx="0" fill="#1565C0"/>
+  <text x="1046" y="87" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">SLOT 3</text>
+  <rect x="998" y="102" width="96" height="70" rx="4" fill="#1F3864" stroke="#4FC3F7" stroke-width="1.5"/>
+  <text x="1046" y="120" font-size="9" fill="#4FC3F7" text-anchor="middle" font-family="Segoe UI,Arial">PCB #3</text>
+  <text x="1046" y="133" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">RH_i460</text>
+  <text x="1046" y="147" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">SWD pogo</text>
+  <text x="1046" y="160" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">VCC pogo</text>
+  <text x="1046" y="195" font-size="8" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">SWD → MUX out-3</text>
+  <text x="1046" y="208" font-size="8" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">VCC ← Relay 3</text>
+  <text x="1046" y="222" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Polyfuse: 500mA</text>
+  <text x="1046" y="235" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Reset GPIO ← PC</text>
+
+  <!-- Slot 4 -->
+  <rect x="1120" y="72" width="120" height="170" rx="6" fill="#1a2640" stroke="#1565C0" stroke-width="2"/>
+  <rect x="1120" y="72" width="120" height="22" rx="6" fill="#1565C0"/>
+  <rect x="1120" y="84" width="120" height="10" rx="0" fill="#1565C0"/>
+  <text x="1180" y="87" font-size="11" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">SLOT 4</text>
+  <rect x="1132" y="102" width="96" height="70" rx="4" fill="#1F3864" stroke="#4FC3F7" stroke-width="1.5"/>
+  <text x="1180" y="120" font-size="9" fill="#4FC3F7" text-anchor="middle" font-family="Segoe UI,Arial">PCB #4</text>
+  <text x="1180" y="133" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">RH_i460</text>
+  <text x="1180" y="147" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">SWD pogo</text>
+  <text x="1180" y="160" font-size="8" fill="#90a4ae" text-anchor="middle" font-family="Segoe UI,Arial">VCC pogo</text>
+  <text x="1180" y="195" font-size="8" fill="#ffab40" text-anchor="middle" font-family="Segoe UI,Arial">SWD → MUX out-4</text>
+  <text x="1180" y="208" font-size="8" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">VCC ← Relay 4</text>
+  <text x="1180" y="222" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Polyfuse: 500mA</text>
+  <text x="1180" y="235" font-size="8" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">Reset GPIO ← PC</text>
+
+  <!-- JTAG MUX → Slots (arrows from MUX right side to fixture left) -->
+  <line x1="630" y1="95" x2="700" y2="95" stroke="#C62828" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arr_red)"/>
+  <text x="662" y="88" font-size="8" fill="#ef9a9a" text-anchor="middle" font-family="Segoe UI,Arial">SWD MUX →</text>
+
+  <!-- MUX to each slot internal routing shown as dashed lines inside fixture -->
+  <line x1="718" y1="140" x2="700" y2="140" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="852" y1="140" x2="830" y2="140" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="986" y1="140" x2="960" y2="140" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="1120" y1="140" x2="1090" y2="140" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- vertical bus inside fixture for JTAG -->
+  <line x1="700" y1="95" x2="700" y2="145" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="700" y1="140" x2="718" y2="140" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- Relay Board → Slots (power lines) -->
+  <line x1="630" y1="265" x2="700" y2="265" stroke="#E65100" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arr_org)"/>
+  <text x="662" y="258" font-size="8" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">VCC rails →</text>
+
+  <!-- Power vertical bus inside fixture -->
+  <line x1="700" y1="265" x2="700" y2="210" stroke="#E65100" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="700" y1="210" x2="718" y2="210" stroke="#E65100" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="830" y1="210" x2="852" y2="210" stroke="#E65100" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="960" y1="210" x2="986" y2="210" stroke="#E65100" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="1090" y1="210" x2="1120" y2="210" stroke="#E65100" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- FCT parallel test bar (after flash) -->
+  <rect x="718" y="270" width="522" height="38" rx="6" fill="#1a3a1a" stroke="#2E7D32" stroke-width="1.5"/>
+  <text x="979" y="284" font-size="10" fill="#69f0ae" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FCT FUNCTIONAL TEST PHASE — All 4 slots run IN PARALLEL (CAN / LIN / Motor / NFC / BAT)</text>
+  <text x="979" y="298" font-size="9" fill="#a5d6a7" text-anchor="middle" font-family="Segoe UI,Arial">PCAN ch.1-4  |  PLIN COM3-6  |  4× TestSequenceRunner threads</text>
+
+  <!-- PLC interface -->
+  <rect x="718" y="322" width="522" height="55" rx="6" fill="#3a2400" stroke="#E65100" stroke-width="1.5"/>
+  <text x="979" y="338" font-size="10" fill="#ffcc80" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">PLC / ROBOT INTERFACE (BANWA)</text>
+  <text x="979" y="352" font-size="9" fill="#ffe0b2" text-anchor="middle" font-family="Segoe UI,Arial">FIXTURE_CLOSED → Trigger flash start  |  SLOT_PASS/FAIL[1-4] ← FCT PC</text>
+  <text x="979" y="366" font-size="9" fill="#ffe0b2" text-anchor="middle" font-family="Segoe UI,Arial">FLASH_DONE signal → PLC unlocks fixture  |  Error hold robot arm</text>
+
+  <!-- Barcode scanner -->
+  <rect x="718" y="390" width="522" height="40" rx="6" fill="#1a2640" stroke="#F57F17" stroke-width="1.5"/>
+  <text x="979" y="406" font-size="10" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">KEYENCE SR-X100 — 2D Barcode Scanner</text>
+  <text x="979" y="421" font-size="9" fill="#ffe082" text-anchor="middle" font-family="Segoe UI,Arial">Reads 4× PCB barcodes at load → maps scan_code[1-4] → slot IDs before flash</text>
+
+  <!-- Result logger -->
+  <rect x="718" y="445" width="522" height="40" rx="6" fill="#1a2640" stroke="#F57F17" stroke-width="1.5"/>
+  <text x="979" y="461" font-size="10" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">RESULT LOGGER — CSV + HTML per batch</text>
+  <text x="979" y="476" font-size="9" fill="#ffe082" text-anchor="middle" font-family="Segoe UI,Arial">Flash status (PASS/FAIL/SKIP)  |  FCT result per slot  |  BarcodeID + Datetime</text>
+
+  <!-- LEGEND -->
+  <rect x="10" y="480" width="640" height="100" rx="6" fill="#0d1e35" stroke="#243352" stroke-width="1"/>
+  <text x="320" y="498" font-size="11" fill="#B0C4DE" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">LEGEND</text>
+  <line x1="20" y1="510" x2="60" y2="510" stroke="#C62828" stroke-width="2.5" stroke-dasharray="4,3"/>
+  <text x="65" y="514" font-size="9" fill="#ef9a9a" font-family="Segoe UI,Arial" text-anchor="start">JTAG/SWD (sequential, MUX-selected)</text>
+  <line x1="20" y1="528" x2="60" y2="528" stroke="#E65100" stroke-width="2.5" stroke-dasharray="4,3"/>
+  <text x="65" y="532" font-size="9" fill="#ffcc80" font-family="Segoe UI,Arial" text-anchor="start">Power (VCC / relay-switched per slot)</text>
+  <line x1="20" y1="546" x2="60" y2="546" stroke="#6A1B9A" stroke-width="2"/>
+  <text x="65" y="550" font-size="9" fill="#ce93d8" font-family="Segoe UI,Arial" text-anchor="start">PC ↔ Trace32 (USB/ETH — PRACTICE API)</text>
+  <line x1="20" y1="564" x2="60" y2="564" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="65" y="568" font-size="9" fill="#90a4ae" font-family="Segoe UI,Arial" text-anchor="start">Control signals (GPIO, relay enable, MUX SEL)</text>
+  <rect x="250" y="503" width="12" height="12" rx="2" fill="#2E7D32"/>
+  <text x="267" y="514" font-size="9" fill="#a5d6a7" font-family="Segoe UI,Arial" text-anchor="start">FCT parallel test (all 4 slots simultaneous)</text>
+  <rect x="250" y="521" width="12" height="12" rx="2" fill="#1565C0"/>
+  <text x="267" y="532" font-size="9" fill="#90caf9" font-family="Segoe UI,Arial" text-anchor="start">PCB slots (individually reset/powered)</text>
+</svg>
+  </div>
+</div>
+
+<!-- SECTION 3: BLOCKING POINTS -->
+<div class="section">
+  <div class="section-title"><span class="num">3</span> Blocking Points, Root Causes &amp; Solutions</div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Blocking Point</th><th>Severity</th><th>Root Cause</th><th>Solution</th><th>Owner</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>B1</strong></td>
+        <td><strong>JTAG Bus Contention</strong><br><small>Multiple PCBs cannot share SWD/JTAG simultaneously — TDO lines short-circuit each other</small></td>
+        <td class="sev-high">CRITICAL</td>
+        <td>SWD is point-to-point; JTAG daisy-chain requires all targets to forward the chain — any unpowered target breaks the chain</td>
+        <td>Install a <strong>4-channel JTAG/SWD hardware MUX</strong> between Trace32 DC20A output and the 4 pogo-pin slots. Only the selected slot's SWD lines are electrically connected; all others are tri-stated.</td>
+        <td>HW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B2</strong></td>
+        <td><strong>PSU Current Insufficient</strong><br><small>PWR401L rated 40V/1A — each RH_i460 PCB may draw 200–500mA; 4 boards = up to 2A</small></td>
+        <td class="sev-high">CRITICAL</td>
+        <td>Single 1A PSU cannot sustain 4 active boards simultaneously, causing voltage droop, false resets, and flash corruption</td>
+        <td><strong>Option A (recommended):</strong> Power only the board being flashed (relay closes for active slot, others remain powered-off during flash). After all flashed, power all 4 for FCT. <br><strong>Option B:</strong> Replace PSU with 4A-capable unit (e.g. KIKUSUI PWR802L or equivalent).</td>
+        <td>HW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B3</strong></td>
+        <td><strong>MUX Signal Integrity</strong><br><small>JTAG MUX introduces capacitance; high-speed signals can degrade causing flash verify errors</small></td>
+        <td class="sev-med">HIGH</td>
+        <td>Parasitic C of MUX switches and long pogo-pin traces form an RC low-pass filter, limiting max JTAG clock frequency</td>
+        <td>Reduce Trace32 SWD clock to <strong>≤ 2 MHz</strong> when flashing through MUX. Keep PCB traces from MUX to pogo pins &lt; 100mm. Use JTAG MUX IC with Ron &lt; 5Ω (e.g. SN74CB3Q3257 or TS3USB221). Add 33Ω series termination.</td>
+        <td>HW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B4</strong></td>
+        <td><strong>Non-active Board Keeps SWDIO Floating</strong><br><small>Un-selected PCBs may back-drive SWD lines even when not selected by MUX</small></td>
+        <td class="sev-med">HIGH</td>
+        <td>MCU SWDIO/SWDCLK pins have weak pull-ups; even with MUX tri-state, leakage through powered MCU pins can affect bus</td>
+        <td>Assert NRST (hard reset) on non-active slots before MUX switches. Keep non-active slots <strong>in reset state</strong> via dedicated GPIO lines (one per slot) while their slot is not being flashed.</td>
+        <td>HW + SW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B5</strong></td>
+        <td><strong>Trace32 Connection State After MUX Switch</strong><br><small>Trace32 loses target lock when MUX switches to a new slot — requires re-attach sequence</small></td>
+        <td class="sev-med">HIGH</td>
+        <td>Trace32 PRACTICE script maintains state for one target; switching to new PCB requires re-running SYStem.UP and memory map</td>
+        <td>Write a <code>slot_flash(n)</code> PRACTICE wrapper that: <strong>(1)</strong> de-asserts NRST on slot n, <strong>(2)</strong> sets MUX SEL to n, <strong>(3)</strong> waits 10ms, <strong>(4)</strong> runs SYStem.RESet + SYStem.UP + flash commands, <strong>(5)</strong> asserts NRST on slot n again. Repeat for slots 1→4.</td>
+        <td>SW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B6</strong></td>
+        <td><strong>Per-Slot Power Fault Isolation</strong><br><small>A shorted PCB in one slot must not pull down VCC for all 4 slots</small></td>
+        <td class="sev-med">HIGH</td>
+        <td>PSU output is one rail; any slot short collapses common bus voltage</td>
+        <td>Add a <strong>500mA polyfuse (PTC resettable fuse)</strong> in series with each relay output before the slot pogo pin. Monitor PSU current via SCPI; if &gt; threshold after relay close, flag the slot as FAULT and skip it.</td>
+        <td>HW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B7</strong></td>
+        <td><strong>Flash Time × 4 Increases Cycle Time</strong><br><small>Sequential flash = 4× single-board flash duration</small></td>
+        <td class="sev-low">MEDIUM</td>
+        <td>Only one Trace32 channel available; no true parallelism at JTAG level</td>
+        <td>Optimize flash image: use <strong>blank-check skip</strong> (only write non-zero pages), increase SWD clock to max reliable speed, use Trace32 FLASH.Program AUTO (skips identical sectors). Typical flash 30s → target &lt; 2 min total for 4 boards.</td>
+        <td>SW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B8</strong></td>
+        <td><strong>Trace32 License: Multi-Target</strong><br><small>Some Trace32 license tiers restrict number of target connections per session</small></td>
+        <td class="sev-low">MEDIUM</td>
+        <td>License locked to specific device family or number of concurrent cores</td>
+        <td>Confirm current license allows sequential disconnect/reconnect to different physical targets. Contact Lauterbach support if needed. Using one SYStem.RESet + SYStem.UP per slot (not concurrent) usually falls within standard license.</td>
+        <td>Project Lead</td>
+      </tr>
+      <tr>
+        <td><strong>B9</strong></td>
+        <td><strong>Pogo-Pin SWD Wiring in Fixture</strong><br><small>Current fixture PCB may not route 4 independent SWD paths to a central MUX connector</small></td>
+        <td class="sev-low">MEDIUM</td>
+        <td>Original fixture design likely assumed 4 independent Trace32 probes (one per slot) or no SWD routing</td>
+        <td>Fixture PCB rework: add a <strong>5-pin header per slot</strong> (SWDIO, SWDCLK, NRST, VCC-sense, GND) that connects to the MUX board. Route NRST to a GPIO expander (PCF8574 / USB relay) under PC control.</td>
+        <td>HW Eng</td>
+      </tr>
+      <tr>
+        <td><strong>B10</strong></td>
+        <td><strong>MCU Boot Mode During Flash</strong><br><small>Some MCUs require BOOT pins set before power-on to enter flash mode</small></td>
+        <td class="sev-low">LOW</td>
+        <td>If RH_i460 MCU requires BOOT0=1 to accept SWD flash (e.g. STM32 with option byte issue), standard power-on may boot to user code that disables SWD</td>
+        <td>Verify if RH_i460 MCU SWD is accessible from user code (most ARM Cortex-M allow SWD halt override). If BOOT pins are needed, add BOOT0 control line per slot to the GPIO expander board.</td>
+        <td>FW Eng</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 4: HARDWARE SOLUTION -->
+<div class="section">
+  <div class="section-title"><span class="num">4</span> Hardware Solution — JTAG MUX Board Design</div>
+  <div class="cards">
+    <div class="card">
+      <span class="tag tag-rec">RECOMMENDED</span>
+      <h3>Option A: Relay-Based JTAG MUX</h3>
+      <ul>
+        <li>Use 4× DPDT signal relays (e.g. Panasonic TQ2-5V) to route SWDIO/SWDCLK</li>
+        <li>PC controls relays via USB-relay board (same board already used for FCT)</li>
+        <li>Only one relay closed at a time per SWD line</li>
+        <li>Pros: galvanic isolation, no leakage, simple BOM</li>
+        <li>Cons: relay switching ~5ms, mechanical wear (~1M cycles)</li>
+        <li>Cost: ~¥3,000 for relay board</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag tag-alt">ALTERNATIVE</span>
+      <h3>Option B: FTDI FT2232H Multi-Protocol MUX</h3>
+      <ul>
+        <li>FT2232H chip provides 2× JTAG/SWD channels independently</li>
+        <li>2× FT2232H → 4 SWD channels; each maps to one slot</li>
+        <li>Trace32 can enumerate each FT2232H as a separate adapter</li>
+        <li>Pros: still sequential but avoids physical MUX; Trace32 reconnects to different USB adapter</li>
+        <li>Cons: requires 2× USB adapters, Trace32 config change per slot</li>
+        <li>Cost: ~¥8,000 for 2× FT2232H USB boards</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag tag-not">NOT RECOMMENDED</span>
+      <h3>Option C: JTAG Daisy-Chain</h3>
+      <ul>
+        <li>Wire all 4 MCUs in JTAG chain (TDO of board n → TDI of board n+1)</li>
+        <li>Trace32 sees all 4 as one long scan chain</li>
+        <li>Cons: SWD (2-wire) does NOT support daisy-chain (only JTAG 4-wire)</li>
+        <li>If MCU uses SWD only → this option is impossible</li>
+        <li>Even with JTAG: any unpowered board breaks the entire chain</li>
+        <li>Verdict: reject unless all boards are always powered + MCU supports JTAG</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note-box" style="margin-top:16px">
+    <strong>Recommended MUX Board Bill of Materials (Option A):</strong><br>
+    1× USB Relay board 4-channel (for power per slot) — already in BOM<br>
+    1× USB Relay board 4-channel (for SWDIO/SWDCLK MUX — add to BOM)<br>
+    4× 500mA PTC resettable fuse (Bourns MF-R050) — add per slot<br>
+    4× 33Ω 0402 series resistors on SWDIO/SWDCLK after MUX output<br>
+    1× 4-port GPIO expander (PCF8574 I2C) for NRST per slot control
+  </div>
+</div>
+
+<!-- SECTION 5: FLOW DIAGRAM -->
+<div class="section">
+  <div class="section-title"><span class="num">5</span> Process Flow Diagram — Flash + FCT Cycle</div>
+  <div class="diagram-wrap">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1000" viewBox="0 0 1200 1000">
+  <defs>
+    <marker id="fa" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#2E75B6"/>
+    </marker>
+    <marker id="fg" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#2E7D32"/>
+    </marker>
+    <marker id="fr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#C62828"/>
+    </marker>
+    <marker id="fo" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#E65100"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="1000" fill="#0f1a2e"/>
+  <rect x="0" y="0" width="1200" height="36" fill="#1F3864"/>
+  <text x="600" y="23" font-size="14" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">PROCESS FLOW — 4-PCB Parallel Flash + FCT (Single Trace32 + Single PSU)</text>
+
+  <!-- swim lane backgrounds -->
+  <!-- Robot/PLC lane -->
+  <rect x="10" y="44" width="200" height="940" rx="4" fill="#1a1a00" stroke="#E65100" stroke-width="1" opacity="0.5"/>
+  <text x="110" y="62" font-size="10" fill="#ffcc80" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">ROBOT / PLC</text>
+  <!-- Flash SW lane -->
+  <rect x="220" y="44" width="300" height="940" rx="4" fill="#001a1a" stroke="#C62828" stroke-width="1" opacity="0.5"/>
+  <text x="370" y="62" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FLASH SW (trace32_mux_flasher.py)</text>
+  <!-- PSU/HW lane -->
+  <rect x="530" y="44" width="220" height="940" rx="4" fill="#1a0a00" stroke="#E65100" stroke-width="1" opacity="0.5"/>
+  <text x="640" y="62" font-size="10" fill="#ffab40" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">PSU + RELAY + MUX HW</text>
+  <!-- FCT lane -->
+  <rect x="760" y="44" width="330" height="940" rx="4" fill="#001020" stroke="#2E75B6" stroke-width="1" opacity="0.5"/>
+  <text x="925" y="62" font-size="10" fill="#90caf9" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FCT TEST SW (4 parallel threads)</text>
+  <!-- Error lane -->
+  <rect x="1100" y="44" width="90" height="940" rx="4" fill="#1a0000" stroke="#C62828" stroke-width="1" opacity="0.5"/>
+  <text x="1145" y="62" font-size="10" fill="#ffcdd2" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">ERROR</text>
+
+  <!-- HELPER macros encoded inline -->
+
+  <!-- STEP 1: Robot loads -->
+  <rect x="20" y="80" width="180" height="36" rx="6" fill="#3a2400" stroke="#E65100" stroke-width="1.5"/>
+  <text x="110" y="96" font-size="10" fill="#ffcc80" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">1. Robot picks 4 PCBs</text>
+  <text x="110" y="109" font-size="9" fill="#ffe0b2" text-anchor="middle" font-family="Segoe UI,Arial">from tray, places in fixture</text>
+  <line x1="110" y1="116" x2="110" y2="140" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- STEP 2: Fixture closes + barcode scan -->
+  <rect x="20" y="140" width="180" height="36" rx="6" fill="#3a2400" stroke="#E65100" stroke-width="1.5"/>
+  <text x="110" y="156" font-size="10" fill="#ffcc80" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">2. Fixture closes (pneumatic)</text>
+  <text x="110" y="169" font-size="9" fill="#ffe0b2" text-anchor="middle" font-family="Segoe UI,Arial">pogo-pins contact PCBs</text>
+  <line x1="110" y1="176" x2="110" y2="200" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- STEP 3: Barcode scan -->
+  <rect x="20" y="200" width="180" height="36" rx="6" fill="#3a2400" stroke="#E65100" stroke-width="1.5"/>
+  <text x="110" y="216" font-size="10" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">3. Barcode scan 4× PCBs</text>
+  <text x="110" y="229" font-size="9" fill="#ffe082" text-anchor="middle" font-family="Segoe UI,Arial">KEYENCE → scan_code[1-4]</text>
+  <line x1="110" y1="236" x2="110" y2="260" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+  <!-- signal to flash sw -->
+  <line x1="200" y1="218" x2="230" y2="218" stroke="#E65100" stroke-width="1.5" marker-end="url(#fo)"/>
+  <text x="215" y="213" font-size="8" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">FCT_START</text>
+
+  <!-- STEP 4: PLC sends FCT_START -->
+  <rect x="20" y="260" width="180" height="36" rx="6" fill="#3a2400" stroke="#E65100" stroke-width="1.5"/>
+  <text x="110" y="276" font-size="10" fill="#ffcc80" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">4. PLC: FIXTURE_CLOSED</text>
+  <text x="110" y="289" font-size="9" fill="#ffe0b2" text-anchor="middle" font-family="Segoe UI,Arial">signal → FCT PC</text>
+
+  <!-- Arrow from PLC step 4 to Flash SW -->
+  <line x1="200" y1="278" x2="230" y2="278" stroke="#E65100" stroke-width="1.5" marker-end="url(#fo)"/>
+
+  <!-- ══ FLASH SW starts ══ -->
+  <!-- STEP 5: Init Trace32 -->
+  <rect x="230" y="80" width="280" height="36" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="96" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">5. Trace32 connect (port 4711)</text>
+  <text x="370" y="109" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">SYStem.RESet; load flash config</text>
+  <line x1="370" y1="116" x2="370" y2="140" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- STEP 6: PSU init -->
+  <rect x="540" y="80" width="200" height="36" rx="6" fill="#3a1000" stroke="#E65100" stroke-width="1.5"/>
+  <text x="640" y="96" font-size="10" fill="#ffab40" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">6. PSU ON (limited current)</text>
+  <text x="640" y="109" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Set OCP = 600mA (slot safety)</text>
+  <line x1="640" y1="116" x2="640" y2="140" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- Flash SW waits for FIXTURE_CLOSED -->
+  <rect x="230" y="260" width="280" height="36" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="276" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">7. Receive FIXTURE_CLOSED</text>
+  <text x="370" y="289" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">read barcode IDs → log</text>
+  <line x1="370" y1="296" x2="370" y2="320" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- ══ LOOP: Flash slot n ══ -->
+  <!-- Loop header box -->
+  <rect x="230" y="320" width="280" height="28" rx="6" fill="#2E7D32" stroke="#69f0ae" stroke-width="1.5"/>
+  <text x="370" y="339" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FOR slot n = 1 to 4</text>
+  <line x1="370" y1="348" x2="370" y2="372" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- STEP 8: Power slot n only -->
+  <rect x="540" y="330" width="200" height="50" rx="6" fill="#3a1000" stroke="#E65100" stroke-width="1.5"/>
+  <text x="640" y="348" font-size="10" fill="#ffab40" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">8. Relay[n] CLOSE</text>
+  <text x="640" y="361" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Power ON slot n only</text>
+  <text x="640" y="374" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Relays[others] stay open</text>
+  <!-- Arrow from Flash SW to relay -->
+  <line x1="510" y1="350" x2="540" y2="350" stroke="#C62828" stroke-width="1.5" marker-end="url(#fr)"/>
+
+  <!-- STEP 9: Assert NRST on non-active, de-assert on slot n -->
+  <rect x="230" y="372" width="280" height="50" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="388" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">9. GPIO: NRST[n] de-assert</text>
+  <text x="370" y="401" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">NRST[others] assert (hold reset)</text>
+  <text x="370" y="414" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">Wait 20ms for MCU POR</text>
+  <line x1="370" y1="422" x2="370" y2="446" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- STEP 10: MUX select n -->
+  <rect x="540" y="390" width="200" height="36" rx="6" fill="#3a1000" stroke="#E65100" stroke-width="1.5"/>
+  <text x="640" y="406" font-size="10" fill="#ffab40" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">10. MUX SEL → slot n</text>
+  <text x="640" y="419" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">JTAG MUX routes to slot n</text>
+  <line x1="510" y1="408" x2="540" y2="408" stroke="#C62828" stroke-width="1.5" marker-end="url(#fr)"/>
+
+  <!-- STEP 11: Trace32 SYStem.UP + flash -->
+  <rect x="230" y="446" width="280" height="60" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="462" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">11. Trace32: SYStem.UP</text>
+  <text x="370" y="475" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">FLASH.Erase + FLASH.Program</text>
+  <text x="370" y="488" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">FLASH.Verify (checksum)</text>
+  <text x="370" y="500" font-size="9" fill="#69f0ae" text-anchor="middle" font-family="Segoe UI,Arial">~30s per board</text>
+  <line x1="370" y1="506" x2="370" y2="530" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- Decision: Flash OK? -->
+  <!-- Diamond shape -->
+  <polygon points="370,530 430,558 370,586 310,558" fill="#1a1040" stroke="#F57F17" stroke-width="2"/>
+  <text x="370" y="554" font-size="9" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">Flash</text>
+  <text x="370" y="567" font-size="9" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">OK?</text>
+  <!-- Yes arrow down -->
+  <line x1="370" y1="586" x2="370" y2="610" stroke="#2E7D32" stroke-width="2" marker-end="url(#fg)"/>
+  <text x="380" y="600" font-size="9" fill="#69f0ae" text-anchor="start" font-family="Segoe UI,Arial">YES</text>
+  <!-- No arrow right to error -->
+  <line x1="430" y1="558" x2="1110" y2="558" stroke="#C62828" stroke-width="2" marker-end="url(#fr)"/>
+  <text x="760" y="550" font-size="9" fill="#ef9a9a" text-anchor="middle" font-family="Segoe UI,Arial">NO → log FLASH_FAIL[n], skip slot n FCT</text>
+
+  <!-- STEP 12: Slot n flash result -->
+  <rect x="230" y="610" width="280" height="36" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="626" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">12. Log flash result[n]</text>
+  <text x="370" y="639" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">NRST[n] re-assert; power OFF slot n</text>
+  <line x1="370" y1="646" x2="370" y2="670" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- Decision: n < 4? Loop back -->
+  <polygon points="370,670 440,698 370,726 300,698" fill="#1a1040" stroke="#F57F17" stroke-width="2"/>
+  <text x="370" y="694" font-size="9" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">n &lt; 4?</text>
+  <text x="370" y="707" font-size="8" fill="#FFD54F" text-anchor="middle" font-family="Segoe UI,Arial">(next slot)</text>
+  <!-- YES = loop back → n++ -->
+  <line x1="300" y1="698" x2="220" y2="698" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+  <line x1="220" y1="698" x2="220" y2="334" stroke="#2E75B6" stroke-width="2"/>
+  <line x1="220" y1="334" x2="230" y2="334" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+  <text x="205" y="515" font-size="9" fill="#90caf9" text-anchor="middle" font-family="Segoe UI,Arial" transform="rotate(-90,205,515)">n++ NEXT SLOT</text>
+  <!-- NO = all done → go to FCT -->
+  <line x1="370" y1="726" x2="370" y2="750" stroke="#2E7D32" stroke-width="2" marker-end="url(#fg)"/>
+  <text x="382" y="740" font-size="9" fill="#69f0ae" text-anchor="start" font-family="Segoe UI,Arial">NO (all 4 done)</text>
+
+  <!-- ══ All flash done ══ -->
+  <!-- STEP 13: Power all 4 slots ON -->
+  <rect x="540" y="750" width="200" height="40" rx="6" fill="#3a1000" stroke="#E65100" stroke-width="1.5"/>
+  <text x="640" y="766" font-size="10" fill="#ffab40" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">13. Relay[1-4] ALL CLOSE</text>
+  <text x="640" y="779" font-size="9" fill="#ffcc80" text-anchor="middle" font-family="Segoe UI,Arial">Power all 4 slots for FCT</text>
+  <line x1="510" y1="766" x2="540" y2="766" stroke="#C62828" stroke-width="1.5" marker-end="url(#fr)"/>
+
+  <rect x="230" y="750" width="280" height="40" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="766" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">14. Send FLASH_DONE → PLC</text>
+  <text x="370" y="779" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">Release NRST all 4 → boot firmware</text>
+  <line x1="370" y1="790" x2="370" y2="814" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- STEP 15: FCT parallel -->
+  <rect x="770" y="750" width="310" height="55" rx="6" fill="#001a30" stroke="#2E75B6" stroke-width="2"/>
+  <text x="925" y="766" font-size="10" fill="#90caf9" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">15. FCT: 4 threads start in PARALLEL</text>
+  <text x="925" y="779" font-size="9" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">LED / BAT / Motor / NFC / CAN / LIN</text>
+  <text x="925" y="792" font-size="9" fill="#B0C4DE" text-anchor="middle" font-family="Segoe UI,Arial">Thread 1–4 independent per slot</text>
+  <line x1="750" y1="770" x2="770" y2="770" stroke="#2E75B6" stroke-width="1.5" marker-end="url(#fa)"/>
+  <line x1="510" y1="770" x2="750" y2="770" stroke="#2E75B6" stroke-width="1.5"/>
+
+  <!-- FCT done -->
+  <rect x="230" y="814" width="280" height="36" rx="6" fill="#1a1040" stroke="#C62828" stroke-width="1.5"/>
+  <text x="370" y="830" font-size="10" fill="#ef9a9a" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">16. Collect SLOT_PASS/FAIL[1-4]</text>
+  <text x="370" y="843" font-size="9" fill="#ffcdd2" text-anchor="middle" font-family="Segoe UI,Arial">Send results → PLC</text>
+  <line x1="370" y1="850" x2="370" y2="874" stroke="#2E75B6" stroke-width="2" marker-end="url(#fa)"/>
+
+  <!-- Robot sorts -->
+  <rect x="20" y="874" width="180" height="36" rx="6" fill="#3a2400" stroke="#E65100" stroke-width="1.5"/>
+  <text x="110" y="890" font-size="10" fill="#ffcc80" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">17. Fixture open; Robot sorts</text>
+  <text x="110" y="903" font-size="9" fill="#ffe0b2" text-anchor="middle" font-family="Segoe UI,Arial">PASS → conveyor; FAIL → reject</text>
+  <line x1="370" y1="874" x2="200" y2="890" stroke="#E65100" stroke-width="1.5" marker-end="url(#fo)"/>
+
+  <!-- Result logger -->
+  <rect x="230" y="874" width="280" height="36" rx="6" fill="#1a1040" stroke="#F57F17" stroke-width="1.5"/>
+  <text x="370" y="890" font-size="10" fill="#FFD54F" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">18. result_logger: CSV + HTML</text>
+  <text x="370" y="903" font-size="9" fill="#ffe082" text-anchor="middle" font-family="Segoe UI,Arial">Per-slot: BarcodeID, Flash OK, FCT result</text>
+
+  <!-- Error lane -->
+  <rect x="1110" y="540" width="80" height="80" rx="6" fill="#3a0000" stroke="#C62828" stroke-width="1.5"/>
+  <text x="1150" y="566" font-size="9" fill="#ffcdd2" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FLASH</text>
+  <text x="1150" y="579" font-size="9" fill="#ffcdd2" font-weight="bold" text-anchor="middle" font-family="Segoe UI,Arial">FAIL[n]</text>
+  <text x="1150" y="594" font-size="8" fill="#ef9a9a" text-anchor="middle" font-family="Segoe UI,Arial">Log skip</text>
+  <text x="1150" y="607" font-size="8" fill="#ef9a9a" text-anchor="middle" font-family="Segoe UI,Arial">FCT skipped</text>
+  <text x="1150" y="620" font-size="8" fill="#ef9a9a" text-anchor="middle" font-family="Segoe UI,Arial">→ Reject lane</text>
+</svg>
+  </div>
+</div>
+
+<!-- SECTION 6: SOFTWARE CHANGES -->
+<div class="section">
+  <div class="section-title"><span class="num">6</span> Software Changes Required</div>
+  <div class="cards">
+    <div class="card">
+      <h3>NEW: trace32_mux_flasher.py</h3>
+      <ul>
+        <li>Wraps Lauterbach PRACTICE API (T32_API)</li>
+        <li><code>flash_all_slots(firmware_path)</code> — main entry point</li>
+        <li><code>select_slot(n)</code> — sets GPIO MUX SEL lines + NRST control</li>
+        <li><code>flash_slot(n)</code> — SYStem.UP, FLASH.Erase, Program, Verify</li>
+        <li>Returns per-slot dict: {slot: PASS/FAIL, checksum}</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>NEW: psu_slot_controller.py</h3>
+      <ul>
+        <li>VISA/SCPI wrapper for KIKUSUI PWR401L</li>
+        <li><code>enable_slot(n)</code> / <code>disable_slot(n)</code> via USB relay</li>
+        <li><code>enable_all_slots()</code> for FCT phase</li>
+        <li>Per-slot current monitoring (fault detection)</li>
+        <li>OCP setting: configurable per slot via config.json</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>UPDATED: integrated_automation.py</h3>
+      <ul>
+        <li>Add flash phase before FCT phase</li>
+        <li>Call <code>trace32_mux_flasher.flash_all_slots()</code></li>
+        <li>Skip FCT for slots with FLASH_FAIL</li>
+        <li>Add <code>is_flash_required</code> flag (skip if already flashed)</li>
+        <li>Pass flash results to result_logger</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>UPDATED: result_logger.py</h3>
+      <ul>
+        <li>Add FLASH_RESULT column to CSV (PASS/FAIL/SKIP)</li>
+        <li>Add FLASH_CHECKSUM column</li>
+        <li>HTML report: separate flash phase and FCT phase sections</li>
+        <li>Mark skipped FCT slots clearly in report</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: IMPLEMENTATION PLAN -->
+<div class="section">
+  <div class="section-title"><span class="num">7</span> Implementation Roadmap</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-body"><strong>Verify RH_i460 MCU SWD accessibility</strong> — Confirm whether SWD is accessible at startup (no BOOT pin manipulation needed). Check if currently-flashed firmware disables SWD after boot. Estimated: 0.5 day.</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Measure PCB current draw</strong> — Power one RH_i460 via bench PSU, measure startup and idle current. Confirm whether 1A PSU is sufficient for one board; determine total current for 4 boards in FCT phase. Estimated: 0.5 day.</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Design JTAG MUX board</strong> — Select relay MUX circuit, design PCB or use off-shelf USB relay board. Add polyfuses per slot. Route SWD signals from MUX output to 4 fixture pogo-pin headers. Estimated: 3–5 days (HW Eng).</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Prototype MUX wiring on bench</strong> — Before fixture PCB rework, validate MUX concept: breadboard relay MUX, connect 2 bench PCBs, manually control MUX via GPIO, verify Trace32 can flash each board sequentially. Estimated: 1 day.</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Write trace32_mux_flasher.py</strong> — Implement PRACTICE API wrapper, MUX control, NRST GPIO control, flash sequence, verify, and result reporting. Unit test on 2-board bench prototype. Estimated: 2 days (SW Eng).</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Write psu_slot_controller.py</strong> — Implement VISA/SCPI PSU control + relay per slot + current monitoring. Test PSU OCP and fault isolation on bench. Estimated: 1 day (SW Eng).</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Fixture PCB rework</strong> — Add per-slot SWD header, NRST line, and polyfuse to fixture PCB. Run 5-pin cable from fixture to MUX board. Estimated: 2 days (HW Eng).</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Integration test — 4-board flash on fixture</strong> — Full end-to-end test: robot loads 4 PCBs, software flashes all 4 sequentially, FCT runs in parallel. Verify all PASS. Estimated: 1–2 days.</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Cycle-time measurement and tuning</strong> — Measure total cycle time (load + flash + FCT + unload). Optimize SWD clock, blank-check skip, parallelism. Document final throughput (PCBs/hour). Estimated: 0.5 day.</div>
+    </div>
+    <div class="step">
+      <div class="step-body"><strong>Production validation — 50-board run</strong> — Run 50 boards through automated fixture. Verify no flash failures due to MUX signal integrity. Review logs and thermal behavior of PSU under sustained load. Sign off. Estimated: 1 day.</div>
+    </div>
+  </div>
+  <div class="warn-box" style="margin-top:16px">
+    <strong>Total Estimated Effort:</strong> ~12–14 working days (HW 5–7 days + SW 4–5 days + Integration 2–3 days)<br>
+    <strong>Critical Path:</strong> JTAG MUX board design and fixture PCB rework (HW) — start these in parallel with SW development.
+  </div>
+</div>
+
+<!-- SECTION 8: RISK REGISTER -->
+<div class="section">
+  <div class="section-title"><span class="num">8</span> Risk Register</div>
+  <table>
+    <thead><tr><th>Risk</th><th>Probability</th><th>Impact</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>MUX signal integrity causes intermittent flash failures</td><td class="sev-med">MEDIUM</td><td class="sev-high">HIGH</td><td>Prototype and test at 1 MHz SWD clock first; add series termination; keep cable &lt; 150mm</td></tr>
+      <tr><td>PSU insufficient for all 4 boards in FCT phase</td><td class="sev-med">MEDIUM</td><td class="sev-med">MEDIUM</td><td>Measure actual current first; upgrade PSU if needed before fixture integration</td></tr>
+      <tr><td>Trace32 license blocks multi-target sequential use</td><td class="sev-low">LOW</td><td class="sev-high">HIGH</td><td>Verify license with Lauterbach before starting HW work; escalate to procurement if needed</td></tr>
+      <tr><td>Flash time per board too long (&gt; 60s) → cycle time unacceptable</td><td class="sev-low">LOW</td><td class="sev-med">MEDIUM</td><td>Measure single-board flash time early; optimize firmware image (exclude debug data, use FLASH.AUTO)</td></tr>
+      <tr><td>Relay mechanical wear at high production volume</td><td class="sev-low">LOW</td><td class="sev-low">LOW</td><td>Use solid-state relay or high-cycle MEMS relay for JTAG MUX if volume &gt; 100K cycles/year</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 9: OPEN QUESTIONS -->
+<div class="section">
+  <div class="section-title"><span class="num">9</span> Open Questions / Decisions Required</div>
+  <table>
+    <thead><tr><th>#</th><th>Question</th><th>Decision Needed From</th><th>Impact If Delayed</th></tr></thead>
+    <tbody>
+      <tr><td>Q1</td><td>Does RH_i460 MCU require BOOT pin manipulation to enable SWD flash mode?</td><td>FW Engineer</td><td>Blocks MUX board GPIO design — need BOOT pin routing if yes</td></tr>
+      <tr><td>Q2</td><td>Is current Trace32 license (PowerDebug E40) valid for sequential multi-target (different physical boards)?</td><td>Project Lead / Lauterbach support</td><td>Blocks entire approach — must confirm before HW investment</td></tr>
+      <tr><td>Q3</td><td>What is actual per-board peak current of RH_i460 at 3.3V / 5V during FCT (motor + NFC active)?</td><td>HW Engineer (bench measurement)</td><td>Determines if PWR401L 1A is sufficient or PSU upgrade needed</td></tr>
+      <tr><td>Q4</td><td>Is SWD interface on RH_i460 2-wire (SWD) or 4-wire (JTAG)?</td><td>FW Engineer</td><td>Determines MUX signal count (2 vs 4 lines per slot)</td></tr>
+      <tr><td>Q5</td><td>What is acceptable total cycle time (load → flash → FCT → unload) for production target?</td><td>Production Manager</td><td>Determines whether sequential flash approach meets throughput KPI</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>
