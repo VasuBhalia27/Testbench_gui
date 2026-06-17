@@ -36,7 +36,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Error → Failure → Defect
 - C) Error → Defect → Failure
 - D) Defect → Error → Failure
-
+**Q3 — Answer: C**  
+The chain is: a human makes an **error** (mistake) → that error produces a **defect** (fault/bug) in the code → when executed, the defect may cause a **failure** (observable wrong behaviour). *(Syllabus §1.2.3)*
 ---
 
 **Q4.** Which of the seven testing principles states: "If the same tests are repeated many times, they become increasingly ineffective in detecting new defects"?
@@ -45,7 +46,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Tests wear out
 - C) Exhaustive testing is impossible
 - D) Defects cluster together
-
+**Q4 — Answer: B**  
+Principle 5 is **"Tests wear out"** — repeating the same tests reduces their effectiveness at finding new defects (pesticide paradox). *(Syllabus §1.3)*
 ---
 
 **Q5.** According to the testing principles, which of the following is TRUE about exhaustive testing?
@@ -54,7 +56,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) It is only possible for simple, low-complexity applications
 - C) It is not feasible except in trivial cases
 - D) It can be achieved using automated testing tools
-
+**Q5 — Answer: C**  
+Principle 2 states exhaustive testing is **not feasible except in trivial cases**. Use risk-based approaches and test techniques instead. *(Syllabus §1.3)*
 ---
 
 **Q6.** Which statement CORRECTLY describes the responsibilities of the two principal roles in testing?
@@ -63,7 +66,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) The test management role focuses on test planning, monitoring, and completion; the testing role focuses on test analysis, design, implementation, and execution
 - C) The testing role includes test planning, while the test management role only covers test reporting
 - D) The test management role only exists in Agile projects, not in sequential models
-
+**Q6 — Answer: B**  
+The **test management role** covers test planning, monitoring, control, and completion. The **testing role** covers test analysis, design, implementation, and execution. *(Syllabus §1.4.5)*
 ---
 
 **Q7.** Which of the following BEST describes the "Whole Team Approach"?
@@ -72,7 +76,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Any team member with the necessary knowledge and skills can perform any task, and everyone is responsible for quality
 - C) Testing is performed entirely by an independent external test team
 - D) The test manager delegates all testing tasks to the development team
-
+**Q7 — Answer: B**  
+The **whole team approach** (from Extreme Programming) means any team member can perform any task, and quality is everyone's responsibility. *(Syllabus §1.5.2)*
 ---
 
 ## CHAPTER 2 — Testing Throughout the SDLC (Questions 8–13)
@@ -85,7 +90,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Confirmation testing
 - C) Test-Driven Development (TDD)
 - D) Exploratory testing
-
+**Q8 — Answer: C**  
+**TDD** is a test-first approach: tests are written before the code. ATDD and BDD are also test-first. Regression and confirmation testing are not test-first approaches. *(Syllabus §2.1.3)*
 ---
 
 **Q9.** The "shift-left" approach in testing PRIMARILY means:
@@ -94,7 +100,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Starting testing earlier in the Software Development Lifecycle
 - C) Automating all tests so they run faster on the left side of the CI pipeline
 - D) Shifting testing responsibility from testers to developers
-
+**Q9 — Answer: B**  
+**Shift-left** means performing testing **earlier in the SDLC** — not waiting for code to be complete or components to be integrated. It does not mean neglecting later testing. *(Syllabus §2.1.5)*
 ---
 
 **Q10.** What is the PRIMARY purpose of confirmation testing?
@@ -103,7 +110,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) To verify that changes made to one component have not caused failures in other parts
 - C) To confirm that an original defect has been successfully fixed
 - D) To ensure all planned test cases have been executed
-
+**Q10 — Answer: C**  
+**Confirmation testing** (re-testing) verifies that a specific, previously found defect has been successfully fixed. **Regression testing** (B) checks for unintended side-effects in other areas. *(Syllabus §2.2.3)*
 ---
 
 **Q11.** Which of the following CORRECTLY describes Component Integration Testing?
@@ -112,7 +120,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) It focuses on testing the interfaces and interactions between components
 - C) It requires the participation of end users and business representatives
 - D) It is performed to validate business requirements using UAT
-
+**Q11 — Answer: B**  
+**Component integration testing** focuses on the interfaces and interactions between components. System testing (A) covers overall system behaviour. UAT (D) is acceptance testing. *(Syllabus §2.2.1)*
 ---
 
 **Q12.** Which statement about regression testing is CORRECT?
@@ -121,7 +130,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Regression testing confirms that no adverse consequences have been caused by a change
 - C) Regression testing replaces the need for confirmation testing when time is limited
 - D) Regression testing is not a strong candidate for automation due to frequent changes
-
+**Q12 — Answer: B**  
+**Regression testing** confirms that a change (fix, enhancement) has not introduced adverse consequences in the system. It is also a strong candidate for automation. *(Syllabus §2.2.3)*
 ---
 
 **Q13.** Which of the following can trigger maintenance testing?
@@ -130,7 +140,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Modifications, upgrades/migrations of the operational environment, and retirement of systems
 - C) Only corrective (bug-fix) changes to the production system
 - D) Only planned enhancements in scheduled release cycles
-
+**Q13 — Answer: B**  
+Maintenance testing is triggered by: **modifications** (enhancements, hot fixes), **upgrades/migrations** of the environment, and **retirement** of a system (e.g., data archiving). *(Syllabus §2.3)*
 ---
 
 ## CHAPTER 3 — Static Testing (Questions 14–16)
@@ -143,7 +154,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Static testing finds defects directly, while dynamic testing causes failures from which defects are then determined through analysis
 - C) Static testing can only be applied to source code, not to requirements or designs
 - D) Dynamic testing can be applied to non-executable work products such as requirements specifications
-
+**Q14 — Answer: B**  
+Static testing finds defects directly (no execution needed). Dynamic testing executes the software, causing failures; defects are then found by analysing those failures. *(Syllabus §3.1.3)*
 ---
 
 **Q15.** In a formal review (Inspection), who is NOT permitted to act as the review leader or scribe?
@@ -152,7 +164,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) The author of the work product under review
 - C) An external reviewer from outside the organisation
 - D) A quality manager who is not part of the development team
-
+**Q15 — Answer: B**  
+In an **Inspection** (most formal review type), **the author cannot act as the review leader or scribe** to ensure objectivity. *(Syllabus §3.2.4)*
 ---
 
 **Q16.** Which review type is LED BY THE AUTHOR and can serve objectives such as educating reviewers, gaining consensus, and generating new ideas?
@@ -161,7 +174,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Technical Review
 - C) Walkthrough
 - D) Informal Review
-
+**Q16 — Answer: C**  
+A **Walkthrough** is led by the author and serves objectives such as educating reviewers, gaining consensus, generating new ideas, and detecting anomalies. *(Syllabus §3.2.4)*
 ---
 
 ## CHAPTER 4 — Test Analysis and Design (Questions 17–30)
@@ -174,7 +188,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) They are based on an analysis of the specified behavior of the test object without reference to its internal structure
 - C) They require direct access to the source code to derive test cases
 - D) They can only be used at the component (unit) test level
-
+**Q17 — Answer: B**  
+**Black-box techniques** (specification-based) test the observable behaviour without knowledge of internal structure. They do not require access to source code. *(Syllabus §4.1)*
 ---
 
 **Q18.** In Equivalence Partitioning (EP), what is required to achieve 100% coverage?
@@ -183,7 +198,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Test cases must exercise each identified partition (including invalid partitions) at least once
 - C) Test cases must only cover valid partitions; invalid partitions are out of scope
 - D) Test cases must cover only the boundary values at the edge of each partition
-
+**Q18 — Answer: B**  
+EP requires test cases to **exercise each partition at least once**, including invalid partitions. Coverage = partitions exercised ÷ total partitions × 100%. *(Syllabus §4.2.1)*
 ---
 
 **Q19.** A system accepts age values from 1 to 120. Using **2-value** Boundary Value Analysis, which set of test values CORRECTLY covers the lower boundary?
@@ -192,7 +208,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) 0, 1, 2
 - C) 1, 2
 - D) 1, 120
-
+**Q19 — Answer: A**  
+For **2-value BVA**, at the lower boundary of 1: the boundary value is **1** and its closest neighbour in the adjacent (invalid) partition is **0**. So: {0, 1}. *(Syllabus §4.2.2)*
 ---
 
 **Q20.** Which of the following describes the key STRENGTH of decision table testing?
@@ -201,7 +218,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) It provides a systematic approach to identify all combinations of conditions, helping to find gaps or contradictions in requirements
 - C) It works best when there is a very large number of conditions (more than 10)
 - D) It does not require business rules or conditions to be clearly defined upfront
-
+**Q20 — Answer: B**  
+Decision table testing's key strength is providing a **systematic approach to identify all combinations of conditions**, ensuring no combination is overlooked and revealing gaps or contradictions in requirements. *(Syllabus §4.2.3)*
 ---
 
 **Q21.** In state transition testing, which coverage criterion is considered the MOST WIDELY USED?
@@ -210,7 +228,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Valid transitions coverage (also called 0-switch coverage)
 - C) All transitions coverage
 - D) Decision coverage
-
+**Q21 — Answer: B**  
+**Valid transitions coverage (0-switch coverage)** is the most widely used criterion. All states coverage is weaker; all transitions coverage is stronger and required for safety-critical systems. *(Syllabus §4.2.4)*
 ---
 
 **Q22.** In branch testing (a white-box technique), achieving 100% branch coverage means:
@@ -219,7 +238,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) All unconditional and conditional branches in the code have been exercised by test cases
 - C) Every possible path through the code has been executed
 - D) All functions and methods in the code have been called at least once
-
+**Q22 — Answer: B**  
+100% branch coverage means all **unconditional and conditional branches** have been exercised. A conditional branch covers both the true and false outcomes of an if-then decision. *(Syllabus §4.3.2)*
 ---
 
 **Q23.** Which statement about the relationship between branch coverage and statement coverage is CORRECT?
@@ -228,7 +248,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Achieving 100% branch coverage guarantees 100% statement coverage (but not vice versa)
 - C) Branch coverage and statement coverage are completely independent measures
 - D) Neither branch coverage nor statement coverage subsumes the other
-
+**Q23 — Answer: B**  
+**Branch coverage subsumes statement coverage**: any set of tests achieving 100% branch coverage also achieves 100% statement coverage. The reverse is NOT true. *(Syllabus §4.3.2)*
 ---
 
 **Q24.** Which of the following BEST describes exploratory testing?
@@ -237,7 +258,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Tests are simultaneously designed, executed, and evaluated while the tester learns about the test object
 - C) Tests are fully automated and run without any human involvement during execution
 - D) Tests follow a predefined, scripted procedure that cannot be changed during execution
-
+**Q24 — Answer: B**  
+**Exploratory testing** is simultaneous design, execution, and evaluation — the tester learns about the system as they test it. Often conducted in time-boxed sessions with a test charter. *(Syllabus §4.4.2)*
 ---
 
 **Q25.** Error guessing is an experience-based test technique. Which of the following is a METHODICAL approach to implementing error guessing?
@@ -246,7 +268,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Boundary Value Analysis
 - C) Fault Attacks
 - D) Checklist-based testing
-
+**Q25 — Answer: C**  
+**Fault attacks** are the methodical implementation of error guessing — the tester creates/acquires a list of possible errors and designs tests to expose them. *(Syllabus §4.4.1)*
 ---
 
 **Q26.** What does the acronym **INVEST** represent in the context of good user stories?
@@ -255,7 +278,8 @@ Testing is a form of **Quality Control (QC)** — product-oriented and correctiv
 - B) Integrated, Necessary, Verified, Executable, Structured, Traceable
 - C) Independent, Normalized, Validated, Effective, Specific, Tested
 - D) Iterative, Negotiable, Valuable, Efficient, Simple, Testable
-
+**Q26 — Answer: A**  
+**INVEST** = **I**ndependent, **N**egotiable, **V**aluable, **E**stimable, **S**mall, **T**estable. These are the criteria for a good user story. *(Syllabus §4.5.1)*
 ---
 
 **Q27.** What is the PRIMARY characteristic of Acceptance Test-Driven Development (ATDD)?
